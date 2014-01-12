@@ -16,7 +16,8 @@
 
 class Notifier(object):
     """Base notifier that should be implemented by every service that would
-    like to use profiler lib."""
+    like to use profiler lib.
+    """
 
     def notify(self, event_type, payload):
         pass

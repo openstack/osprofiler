@@ -32,7 +32,7 @@ def before_execute(name):
 def after_execute():
     """Add listener that will send trace info after sql executed."""
     def handler(conn, clauseelement, multiparams, params, result):
-        p =  profiler.get_profiler()
+        p = profiler.get_profiler()
         if p:
             p.stop(info={"db.result": str(result)})
 

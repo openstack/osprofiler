@@ -24,7 +24,7 @@ __local_ctx = threading.local()
 
 
 def init(base_id=None, parent_id=None, service='generic'):
-    """ Init profiler.
+    """Init profiler.
     :param base_id: Used to bind all related traces.
     :param parent_id: Used to build tree of traces.
     :param service: Service name that sends traces.

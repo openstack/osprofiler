@@ -12,10 +12,10 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
-from osprofiler import test
+from tests import test
 
 
 class DummyTestCase(test.TestCase):
 
-    def dummy(self):
+    def test_dummy(self):
         self.assertTrue(2 == 2)
