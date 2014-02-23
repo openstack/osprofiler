@@ -20,20 +20,22 @@ import webob.dec
 from osprofiler import profiler
 
 
-def add_trace_id_header(self, headers):
+def add_trace_id_header(headers):
     p = profiler.get_profiler()
     if p:
-        kwargs = {'base_id': p.get_base_id(), 'parent_id': p.get_id[-1]}
-        headers['X-Trace-Info'] = base64.b64encode(pickle.dumps(kwargs))
+        kwargs = {"base_id": p.get_base_id(), "parent_id": p.get_id()}
+        headers["X-Trace-Info"] = base64.b64encode(pickle.dumps(kwargs))
 
 
 class WsgiMiddleware(object):
     """WSGI Middleware that enables tracing for an application."""
 
-    def __init__(self, application, service_name='server', name='WSGI'):
+    def __init__(self, application, service_name='server', name='WSGI',
+                 enabled=False):
         self.application = application
         self.service_name = service_name
         self.name = name
+        self.enabled = enabled
 
     @classmethod
     def factory(cls, global_conf, **local_conf):
@@ -43,15 +45,18 @@ class WsgiMiddleware(object):
 
     @webob.dec.wsgify
     def __call__(self, request):
-        trace_info = {}
-        trace_info_enc = request.headers.get('X-Trace-Info')
+        if not self.enabled:
+            return request.get_response(self.application)
+
+        trace_info_enc = request.headers.get("X-Trace-Info")
         if trace_info_enc:
             trace_info = pickle.loads(base64.b64decode(trace_info_enc))
 
-        p = profiler.init(trace_info.get("base_id"),
-                          trace_info.get("parent_id"),
-                          self.service_name)
+            p = profiler.init(trace_info.get("base_id"),
+                              trace_info.get("parent_id"),
+                              self.service_name)
 
-        with p(self.name, info={'url': request.url}):
-            response = request.get_response(self.application)
-        return response
+            with p(self.name, info={"url": request.url}):
+                return request.get_response(self.application)
+
+        return request.get_response(self.application)
