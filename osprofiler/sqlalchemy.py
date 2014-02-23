@@ -17,29 +17,28 @@ from osprofiler import profiler
 
 
 def before_execute(name):
-    """Add listener that will send trace info before sql executed."""
+    """Add listener that will send trace info before query is executed."""
+
     def handler(conn, clauseelement, multiparams, params):
-        p = profiler.get_profiler()
-        if p:
-            info = {"db.statement": str(clauseelement),
-                    "db.multiparams": str(multiparams),
-                    "db.params": str(params)}
-            p.start(name, info=info)
+        info = {"db.statement": str(clauseelement),
+                "db.multiparams": str(multiparams),
+                "db.params": str(params)}
+        profiler.start(name, info=info)
 
     return handler
 
 
 def after_execute():
-    """Add listener that will send trace info after sql executed."""
+    """Add listener that will send trace info after query is executed."""
+
     def handler(conn, clauseelement, multiparams, params, result):
-        p = profiler.get_profiler()
-        if p:
-            p.stop(info={"db.result": str(result)})
+        profiler.stop(info=None)
 
     return handler
 
 
 def add_tracing(sqlalchemy, engine, name):
     """Add tracing to all sqlalchemy calls."""
+
     sqlalchemy.event.listen(engine, 'before_execute', before_execute(name))
     sqlalchemy.event.listen(engine, 'after_execute', after_execute())

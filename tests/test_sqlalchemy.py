@@ -1,0 +1,60 @@
+# Copyright 2014 Mirantis Inc.
+# All Rights Reserved.
+#
+#    Licensed under the Apache License, Version 2.0 (the "License"); you may
+#    not use this file except in compliance with the License. You may obtain
+#    a copy of the License at
+#
+#         http://www.apache.org/licenses/LICENSE-2.0
+#
+#    Unless required by applicable law or agreed to in writing, software
+#    distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+#    WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
+#    License for the specific language governing permissions and limitations
+#    under the License.
+
+import mock
+
+from osprofiler import sqlalchemy
+
+from tests import test
+
+
+class SqlalchemyTracingTestCase(test.TestCase):
+
+    @mock.patch("osprofiler.sqlalchemy.profiler")
+    def test_before_execute(self, mock_profiler):
+        handler = sqlalchemy.before_execute("sql")
+
+        handler(mock.MagicMock(), 1, 2, 3)
+        expected_info = {
+            "db.statement": "1",
+            "db.multiparams": "2",
+            "db.params": "3"
+        }
+        mock_profiler.start.assert_called_once_with("sql", info=expected_info)
+
+    @mock.patch("osprofiler.sqlalchemy.profiler")
+    def test_after_execute(self, mock_profiler):
+        handler = sqlalchemy.after_execute()
+        handler(mock.MagicMock(), 1, 2, 3, mock.MagicMock())
+        mock_profiler.stop.assert_called_once_with(info=None)
+
+    @mock.patch("osprofiler.sqlalchemy.before_execute")
+    @mock.patch("osprofiler.sqlalchemy.after_execute")
+    def test_add_tracing(self, mock_after_exc, mock_before_exc):
+        sa = mock.MagicMock()
+        engine = mock.MagicMock()
+
+        mock_before_exc.return_value = "before"
+        mock_after_exc.return_value = "after"
+
+        sqlalchemy.add_tracing(sa, engine, "sql")
+
+        mock_before_exc.assert_called_once_with("sql")
+        mock_after_exc.assert_called_once_with()
+        expected_calls = [
+            mock.call(engine, "before_execute", "before"),
+            mock.call(engine, "after_execute", "after")
+        ]
+        self.assertEqual(sa.event.listen.call_args_list, expected_calls)
