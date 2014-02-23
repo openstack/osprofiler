@@ -24,6 +24,10 @@ from osprofiler import notifier
 __local_ctx = threading.local()
 
 
+def _clean():
+    __local_ctx.profiler = None
+
+
 def init(base_id=None, parent_id=None, service='generic'):
     """Init profiler.
     :param base_id: Used to bind all related traces.
@@ -42,6 +46,20 @@ def get_profiler():
     :returns: Profiler instance or None if profiler wasn't inited.
     """
     return getattr(__local_ctx, "profiler", None)
+
+
+def start(name, info=None):
+    """Send new start notification if profiler instance is preseneted."""
+    profiler = get_profiler()
+    if profiler:
+        profiler.start(name, info=info)
+
+
+def stop(info=None):
+    """Send new stop notification if profiler instance is preseneted."""
+    profiler = get_profiler()
+    if profiler:
+        profiler.stop(info=info)
 
 
 class Profiler(object):
@@ -68,7 +86,7 @@ class Profiler(object):
         self.start(self._name[-1], info=self._info)
 
     def __exit__(self, etype, value, traceback):
-        self.stop(self._name.pop())
+        self.stop()
 
     def get_base_id(self):
         return self._trace_stack[0]
