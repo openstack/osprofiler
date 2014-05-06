@@ -58,3 +58,19 @@ class SqlalchemyTracingTestCase(test.TestCase):
             mock.call(engine, "after_execute", "after")
         ]
         self.assertEqual(sa.event.listen.call_args_list, expected_calls)
+
+    @mock.patch("osprofiler.sqlalchemy.before_execute")
+    @mock.patch("osprofiler.sqlalchemy.after_execute")
+    def test_disable_and_enable(self, mock_after_exc, mock_before_exc):
+        sqlalchemy.disable()
+
+        sa = mock.MagicMock()
+        engine = mock.MagicMock()
+        sqlalchemy.add_tracing(sa, engine, "sql")
+        self.assertFalse(mock_after_exc.called)
+        self.assertFalse(mock_before_exc.called)
+
+        sqlalchemy.enable()
+        sqlalchemy.add_tracing(sa, engine, "sql")
+        self.assertTrue(mock_after_exc.called)
+        self.assertTrue(mock_before_exc.called)

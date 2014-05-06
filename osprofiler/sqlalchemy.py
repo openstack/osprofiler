@@ -37,8 +37,22 @@ def after_execute():
     return handler
 
 
+_DISABLED = False
+
+
+def disable():
+    global _DISABLED
+    _DISABLED = True
+
+
+def enable():
+    global _DISABLED
+    _DISABLED = False
+
+
 def add_tracing(sqlalchemy, engine, name):
     """Add tracing to all sqlalchemy calls."""
 
-    sqlalchemy.event.listen(engine, 'before_execute', before_execute(name))
-    sqlalchemy.event.listen(engine, 'after_execute', after_execute())
+    if not _DISABLED:
+        sqlalchemy.event.listen(engine, 'before_execute', before_execute(name))
+        sqlalchemy.event.listen(engine, 'after_execute', after_execute())

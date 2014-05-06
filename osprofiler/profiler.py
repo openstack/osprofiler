@@ -49,14 +49,14 @@ def get_profiler():
 
 
 def start(name, info=None):
-    """Send new start notification if profiler instance is preseneted."""
+    """Send new start notification if profiler instance is presented."""
     profiler = get_profiler()
     if profiler:
         profiler.start(name, info=info)
 
 
 def stop(info=None):
-    """Send new stop notification if profiler instance is preseneted."""
+    """Send new stop notification if profiler instance is presented."""
     profiler = get_profiler()
     if profiler:
         profiler.stop(info=info)
