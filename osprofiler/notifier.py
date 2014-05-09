@@ -21,7 +21,7 @@ class Notifier(object):
     like to use profiler lib.
     """
 
-    def notify(self, event_type, payload):
+    def notify(self, payload):
         pass
 
 

@@ -27,7 +27,7 @@ class ProfilerGlobMethodsTestCase(test.TestCase):
         self.assertIsNone(profiler.get_profiler())
 
     def test_get_profiler_and_init(self):
-        p = profiler.init(base_id="1", parent_id="2", service="generic2")
+        p = profiler.init(base_id="1", parent_id="2")
         self.assertEqual(profiler.get_profiler(), p)
 
         self.assertEqual(p.get_base_id(), "1")
@@ -39,7 +39,7 @@ class ProfilerGlobMethodsTestCase(test.TestCase):
         profiler.start("name")
 
     def test_start(self):
-        p = profiler.init(base_id="1", parent_id="2", service="generic2")
+        p = profiler.init(base_id="1", parent_id="2")
         p.start = mock.MagicMock()
         profiler.start("name", info="info")
         p.start.assert_called_once_with("name", info="info")
@@ -49,7 +49,7 @@ class ProfilerGlobMethodsTestCase(test.TestCase):
         profiler.stop()
 
     def test_stop(self):
-        p = profiler.init(base_id="1", parent_id="2", service="generic2")
+        p = profiler.init(base_id="1", parent_id="2")
         p.stop = mock.MagicMock()
         profiler.stop(info="info")
         p.stop.assert_called_once_with(info="info")
@@ -101,7 +101,7 @@ class ProfilerTestCase(test.TestCase):
         prof = profiler.Profiler(base_id="1", parent_id="2")
         prof.start("test", info=info)
 
-        notifier.notify.assert_called_once_with('profiler.generic', payload)
+        notifier.notify.assert_called_once_with(payload)
 
     @mock.patch("osprofiler.profiler.notifier.get_notifier")
     def test_profiler_stop(self, mock_get_notfier):
@@ -123,7 +123,7 @@ class ProfilerTestCase(test.TestCase):
             "info": info
         }
 
-        notifier.notify.assert_called_once_with('profiler.generic', payload)
+        notifier.notify.assert_called_once_with(payload)
         self.assertEqual(len(prof._name), 0)
         self.assertEqual(prof._trace_stack, ["1", "2"])
 

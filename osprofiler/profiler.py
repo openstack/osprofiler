@@ -20,7 +20,7 @@ import uuid
 from osprofiler import notifier
 
 
-# NOTE(boris-42): Thread safe storge for profiler instances.
+# NOTE(boris-42): Thread safe storage for profiler instances.
 __local_ctx = threading.local()
 
 
@@ -28,15 +28,13 @@ def _clean():
     __local_ctx.profiler = None
 
 
-def init(base_id=None, parent_id=None, service='generic'):
+def init(base_id=None, parent_id=None):
     """Init profiler.
     :param base_id: Used to bind all related traces.
     :param parent_id: Used to build tree of traces.
-    :param service: Service name that sends traces.
     :returns: Profiler instance
     """
-    __local_ctx.profiler = Profiler(base_id=base_id, parent_id=parent_id,
-                                    service=service)
+    __local_ctx.profiler = Profiler(base_id=base_id, parent_id=parent_id)
     return __local_ctx.profiler
 
 
@@ -64,9 +62,8 @@ def stop(info=None):
 
 class Profiler(object):
 
-    def __init__(self, base_id=None, parent_id=None, service='generic'):
+    def __init__(self, base_id=None, parent_id=None):
         self.notifier = notifier.get_notifier()
-        self._service = service
         if not base_id:
             base_id = str(uuid.uuid4())
         self._trace_stack = [base_id, parent_id or base_id]
@@ -121,4 +118,4 @@ class Profiler(object):
         if info:
             payload['info'] = info
 
-        self.notifier.notify('profiler.%s' % self._service, payload)
+        self.notifier.notify(payload)

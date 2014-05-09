@@ -30,10 +30,8 @@ def add_trace_id_header(headers):
 class WsgiMiddleware(object):
     """WSGI Middleware that enables tracing for an application."""
 
-    def __init__(self, application, service_name='server', name='WSGI',
-                 enabled=False):
+    def __init__(self, application, name='WSGI', enabled=False):
         self.application = application
-        self.service_name = service_name
         self.name = name
         self.enabled = enabled
 
@@ -53,10 +51,19 @@ class WsgiMiddleware(object):
             trace_info = pickle.loads(base64.b64decode(trace_info_enc))
 
             p = profiler.init(trace_info.get("base_id"),
-                              trace_info.get("parent_id"),
-                              self.service_name)
+                              trace_info.get("parent_id"))
 
-            with p(self.name, info={"url": request.url}):
+            info = {
+                "request": {
+                    "host_url": request.host_url,
+                    "path": request.path,
+                    "query": request.query_string,
+                    "method": request.method,
+                    "scheme": request.scheme
+                }
+            }
+
+            with p(self.name, info=info):
                 return request.get_response(self.application)
 
         return request.get_response(self.application)
