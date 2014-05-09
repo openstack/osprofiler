@@ -123,6 +123,13 @@ def parse_notifications(notifications):
         return (int)(deltatime.total_seconds() * 1000)
 
     for r in result.itervalues():
+        # NOTE(boris-42): We are not able to guarantee that ceilometer consumed
+        #                 all messages => so we should at make duration 0ms.
+        if "started" not in r["info"]:
+            r["info"]["started"] = r["info"]["finished"]
+        if "finished" not in r["info"]:
+            r["info"]["finished"] = r["info"]["started"]
+
         r["info"]["started"] = msec(r["info"]["started"] - started_at)
         r["info"]["finished"] = msec(r["info"]["finished"] - started_at)
 
