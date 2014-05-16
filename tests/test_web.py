@@ -14,8 +14,8 @@
 #    under the License.
 
 import base64
+import json
 import mock
-import pickle
 
 from osprofiler import profiler
 from osprofiler import web
@@ -26,7 +26,7 @@ from tests import test
 class WebMiddlewareTestCase(test.TestCase):
 
     @mock.patch("osprofiler.web.base64.b64encode")
-    @mock.patch("osprofiler.web.pickle.dumps")
+    @mock.patch("osprofiler.web.json.dumps")
     @mock.patch("osprofiler.web.profiler.get_profiler")
     def test_add_trace_id_header(self, mock_get_profiler,
                                  mock_dumps, mock_b64encode):
@@ -35,6 +35,7 @@ class WebMiddlewareTestCase(test.TestCase):
         p = mock.MagicMock()
         p.get_base_id.return_value = 1
         p.get_id.return_value = 2
+        p.hmac_key = None
         mock_get_profiler.return_value = p
 
         headers = {"a": 10, "b": 20}
@@ -81,7 +82,7 @@ class WebMiddlewareTestCase(test.TestCase):
         request.headers = {
             "a": "1",
             "b": "2",
-            "X-Trace-Info": base64.b64encode(pickle.dumps(trace_info))
+            "X-Trace-Info": base64.b64encode(json.dumps(trace_info))
         }
         p = profiler.init()
         p.start = mock.MagicMock()

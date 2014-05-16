@@ -28,13 +28,14 @@ def _clean():
     __local_ctx.profiler = None
 
 
-def init(base_id=None, parent_id=None):
+def init(base_id=None, parent_id=None, hmac_key=None):
     """Init profiler.
     :param base_id: Used to bind all related traces.
     :param parent_id: Used to build tree of traces.
     :returns: Profiler instance
     """
-    __local_ctx.profiler = Profiler(base_id=base_id, parent_id=parent_id)
+    __local_ctx.profiler = Profiler(base_id=base_id, parent_id=parent_id,
+                                    hmac_key=hmac_key)
     return __local_ctx.profiler
 
 
@@ -62,8 +63,9 @@ def stop(info=None):
 
 class Profiler(object):
 
-    def __init__(self, base_id=None, parent_id=None):
+    def __init__(self, base_id=None, parent_id=None, hmac_key=None):
         self.notifier = notifier.get_notifier()
+        self.hmac_key = hmac_key
         if not base_id:
             base_id = str(uuid.uuid4())
         self._trace_stack = [base_id, parent_id or base_id]
