@@ -67,7 +67,7 @@ class Profiler(object):
         if not base_id:
             base_id = str(uuid.uuid4())
         self._trace_stack = collections.deque([base_id, parent_id or base_id])
-        self._name = []
+        self._name = collections.deque()
 
     def __call__(self, name, info=None):
         """This method simplifies usage of profiler object as a guard
