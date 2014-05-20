@@ -13,7 +13,7 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
-
+import collections
 import threading
 import uuid
 
@@ -66,8 +66,8 @@ class Profiler(object):
         self.notifier = notifier.get_notifier()
         if not base_id:
             base_id = str(uuid.uuid4())
-        self._trace_stack = [base_id, parent_id or base_id]
-        self._name = []
+        self._trace_stack = collections.deque([base_id, parent_id or base_id])
+        self._name = collections.deque()
 
     def __call__(self, name, info=None):
         """This method simplifies usage of profiler object as a guard
