@@ -13,6 +13,7 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
+import collections
 import mock
 
 from osprofiler import profiler
@@ -125,7 +126,7 @@ class ProfilerTestCase(test.TestCase):
 
         notifier.notify.assert_called_once_with(payload)
         self.assertEqual(len(prof._name), 0)
-        self.assertEqual(prof._trace_stack, ["1", "2"])
+        self.assertEqual(prof._trace_stack, collections.deque(["1", "2"]))
 
     def test_profiler_with_statement(self):
         prof = profiler.Profiler(base_id="1", parent_id="2")

@@ -13,13 +13,13 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
-import base64
 import hashlib
 import hmac
 import json
 import webob.dec
 
 from osprofiler import profiler
+from osprofiler import utils
 
 
 def add_trace_id_header(headers):
@@ -27,7 +27,7 @@ def add_trace_id_header(headers):
     if p:
         idents = {"base_id": p.get_base_id(), "parent_id": p.get_id()}
         raw_content = json.dumps(idents)
-        headers["X-Trace-Info"] = base64.b64encode(raw_content)
+        headers["X-Trace-Info"] = utils.binary_encode(raw_content)
         if p.hmac_key:
             headers["X-Trace-HMAC"] = generate_hmac(raw_content, p.hmac_key)
 
@@ -54,9 +54,9 @@ def validate_hmac(content, expected_hmac, hmac_key):
 class WsgiMiddleware(object):
     """WSGI Middleware that enables tracing for an application."""
 
-    def __init__(self, application, name='WSGI', enabled=False, hmac_key=None):
+    def __init__(self, application, enabled=False, hmac_key=None):
         self.application = application
-        self.name = name
+        self.name = "wsgi"
         self.enabled = enabled
         self.hmac_key = hmac_key
 
@@ -76,7 +76,7 @@ class WsgiMiddleware(object):
         if trace_hmac:
             trace_hmac = trace_hmac.strip()
         if trace_info_enc:
-            trace_raw = base64.b64decode(trace_info_enc)
+            trace_raw = utils.binary_decode(trace_info_enc)
             try:
                 validate_hmac(trace_raw, trace_hmac, self.hmac_key)
             except IOError:
