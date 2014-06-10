@@ -61,6 +61,19 @@ def stop(info=None):
         profiler.stop(info=info)
 
 
+class Trace(object):
+
+    def __init__(self, name, info=None):
+        self._name = name
+        self._info = info
+
+    def __enter__(self):
+        start(self._name, info=self._info)
+
+    def __exit__(self, etype, value, traceback):
+        stop()
+
+
 class Profiler(object):
 
     def __init__(self, base_id=None, parent_id=None, hmac_key=None):
@@ -69,22 +82,6 @@ class Profiler(object):
             base_id = str(uuid.uuid4())
         self._trace_stack = collections.deque([base_id, parent_id or base_id])
         self._name = collections.deque()
-
-    def __call__(self, name, info=None):
-        """This method simplifies usage of profiler object as a guard
-        > profiler = Profiler(service='nova')
-        > with profiler('some long running code'):
-        >     do_some_stuff()
-        """
-        self._name.append(name)
-        self._info = info
-        return self
-
-    def __enter__(self):
-        self.start(self._name[-1], info=self._info)
-
-    def __exit__(self, etype, value, traceback):
-        self.stop()
 
     def get_base_id(self):
         return self._trace_stack[0]

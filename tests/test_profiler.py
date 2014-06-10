@@ -123,18 +123,18 @@ class ProfilerTestCase(test.TestCase):
         self.assertEqual(len(prof._name), 0)
         self.assertEqual(prof._trace_stack, collections.deque(["1", "2"]))
 
-    def test_profiler_with_statement(self):
-        prof = profiler.Profiler(base_id="1", parent_id="2")
-        prof.start = mock.MagicMock()
-        prof.stop = mock.MagicMock()
 
-        with prof("name1", info="test"):
-            prof.start.assert_called_once_with("name1", info="test")
-            prof.start.reset_mock()
-            self.assertFalse(prof.stop.called)
-            with prof("name2", info="test2"):
-                prof.start.assert_called_once_with("name2", info="test2")
-                self.assertFalse(prof.stop.called)
-            prof.stop.assert_called_once_with()
-            prof.stop.reset_mock()
-        prof.stop.assert_called_once_with()
+class TraceTestCase(test.TestCase):
+
+    @mock.patch("osprofiler.profiler.stop")
+    @mock.patch("osprofiler.profiler.start")
+    def test_trace(self, mock_start, mock_stop):
+
+        with profiler.Trace("a", info="a1"):
+            mock_start.assert_called_once_with("a", info="a1")
+            mock_start.reset_mock()
+            with profiler.Trace("b", info="b1"):
+                mock_start.assert_called_once_with("b", info="b1")
+            mock_stop.assert_called_once_with()
+            mock_stop.reset_mock()
+        mock_stop.assert_called_once_with()

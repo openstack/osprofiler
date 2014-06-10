@@ -16,7 +16,6 @@
 import json
 import mock
 
-from osprofiler import profiler
 from osprofiler import utils
 from osprofiler import web
 
@@ -74,7 +73,9 @@ class WebMiddlewareTestCase(test.TestCase):
         self.assertEqual("yeah!", middleware(request))
         request.get_response.assert_called_once_with("app")
 
-    def test_wsgi_middleware(self):
+    @mock.patch("osprofiler.web.profiler.Trace")
+    @mock.patch("osprofiler.web.profiler.init")
+    def test_wsgi_middleware(self, mock_profiler_init, mock_profiler_trace):
         request = mock.MagicMock()
         request.get_response.return_value = "yeah!"
         request.url = "someurl"
@@ -90,24 +91,17 @@ class WebMiddlewareTestCase(test.TestCase):
             "b": "2",
             "X-Trace-Info": utils.binary_encode(json.dumps(trace_info))
         }
-        p = profiler.init()
-        p.start = mock.MagicMock()
-        p.stop = mock.MagicMock()
 
-        with mock.patch("osprofiler.web.profiler.init") as mock_profiler_init:
-            mock_profiler_init.return_value = p
-
-            middleware = web.WsgiMiddleware("app", enabled=True)
-            self.assertEqual("yeah!", middleware(request))
-            mock_profiler_init.assert_called_once_with("1", "2", None)
-            expected_info = {
-                "request": {
-                    "host_url": request.host_url,
-                    "path": request.path,
-                    "query": request.query_string,
-                    "method": request.method,
-                    "scheme": request.scheme
-                }
+        middleware = web.WsgiMiddleware("app", enabled=True)
+        self.assertEqual("yeah!", middleware(request))
+        mock_profiler_init.assert_called_once_with("1", "2", None)
+        expected_info = {
+            "request": {
+                "host_url": request.host_url,
+                "path": request.path,
+                "query": request.query_string,
+                "method": request.method,
+                "scheme": request.scheme
             }
-            p.start.assert_called_once_with("wsgi", info=expected_info)
-            p.stop.assert_called_once_with()
+        }
+        mock_profiler_trace.assert_called_once_with("wsgi", info=expected_info)

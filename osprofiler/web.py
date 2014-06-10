@@ -84,9 +84,9 @@ class WsgiMiddleware(object):
             else:
                 trace_info = json.loads(trace_raw)
 
-                p = profiler.init(trace_info.get("base_id"),
-                                  trace_info.get("parent_id"),
-                                  self.hmac_key)
+                profiler.init(trace_info.get("base_id"),
+                              trace_info.get("parent_id"),
+                              self.hmac_key)
 
                 info = {
                     "request": {
@@ -98,7 +98,7 @@ class WsgiMiddleware(object):
                     }
                 }
 
-                with p(self.name, info=info):
+                with profiler.Trace(self.name, info=info):
                     return request.get_response(self.application)
 
         return request.get_response(self.application)
