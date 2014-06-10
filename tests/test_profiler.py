@@ -84,11 +84,9 @@ class ProfilerTestCase(test.TestCase):
         self.assertEqual(prof.get_id(), "43")
 
     @mock.patch("osprofiler.profiler.uuid.uuid4")
-    @mock.patch("osprofiler.profiler.notifier.get_notifier")
-    def test_profiler_start(self, mock_get_notfier, mock_uuid4):
+    @mock.patch("osprofiler.profiler.notifier.notify")
+    def test_profiler_start(self, mock_notify, mock_uuid4):
         mock_uuid4.return_value = "44"
-        notifier = mock.MagicMock()
-        mock_get_notfier.return_value = notifier
 
         info = {"some": "info"}
         payload = {
@@ -102,13 +100,10 @@ class ProfilerTestCase(test.TestCase):
         prof = profiler.Profiler(base_id="1", parent_id="2")
         prof.start("test", info=info)
 
-        notifier.notify.assert_called_once_with(payload)
+        mock_notify.assert_called_once_with(payload)
 
-    @mock.patch("osprofiler.profiler.notifier.get_notifier")
-    def test_profiler_stop(self, mock_get_notfier):
-        notifier = mock.MagicMock()
-        mock_get_notfier.return_value = notifier
-
+    @mock.patch("osprofiler.profiler.notifier.notify")
+    def test_profiler_stop(self, mock_notify):
         prof = profiler.Profiler(base_id="1", parent_id="2")
         prof._trace_stack.append("44")
         prof._name.append("abc")
@@ -124,7 +119,7 @@ class ProfilerTestCase(test.TestCase):
             "info": info
         }
 
-        notifier.notify.assert_called_once_with(payload)
+        mock_notify.assert_called_once_with(payload)
         self.assertEqual(len(prof._name), 0)
         self.assertEqual(prof._trace_stack, collections.deque(["1", "2"]))
 

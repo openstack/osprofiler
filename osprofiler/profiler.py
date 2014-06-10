@@ -64,7 +64,6 @@ def stop(info=None):
 class Profiler(object):
 
     def __init__(self, base_id=None, parent_id=None, hmac_key=None):
-        self.notifier = notifier.get_notifier()
         self.hmac_key = hmac_key
         if not base_id:
             base_id = str(uuid.uuid4())
@@ -120,4 +119,4 @@ class Profiler(object):
         if info:
             payload['info'] = info
 
-        self.notifier.notify(payload)
+        notifier.notify(payload)
