@@ -62,16 +62,13 @@ def parse_notifications(notifications):
         if key not in result:
             result[key] = {
                 "info": {
-                    "service": meta["event_type"].split(".", 1)[1],
-                    "host": meta["host"],
                     "name": meta["name"].split("-")[0]
                 },
                 "parent_id": meta["parent_id"],
                 "trace_id": meta["trace_id"]
             }
 
-        skip_keys = ["base_id", "trace_id", "parent_id", "name", "host",
-                     "event_type"]
+        skip_keys = ["base_id", "trace_id", "parent_id", "name", "event_type"]
 
         for k in meta:
             if k not in skip_keys:
@@ -116,3 +113,14 @@ def parse_notifications(notifications):
         },
         "children": _build_tree(result)
     }
+
+
+def get_notifications(ceilometer, base_id):
+    """Retrieves and parses notification from ceilometer.
+
+    :param ceilometer: Initialized ceilometer client.
+    :param base_id: Base id of trace elements.
+    """
+
+    _filter = '{"=": {"resource_id": "profiler-%s"}}' % base_id
+    return ceilometer.query_samples.query(_filter, None, None)

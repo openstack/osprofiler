@@ -13,6 +13,8 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
+import mock
+
 from osprofiler.parsers import ceilometer
 
 from tests import test
@@ -81,7 +83,9 @@ class CeilometerParserTestCase(test.TestCase):
                 "metadata": {
                     "base_id": "f5587500-07d1-41a0-b434-525d3c28ac49",
                     "event_type": "profiler.nova",
-                    "host": "osapi_compute.0.0.0.0",
+                    "host": "0.0.0.0",
+                    "service": "osapi_compute",
+                    "project": "nova",
                     "name": "WSGI-stop",
                     "parent_id": "82281b35-63aa-45fc-8578-5a32a66370ab",
                     "trace_id": "837eb0bd-323a-4e3f-b223-3be78ad86aab"
@@ -89,12 +93,12 @@ class CeilometerParserTestCase(test.TestCase):
                 "meter": "WSGI-stop",
                 "project_id": None,
                 "recorded_at": "2014-05-06T02:53:03.110724",
-                "resource_id": "profiler",
+                "resource_id": "profiler-f5587500-07d1-41a0-b434-525d3c28ac49",
                 "source": "openstack",
                 "timestamp": "2014-05-06T02:52:59.357020",
                 "type": "gauge",
                 "unit": "sample",
-                "user_id": "f5587500-07d1-41a0-b434-525d3c28ac49",
+                "user_id": None,
                 "volume": 1.0
             },
             {
@@ -102,7 +106,9 @@ class CeilometerParserTestCase(test.TestCase):
                 "metadata": {
                     "base_id": "f5587500-07d1-41a0-b434-525d3c28ac49",
                     "event_type": "profiler.nova",
-                    "host": "osapi_compute.0.0.0.0",
+                    "host": "0.0.0.0",
+                    "service": "osapi_compute",
+                    "project": "nova",
                     "name": "WSGI-start",
                     "parent_id": "82281b35-63aa-45fc-8578-5a32a66370ab",
                     "trace_id": "837eb0bd-323a-4e3f-b223-3be78ad86aab"
@@ -110,12 +116,12 @@ class CeilometerParserTestCase(test.TestCase):
                 "meter": "WSGI-start",
                 "project_id": None,
                 "recorded_at": "2014-05-06T02:53:03.020620",
-                "resource_id": "profiler",
+                "resource_id": "profiler-f5587500-07d1-41a0-b434-525d3c28ac49",
                 "source": "openstack",
                 "timestamp": "2014-05-06T02:52:59.225552",
                 "type": "gauge",
                 "unit": "sample",
-                "user_id": "f5587500-07d1-41a0-b434-525d3c28ac49",
+                "user_id": None,
                 "volume": 1.0
             },
 
@@ -124,22 +130,24 @@ class CeilometerParserTestCase(test.TestCase):
                 "metadata": {
                     "base_id": "f5587500-07d1-41a0-b434-525d3c28ac49",
                     "event_type": "profiler.nova",
-                    "host": "osapi_compute.0.0.0.0",
+                    "host": "0.0.0.0",
+                    "service": "osapi_compute",
+                    "project": "nova",
                     "info.db:multiparams": "(immutabledict({}),)",
                     "info.db:params": "{}",
-                    "name": "nova.db-start",
+                    "name": "db-start",
                     "parent_id": "837eb0bd-323a-4e3f-b223-3be78ad86aab",
                     "trace_id": "f8ab042e-1085-4df2-9f3a-cfb6390b8090"
                 },
-                "meter": "nova.db-start",
+                "meter": "db-start",
                 "project_id": None,
                 "recorded_at": "2014-05-06T02:53:03.038692",
-                "resource_id": "profiler",
+                "resource_id": "profiler-f5587500-07d1-41a0-b434-525d3c28ac49",
                 "source": "openstack",
                 "timestamp": "2014-05-06T02:52:59.273422",
                 "type": "gauge",
                 "unit": "sample",
-                "user_id": "f5587500-07d1-41a0-b434-525d3c28ac49",
+                "user_id": None,
                 "volume": 1.0
             },
             {
@@ -147,20 +155,22 @@ class CeilometerParserTestCase(test.TestCase):
                 "metadata": {
                     "base_id": "f5587500-07d1-41a0-b434-525d3c28ac49",
                     "event_type": "profiler.generic",
-                    "host": "nova-conductor.ubuntu",
-                    "name": "nova.db-stop",
+                    "host": "ubuntu",
+                    "service": "nova-conductor",
+                    "project": "nova",
+                    "name": "db-stop",
                     "parent_id": "aad4748f-99d5-45c8-be0a-4025894bb3db",
                     "trace_id": "8afee05d-0ad2-4515-bd03-db0f2d30eed0"
                 },
-                "meter": "nova.db-stop",
+                "meter": "db-stop",
                 "project_id": None,
                 "recorded_at": "2014-05-06T02:53:02.894015",
-                "resource_id": "profiler",
+                "resource_id": "profiler-f5587500-07d1-41a0-b434-525d3c28ac49",
                 "source": "openstack",
                 "timestamp": "2014-05-06T02:53:00.473201",
                 "type": "gauge",
                 "unit": "sample",
-                "user_id": "f5587500-07d1-41a0-b434-525d3c28ac49",
+                "user_id": None,
                 "volume": 1.0
             }
         ]
@@ -175,9 +185,10 @@ class CeilometerParserTestCase(test.TestCase):
                 {
                     "info": {
                         "finished": 131,
-                        "host": "osapi_compute.0.0.0.0",
+                        "host": "0.0.0.0",
+                        "service": "osapi_compute",
                         "name": "WSGI",
-                        "service": "nova",
+                        "project": "nova",
                         "started": 0
                     },
                     "parent_id": "82281b35-63aa-45fc-8578-5a32a66370ab",
@@ -186,11 +197,12 @@ class CeilometerParserTestCase(test.TestCase):
                         "children": [],
                         "info": {
                             "finished": 47,
-                            "host": "osapi_compute.0.0.0.0",
+                            "host": "0.0.0.0",
+                            "service": "osapi_compute",
+                            "project": "nova",
                             "info.db:multiparams": "(immutabledict({}),)",
                             "info.db:params": "{}",
-                            "name": "nova.db",
-                            "service": "nova",
+                            "name": "db",
                             "started": 47
                         },
 
@@ -202,9 +214,10 @@ class CeilometerParserTestCase(test.TestCase):
                     "children": [],
                     "info": {
                         "finished": 1247,
-                        "host": "nova-conductor.ubuntu",
-                        "name": "nova.db",
-                        "service": "generic",
+                        "host": "ubuntu",
+                        "name": "db",
+                        "service": "nova-conductor",
+                        "project": "nova",
                         "started": 1247
                     },
                     "parent_id": "aad4748f-99d5-45c8-be0a-4025894bb3db",
@@ -214,3 +227,15 @@ class CeilometerParserTestCase(test.TestCase):
         }
 
         self.assertEqual(ceilometer.parse_notifications(samples), excepted)
+
+    def test_get_notifications(self):
+        mock_ceil_client = mock.MagicMock()
+        mock_ceil_client.query_samples.query.return_value = "result"
+        base_id = "10"
+
+        result = ceilometer.get_notifications(mock_ceil_client, base_id)
+
+        expected_filter = '{"=": {"resource_id": "profiler-%s"}}' % base_id
+        mock_ceil_client.query_samples.query.assert_called_once_with(
+            expected_filter, None, None)
+        self.assertEqual(result, "result")
