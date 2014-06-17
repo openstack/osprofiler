@@ -13,6 +13,7 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
+import base64
 import json
 import mock
 
@@ -37,27 +38,15 @@ class WebMiddlewareTestCase(test.TestCase):
         profiler._clean()
         self.addCleanup(profiler._clean)
 
-    @mock.patch("osprofiler.web.utils.binary_encode")
-    @mock.patch("osprofiler.web.json.dumps")
-    @mock.patch("osprofiler.web.profiler.get_profiler")
-    def test_add_trace_id_header(self, mock_get_profiler,
-                                 mock_dumps, mock_b64encode):
-        mock_dumps.return_value = "dump"
-        mock_b64encode.return_value = "b64"
-        p = mock.MagicMock()
-        p.get_base_id.return_value = 1
-        p.get_id.return_value = 2
-        p.hmac_key = None
-        mock_get_profiler.return_value = p
-
+    def test_add_trace_id_header(self):
+        profiler.init(base_id="y", parent_id="z")
         headers = {"a": 10, "b": 20}
         web.add_trace_id_header(headers)
-
         self.assertEqual(sorted(headers.keys()),
                          sorted(["a", "b", "X-Trace-Info"]))
-        self.assertEqual(headers["X-Trace-Info"], "b64")
-        mock_b64encode.assert_called_once_with("dump")
-        mock_dumps.assert_called_once_with({"base_id": 1, "parent_id": 2})
+        trace_info = base64.urlsafe_b64decode(headers["X-Trace-Info"])
+        trace_info = json.loads(utils.binary_decode(trace_info))
+        self.assertEqual({"parent_id": 'z', 'base_id': 'y'}, trace_info)
 
     @mock.patch("osprofiler.profiler.get_profiler")
     def test_add_trace_id_header_no_profiler(self, mock_get_profiler):
@@ -212,10 +201,12 @@ class WebMiddlewareTestCase(test.TestCase):
         request.scheme = "scheme"
 
         trace_info = {"base_id": "1", "parent_id": "2"}
+        trace_info = utils.binary_encode(json.dumps(trace_info))
+        trace_info = base64.urlsafe_b64encode(trace_info)
         request.headers = {
             "a": "1",
             "b": "2",
-            "X-Trace-Info": utils.binary_encode(json.dumps(trace_info))
+            "X-Trace-Info": trace_info,
         }
 
         middleware = web.WsgiMiddleware("app", enabled=True)

@@ -13,20 +13,32 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
+import base64
 import hashlib
 import hmac
 import json
+
 import webob.dec
 
 from osprofiler import profiler
 from osprofiler import utils
 
 
+def checked_json_load(raw_content):
+    """Loads the json string and verifies it's a dictionary."""
+    content = json.loads(raw_content)
+    if not isinstance(content, dict):
+        raise TypeError("Expected dictionary, got '%r'" % type(content))
+    return content
+
+
 def add_trace_id_header(headers):
+    """Adds the trace id headers (and any hmac) into provided dictionary."""
     p = profiler.get_profiler()
     if p:
         idents = {"base_id": p.get_base_id(), "parent_id": p.get_id()}
-        raw_content = utils.binary_encode(json.dumps(idents))
+        raw_content = base64.urlsafe_b64encode(
+            utils.binary_encode(json.dumps(idents)))
         headers["X-Trace-Info"] = raw_content
         if p.hmac_key:
             headers["X-Trace-HMAC"] = generate_hmac(raw_content, p.hmac_key)
@@ -74,29 +86,31 @@ class WsgiMiddleware(object):
         if trace_hmac:
             trace_hmac = trace_hmac.strip()
         if trace_info_enc:
-            trace_raw = utils.binary_decode(trace_info_enc)
             try:
-                validate_hmac(trace_raw, trace_hmac, self.hmac_key)
+                validate_hmac(trace_info_enc, trace_hmac, self.hmac_key)
             except IOError:
                 pass
             else:
-                trace_info = json.loads(trace_raw)
-
-                profiler.init(trace_info.get("base_id"),
-                              trace_info.get("parent_id"),
-                              self.hmac_key)
-
-                info = {
-                    "request": {
-                        "host_url": request.host_url,
-                        "path": request.path,
-                        "query": request.query_string,
-                        "method": request.method,
-                        "scheme": request.scheme
+                try:
+                    trace_raw = base64.urlsafe_b64decode(trace_info_enc)
+                    trace_info = checked_json_load(
+                        utils.binary_decode(trace_raw))
+                except (TypeError, ValueError, UnicodeError):
+                    pass
+                else:
+                    profiler.init(trace_info.get("base_id"),
+                                  trace_info.get("parent_id"),
+                                  self.hmac_key)
+                    info = {
+                        "request": {
+                            "host_url": request.host_url,
+                            "path": request.path,
+                            "query": request.query_string,
+                            "method": request.method,
+                            "scheme": request.scheme
+                        }
                     }
-                }
-
-                with profiler.Trace(self.name, info=info):
-                    return request.get_response(self.application)
+                    with profiler.Trace(self.name, info=info):
+                        return request.get_response(self.application)
 
         return request.get_response(self.application)
