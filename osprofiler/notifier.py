@@ -24,8 +24,10 @@ __notifier = noop_notifier
 
 
 def notify(info):
-    global __notifier
+    """Passes the profiling info to the notifier callable.
 
+    :param info: dictionary with profiling information
+    """
     __notifier(info)
 
 
