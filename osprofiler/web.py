@@ -26,16 +26,16 @@ def add_trace_id_header(headers):
     p = profiler.get_profiler()
     if p:
         idents = {"base_id": p.get_base_id(), "parent_id": p.get_id()}
-        raw_content = json.dumps(idents)
-        headers["X-Trace-Info"] = utils.binary_encode(raw_content)
+        raw_content = utils.binary_encode(json.dumps(idents))
+        headers["X-Trace-Info"] = raw_content
         if p.hmac_key:
             headers["X-Trace-HMAC"] = generate_hmac(raw_content, p.hmac_key)
 
 
 def generate_hmac(content, hmac_key):
     """Generate a hmac using a known key given the provided content."""
-    h = hmac.new(hmac_key, digestmod=hashlib.sha1)
-    h.update(content)
+    h = hmac.new(utils.binary_encode(hmac_key), digestmod=hashlib.sha1)
+    h.update(utils.binary_encode(content))
     return h.hexdigest()
 
 
@@ -45,9 +45,7 @@ def validate_hmac(content, expected_hmac, hmac_key):
     or was being faked).
     """
     if hmac_key:
-        h = hmac.new(hmac_key, digestmod=hashlib.sha1)
-        h.update(content)
-        if h.hexdigest() != expected_hmac:
+        if generate_hmac(content, hmac_key) != expected_hmac:
             raise IOError("Invalid hmac detected")
 
 
