@@ -13,11 +13,7 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
-import base64
-import json
 import mock
-
-from webob import request as webob_request
 from webob import response as webob_response
 
 from osprofiler import profiler
@@ -30,6 +26,39 @@ from tests import test
 def dummy_app(environ, response):
     res = webob_response.Response()
     return res(environ, response)
+
+
+class WebTestCase(test.TestCase):
+
+    def setUp(self):
+        super(WebTestCase, self).setUp()
+        profiler._clean()
+        self.addCleanup(profiler._clean)
+
+    def test_add_trace_id_header_no_hmac(self):
+        profiler.init(base_id="y", parent_id="z")
+        headers = {"a": 10, "b": 20}
+        web.add_trace_id_header(headers)
+        self.assertEqual(sorted(headers.keys()), ["a", "b"])
+
+    def test_add_trace_id_header(self):
+        profiler.init(base_id="y", parent_id="z", hmac_key="key")
+        headers = {"a": 10, "b": 20}
+        web.add_trace_id_header(headers)
+        self.assertEqual(sorted(headers.keys()),
+                         sorted(["a", "b", "X-Trace-Info", "X-Trace-HMAC"]))
+
+        trace_info = utils.signed_unpack(headers["X-Trace-Info"],
+                                         headers["X-Trace-HMAC"], "key")
+        self.assertEqual({"parent_id": 'z', 'base_id': 'y'}, trace_info)
+
+    @mock.patch("osprofiler.profiler.get_profiler")
+    def test_add_trace_id_header_no_profiler(self, mock_get_profiler):
+        mock_get_profiler.return_value = False
+        headers = {"a": "a", "b": 1}
+        old_headers = dict(headers)
+        web.add_trace_id_header(headers)
+        self.assertEqual(old_headers, headers)
 
 
 class WebMiddlewareTestCase(test.TestCase):
@@ -50,159 +79,96 @@ class WebMiddlewareTestCase(test.TestCase):
         self.assertTrue(wsgi.enabled)
         self.assertEqual(wsgi.hmac_key, local_conf["hmac_key"])
 
-    def test_add_trace_id_header(self):
-        profiler.init(base_id="y", parent_id="z")
-        headers = {"a": 10, "b": 20}
-        web.add_trace_id_header(headers)
-        self.assertEqual(sorted(headers.keys()),
-                         sorted(["a", "b", "X-Trace-Info"]))
-        trace_info = base64.urlsafe_b64decode(headers["X-Trace-Info"])
-        trace_info = json.loads(utils.binary_decode(trace_info))
-        self.assertEqual({"parent_id": 'z', 'base_id': 'y'}, trace_info)
-
-    @mock.patch("osprofiler.profiler.get_profiler")
-    def test_add_trace_id_header_no_profiler(self, mock_get_profiler):
-        mock_get_profiler.return_value = False
-        headers = {"a": "a", "b": 1}
-        old_headers = dict(headers)
-
-        web.add_trace_id_header(headers)
-        self.assertEqual(old_headers, headers)
-
-    def test_wsgi_hmac_no_headers(self):
-        req = webob_request.Request.blank("/")
-        m = web.WsgiMiddleware(dummy_app, enabled=True,
-                               hmac_key="secret_password")
-        m(req)
-        p = profiler.get_profiler()
-        self.assertIsNone(p)
-
-    def test_wsgi_hmac_headers_init_profiler(self):
-        hmac_key = 'secret_password'
-        profiler.init(base_id="b", parent_id="a", hmac_key=hmac_key)
-        headers = {
-            'Content-Type': 'text/javascript',
-        }
-        web.add_trace_id_header(headers)
-        profiler._clean()
-        self.assertIsNone(profiler.get_profiler())
-
-        req = webob_request.Request.blank("/", headers=headers)
-        m = web.WsgiMiddleware(dummy_app, enabled=True, hmac_key=hmac_key)
-        m(req)
-
-        p = profiler.get_profiler()
-        self.assertIsNotNone(p)
-        self.assertEqual('a', p.get_id())
-        self.assertEqual('b', p.get_base_id())
-
-    def test_wsgi_hmac_headers_init_profiler_spaces(self):
-        hmac_key = 'secret_password'
-        profiler.init(base_id="b", parent_id="a", hmac_key=hmac_key)
-        headers = {
-            'Content-Type': 'text/javascript',
-        }
-        web.add_trace_id_header(headers)
-        headers['X-Trace-HMAC'] = "\t " + headers['X-Trace-HMAC'] + "    \n"
-        profiler._clean()
-        self.assertIsNone(profiler.get_profiler())
-
-        req = webob_request.Request.blank("/", headers=headers)
-        m = web.WsgiMiddleware(dummy_app, enabled=True, hmac_key=hmac_key)
-        m(req)
-
-        p = profiler.get_profiler()
-        self.assertIsNotNone(p)
-        self.assertEqual('a', p.get_id())
-        self.assertEqual('b', p.get_base_id())
-
-    def test_wsgi_hmac_headers_no_init_profiler(self):
-        profiler.init(base_id="b", parent_id="a", hmac_key="hacked_password")
-        headers = {
-            'Content-Type': 'text/javascript',
-        }
-        web.add_trace_id_header(headers)
-        profiler._clean()
-        self.assertIsNone(profiler.get_profiler())
-
-        req = webob_request.Request.blank("/", headers=headers)
-        m = web.WsgiMiddleware(dummy_app, enabled=True,
-                               hmac_key="secret_password")
-        m(req)
-
-        p = profiler.get_profiler()
-        self.assertIsNone(p)
-
-    def test_hmac_generation(self):
-        profiler.init(base_id="b", parent_id="a", hmac_key="secret_password")
-        headers = {
-            'Content-Type': 'text/javascript',
-        }
-        web.add_trace_id_header(headers)
-        self.assertIn('X-Trace-HMAC', headers)
-        self.assertTrue(len(headers['X-Trace-HMAC']) > 0)
-
-    def test_hmac_no_generation(self):
-        profiler.init(base_id="b", parent_id="a")
-        headers = {
-            'Content-Type': 'text/javascript',
-        }
-        web.add_trace_id_header(headers)
-        self.assertNotIn('X-Trace-HMAC', headers)
-        self.assertIn('X-Trace-Info', headers)
-        self.assertEqual(2, len(headers))
-
-    def test_hmac_validation(self):
-        profiler.init(base_id="b", parent_id="a", hmac_key="secret_password")
-        headers = {
-            'Content-Type': 'text/javascript',
-        }
-        web.add_trace_id_header(headers)
-        content = headers.get("X-Trace-Info")
-        web.validate_hmac(content, headers['X-Trace-HMAC'], "secret_password")
-
-    def test_invalid_hmac(self):
-        profiler.init(base_id="b", parent_id="a", hmac_key="secret_password")
-        headers = {
-            'Content-Type': 'text/javascript',
-        }
-        web.add_trace_id_header(headers)
-        content = headers.get("X-Trace-Info")
-        content += b"_changed"
-        self.assertRaises(IOError, web.validate_hmac, content,
-                          headers['X-Trace-HMAC'], "secret_password")
-
-    def test_hmac_faked(self):
-        headers = {
-            'Content-Type': 'text/javascript',
-            'X-Trace-HMAC': 'fake',
-            'X-Trace-Info': '{}',
-        }
-        content = headers.get("X-Trace-Info")
-        self.assertRaises(IOError, web.validate_hmac, content,
-                          headers['X-Trace-HMAC'], 'secret_password')
-
-    def test_wsgi_middleware_no_trace(self):
+    def _test_wsgi_middleware_with_invalid_trace(self, headers, hmac_key,
+                                                 mock_profiler_init,
+                                                 enabled=True):
         request = mock.MagicMock()
         request.get_response.return_value = "yeah!"
-        request.headers = {"a": "1", "b": "2"}
+        request.headers = headers
 
-        middleware = web.WsgiMiddleware("app", enabled=True)
+        middleware = web.WsgiMiddleware("app", hmac_key, enabled=enabled)
         self.assertEqual("yeah!", middleware(request))
         request.get_response.assert_called_once_with("app")
+        self.assertEqual(0, mock_profiler_init.call_count)
 
-    def test_wsgi_middleware_disabled(self):
-        request = mock.MagicMock()
-        request.get_response.return_value = "yeah!"
-        request.headers = {"a": "1", "b": "2"}
+    @mock.patch("osprofiler.web.profiler.init")
+    def test_wsgi_middleware_disabled(self, mock_profiler_init):
+        hmac_key = "secret"
+        pack = utils.signed_pack({"base_id": "1", "parent_id": "2"}, hmac_key)
+        headers = {
+            "a": "1",
+            "b": "2",
+            "X-Trace-Info": pack[0],
+            "X-Trace-HMAC": pack[1]
+        }
 
-        middleware = web.WsgiMiddleware("app", enabled=False)
-        self.assertEqual("yeah!", middleware(request))
-        request.get_response.assert_called_once_with("app")
+        self._test_wsgi_middleware_with_invalid_trace(headers, hmac_key,
+                                                      mock_profiler_init,
+                                                      enabled=False)
+
+    @mock.patch("osprofiler.web.profiler.init")
+    def test_wsgi_middleware_no_trace(self, mock_profiler_init):
+        headers = {
+            "a": "1",
+            "b": "2"
+        }
+        self._test_wsgi_middleware_with_invalid_trace(headers, "secret",
+                                                      mock_profiler_init)
+
+    @mock.patch("osprofiler.web.profiler.init")
+    def test_wsgi_middleware_invalid_trace_headers(self, mock_profiler_init):
+        headers = {
+            "a": "1",
+            "b": "2",
+            "X-Trace-Info": "abbababababa",
+            "X-Trace-HMAC": "abbababababa"
+        }
+        self._test_wsgi_middleware_with_invalid_trace(headers, "secret",
+                                                      mock_profiler_init)
+
+    @mock.patch("osprofiler.web.profiler.init")
+    def test_wsgi_middleware_no_trace_hmac(self, mock_profiler_init):
+        hmac_key = "secret"
+        pack = utils.signed_pack({"base_id": "1", "parent_id": "2"}, hmac_key)
+        headers = {
+            "a": "1",
+            "b": "2",
+            "X-Trace-Info": pack[0]
+        }
+        self._test_wsgi_middleware_with_invalid_trace(headers, hmac_key,
+                                                      mock_profiler_init)
+
+    @mock.patch("osprofiler.web.profiler.init")
+    def test_wsgi_middleware_invalid_hmac(self, mock_profiler_init):
+        hmac_key = "secret"
+        pack = utils.signed_pack({"base_id": "1", "parent_id": "2"}, hmac_key)
+        headers = {
+            "a": "1",
+            "b": "2",
+            "X-Trace-Info": pack[0],
+            "X-Trace-HMAC": "not valid hmac"
+        }
+        self._test_wsgi_middleware_with_invalid_trace(headers, hmac_key,
+                                                      mock_profiler_init)
+
+    @mock.patch("osprofiler.web.profiler.init")
+    def test_wsgi_middleware_invalid_trace_info(self, mock_profiler_init):
+        hmac_key = "secret"
+        pack = utils.signed_pack([{"base_id": "1"}, {"parent_id": "2"}],
+                                 hmac_key)
+        headers = {
+            "a": "1",
+            "b": "2",
+            "X-Trace-Info": pack[0],
+            "X-Trace-HMAC": pack[1]
+        }
+        self._test_wsgi_middleware_with_invalid_trace(headers, hmac_key,
+                                                      mock_profiler_init)
 
     @mock.patch("osprofiler.web.profiler.Trace")
     @mock.patch("osprofiler.web.profiler.init")
     def test_wsgi_middleware(self, mock_profiler_init, mock_profiler_trace):
+        hmac_key = "secret"
         request = mock.MagicMock()
         request.get_response.return_value = "yeah!"
         request.url = "someurl"
@@ -212,18 +178,18 @@ class WebMiddlewareTestCase(test.TestCase):
         request.method = "method"
         request.scheme = "scheme"
 
-        trace_info = {"base_id": "1", "parent_id": "2"}
-        trace_info = utils.binary_encode(json.dumps(trace_info))
-        trace_info = base64.urlsafe_b64encode(trace_info)
+        pack = utils.signed_pack({"base_id": "1", "parent_id": "2"}, hmac_key)
+
         request.headers = {
             "a": "1",
             "b": "2",
-            "X-Trace-Info": trace_info,
+            "X-Trace-Info": pack[0],
+            "X-Trace-HMAC": pack[1]
         }
 
-        middleware = web.WsgiMiddleware("app", enabled=True)
+        middleware = web.WsgiMiddleware("app", hmac_key, enabled=True)
         self.assertEqual("yeah!", middleware(request))
-        mock_profiler_init.assert_called_once_with("1", "2", None)
+        mock_profiler_init.assert_called_once_with("1", "2", hmac_key)
         expected_info = {
             "request": {
                 "host_url": request.host_url,

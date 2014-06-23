@@ -13,58 +13,33 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
-import base64
-import hashlib
-import hmac
-import json
-
 import webob.dec
 
 from osprofiler import profiler
 from osprofiler import utils
 
 
-def checked_json_load(raw_content):
-    """Loads the json string and verifies it's a dictionary."""
-    content = json.loads(raw_content)
-    if not isinstance(content, dict):
-        raise TypeError("Expected dictionary, got '%r'" % type(content))
-    return content
-
-
 def add_trace_id_header(headers):
     """Adds the trace id headers (and any hmac) into provided dictionary."""
     p = profiler.get_profiler()
-    if p:
-        idents = {"base_id": p.get_base_id(), "parent_id": p.get_id()}
-        raw_content = base64.urlsafe_b64encode(
-            utils.binary_encode(json.dumps(idents)))
-        headers["X-Trace-Info"] = raw_content
-        if p.hmac_key:
-            headers["X-Trace-HMAC"] = generate_hmac(raw_content, p.hmac_key)
-
-
-def generate_hmac(content, hmac_key):
-    """Generate a hmac using a known key given the provided content."""
-    h = hmac.new(utils.binary_encode(hmac_key), digestmod=hashlib.sha1)
-    h.update(utils.binary_encode(content))
-    return h.hexdigest()
-
-
-def validate_hmac(content, expected_hmac, hmac_key):
-    """Validate the content using a known key against the expected hmac, or
-    raise an io error if this can not be done (meaning this data is not valid
-    or was being faked).
-    """
-    if hmac_key:
-        if generate_hmac(content, hmac_key) != expected_hmac:
-            raise IOError("Invalid hmac detected")
+    if p and p.hmac_key:
+        data = {"base_id": p.get_base_id(), "parent_id": p.get_id()}
+        pack = utils.signed_pack(data, p.hmac_key)
+        headers["X-Trace-Info"], headers["X-Trace-HMAC"] = pack
 
 
 class WsgiMiddleware(object):
     """WSGI Middleware that enables tracing for an application."""
 
-    def __init__(self, application, enabled=False, hmac_key=None):
+    def __init__(self, application, hmac_key, enabled=False):
+        """Initialize middleware with api-paste.ini arguments.
+
+        :application: wsgi app
+        :hmac_key: Only trace header that was signed with this hmac key will be
+                   processed. This limitation is essential, cause it allows
+                   to profile OpenStack who knows this key => avoid DDOS.
+        :enabled: This middleware can be turned off fully if enabled is False.
+        """
         self.application = application
         self.name = "wsgi"
         self.enabled = enabled
@@ -76,41 +51,32 @@ class WsgiMiddleware(object):
             return cls(app, **local_conf)
         return filter_
 
+    def _trace_is_valid(self, trace_info):
+        return (isinstance(trace_info, dict) and "base_id" in trace_info)
+
     @webob.dec.wsgify
     def __call__(self, request):
         if not self.enabled:
             return request.get_response(self.application)
 
-        trace_info_enc = request.headers.get("X-Trace-Info")
-        trace_hmac = request.headers.get("X-Trace-HMAC")
-        if trace_hmac:
-            trace_hmac = trace_hmac.strip()
-        if trace_info_enc:
-            try:
-                validate_hmac(trace_info_enc, trace_hmac, self.hmac_key)
-            except IOError:
-                pass
-            else:
-                try:
-                    trace_raw = base64.urlsafe_b64decode(trace_info_enc)
-                    trace_info = checked_json_load(
-                        utils.binary_decode(trace_raw))
-                except (TypeError, ValueError, UnicodeError):
-                    pass
-                else:
-                    profiler.init(trace_info.get("base_id"),
-                                  trace_info.get("parent_id"),
-                                  self.hmac_key)
-                    info = {
-                        "request": {
-                            "host_url": request.host_url,
-                            "path": request.path,
-                            "query": request.query_string,
-                            "method": request.method,
-                            "scheme": request.scheme
-                        }
-                    }
-                    with profiler.Trace(self.name, info=info):
-                        return request.get_response(self.application)
+        trace_info = utils.signed_unpack(request.headers.get("X-Trace-Info"),
+                                         request.headers.get("X-Trace-HMAC"),
+                                         self.hmac_key)
 
-        return request.get_response(self.application)
+        if not self._trace_is_valid(trace_info):
+            return request.get_response(self.application)
+
+        profiler.init(trace_info.get("base_id"),
+                      trace_info.get("parent_id"),
+                      self.hmac_key)
+        info = {
+            "request": {
+                "host_url": request.host_url,
+                "path": request.path,
+                "query": request.query_string,
+                "method": request.method,
+                "scheme": request.scheme
+            }
+        }
+        with profiler.Trace(self.name, info=info):
+            return request.get_response(self.application)
