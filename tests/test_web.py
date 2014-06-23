@@ -38,6 +38,18 @@ class WebMiddlewareTestCase(test.TestCase):
         profiler._clean()
         self.addCleanup(profiler._clean)
 
+    def test_factory(self):
+        mock_app = mock.MagicMock()
+        local_conf = {"enabled": True, "hmac_key": "123"}
+
+        factory = web.WsgiMiddleware.factory(None, **local_conf)
+        wsgi = factory(mock_app)
+
+        self.assertEqual(wsgi.application, mock_app)
+        self.assertEqual(wsgi.name, "wsgi")
+        self.assertTrue(wsgi.enabled)
+        self.assertEqual(wsgi.hmac_key, local_conf["hmac_key"])
+
     def test_add_trace_id_header(self):
         profiler.init(base_id="y", parent_id="z")
         headers = {"a": 10, "b": 20}
