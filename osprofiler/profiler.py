@@ -28,14 +28,19 @@ def _clean():
     __local_ctx.profiler = None
 
 
-def init(base_id=None, parent_id=None, hmac_key=None):
-    """Init profiler.
+def init(hmac_key, base_id=None, parent_id=None):
+    """Init profiler instance for current thread.
+
+    You should call profiler.init() before using osprofiler.
+    Otherwise profiler.start() and profiler.stop() methods won't do anything.
+
+    :param hmac_key: secret key to sign trace information.
     :param base_id: Used to bind all related traces.
     :param parent_id: Used to build tree of traces.
     :returns: Profiler instance
     """
-    __local_ctx.profiler = Profiler(base_id=base_id, parent_id=parent_id,
-                                    hmac_key=hmac_key)
+    __local_ctx.profiler = Profiler(hmac_key, base_id=base_id,
+                                    parent_id=parent_id)
     return __local_ctx.profiler
 
 
@@ -48,7 +53,12 @@ def get_profiler():
 
 
 def start(name, info=None):
-    """Send new start notification if profiler instance is presented."""
+    """Send new start notification if profiler instance is presented.
+
+    :param name: The name of action. E.g. wsgi, rpc, db, etc..
+    :param info: Dictionary with extra trace information. For example in wsgi
+                  it can be url, in rpc - message or in db sql - request.
+    """
     profiler = get_profiler()
     if profiler:
         profiler.start(name, info=info)
@@ -64,6 +74,20 @@ def stop(info=None):
 class Trace(object):
 
     def __init__(self, name, info=None):
+        """With statement way to use profiler start()/stop().
+
+
+        >> with profiler.Trace("rpc", info={"any": "values"})
+        >>    some code
+
+        instead of
+
+        >> profiler.start()
+        >> try:
+        >>    your code
+        >> finally:
+              profiler.stop()
+        """
         self._name = name
         self._info = info
 
@@ -76,7 +100,7 @@ class Trace(object):
 
 class Profiler(object):
 
-    def __init__(self, base_id=None, parent_id=None, hmac_key=None):
+    def __init__(self, hmac_key, base_id=None, parent_id=None):
         self.hmac_key = hmac_key
         if not base_id:
             base_id = str(uuid.uuid4())
@@ -84,25 +108,50 @@ class Profiler(object):
         self._name = collections.deque()
 
     def get_base_id(self):
+        """Return base if of trace.
+
+        Base id is the same for all elements in one trace. It's main goal is
+        to be able to retrieve by one request all trace elements from storage.
+        """
         return self._trace_stack[0]
 
     def get_parent_id(self):
+        """Returns parent trace element id."""
         return self._trace_stack[-2]
 
     def get_id(self):
+        """Returns current trace element id."""
         return self._trace_stack[-1]
 
     def start(self, name, info=None):
-        """Currently time measurement itself is delegated to
-        notification.api. Every message is marked with a unix
-        timestamp and for now it should be sufficient.
-        Later more precise measurements can be added here.
+        """Start new event.
+
+        Adds new trace_id to trace stack and sends notification
+        to collector (may be ceilometer). With "info" and 3 ids:
+        base_id - to be able to retrieve all trace elements by one query
+        parent_id - to build tree of events (not just a list)
+        trace_id - current event id.
+
+        As we are writing this code special for OpenStack, and there will be
+        only one implementation of notifier based on ceilometer notifer api.
+        That already contains timestamps, so we don't measure time by hand.
+
+        :param name: name of trace element (db, wsgi, rpc, etc..)
+        :param info: Dictionary with any useful information related to this
+                     trace element. (sql request, rpc message or url...)
         """
+
         self._name.append(name)
         self._trace_stack.append(str(uuid.uuid4()))
         self._notify('%s-start' % name, info)
 
     def stop(self, info=None):
+        """Finish latests event.
+
+        Same as a start, but instead of pushing trace_id to stack it pops it.
+
+        :param info: Dict with useful info. It will be send in notification.
+        """
         self._notify('%s-stop' % self._name.pop(), info)
         self._trace_stack.pop()
 

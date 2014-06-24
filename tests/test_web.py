@@ -36,13 +36,13 @@ class WebTestCase(test.TestCase):
         self.addCleanup(profiler._clean)
 
     def test_add_trace_id_header_no_hmac(self):
-        profiler.init(base_id="y", parent_id="z")
+        profiler.init(None, base_id="y", parent_id="z")
         headers = {"a": 10, "b": 20}
         web.add_trace_id_header(headers)
         self.assertEqual(sorted(headers.keys()), ["a", "b"])
 
     def test_add_trace_id_header(self):
-        profiler.init(base_id="y", parent_id="z", hmac_key="key")
+        profiler.init("key", base_id="y", parent_id="z")
         headers = {"a": 10, "b": 20}
         web.add_trace_id_header(headers)
         self.assertEqual(sorted(headers.keys()),
@@ -189,7 +189,8 @@ class WebMiddlewareTestCase(test.TestCase):
 
         middleware = web.WsgiMiddleware("app", hmac_key, enabled=True)
         self.assertEqual("yeah!", middleware(request))
-        mock_profiler_init.assert_called_once_with("1", "2", hmac_key)
+        mock_profiler_init.assert_called_once_with(hmac_key, base_id="1",
+                                                   parent_id="2")
         expected_info = {
             "request": {
                 "host_url": request.host_url,

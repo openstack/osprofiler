@@ -66,9 +66,9 @@ class WsgiMiddleware(object):
         if not self._trace_is_valid(trace_info):
             return request.get_response(self.application)
 
-        profiler.init(trace_info.get("base_id"),
-                      trace_info.get("parent_id"),
-                      self.hmac_key)
+        profiler.init(self.hmac_key,
+                      base_id=trace_info.get("base_id"),
+                      parent_id=trace_info.get("parent_id"))
         info = {
             "request": {
                 "host_url": request.host_url,
