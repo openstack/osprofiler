@@ -41,11 +41,18 @@ _DISABLED = False
 
 
 def disable():
+    """add_tracing does not add event listeners for sqlalchemy.
+
+    This is quite important in case of sql migrations. Because it's not allowed
+    to add these events.
+    """
     global _DISABLED
     _DISABLED = True
 
 
 def enable():
+    """add_tracing adds event listeners for sqlalchemy."""
+
     global _DISABLED
     _DISABLED = False
 
