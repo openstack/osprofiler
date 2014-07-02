@@ -19,13 +19,17 @@ from osprofiler import profiler
 from osprofiler import utils
 
 
-def add_trace_id_header(headers):
+def get_trace_id_headers():
     """Adds the trace id headers (and any hmac) into provided dictionary."""
     p = profiler.get()
     if p and p.hmac_key:
         data = {"base_id": p.get_base_id(), "parent_id": p.get_id()}
         pack = utils.signed_pack(data, p.hmac_key)
-        headers["X-Trace-Info"], headers["X-Trace-HMAC"] = pack
+        return {
+            "X-Trace-Info": pack[0],
+            "X-Trace-HMAC": pack[1]
+        }
+    return {}
 
 
 class WsgiMiddleware(object):

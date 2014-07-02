@@ -35,30 +35,26 @@ class WebTestCase(test.TestCase):
         profiler._clean()
         self.addCleanup(profiler._clean)
 
-    def test_add_trace_id_header_no_hmac(self):
+    def test_get_trace_id_headers_no_hmac(self):
         profiler.init(None, base_id="y", parent_id="z")
-        headers = {"a": 10, "b": 20}
-        web.add_trace_id_header(headers)
-        self.assertEqual(sorted(headers.keys()), ["a", "b"])
+        headers = web.get_trace_id_headers()
+        self.assertEqual(headers, {})
 
-    def test_add_trace_id_header(self):
+    def test_get_trace_id_headers(self):
         profiler.init("key", base_id="y", parent_id="z")
-        headers = {"a": 10, "b": 20}
-        web.add_trace_id_header(headers)
+        headers = web.get_trace_id_headers()
         self.assertEqual(sorted(headers.keys()),
-                         sorted(["a", "b", "X-Trace-Info", "X-Trace-HMAC"]))
+                         sorted(["X-Trace-Info", "X-Trace-HMAC"]))
 
         trace_info = utils.signed_unpack(headers["X-Trace-Info"],
                                          headers["X-Trace-HMAC"], "key")
         self.assertEqual({"parent_id": 'z', 'base_id': 'y'}, trace_info)
 
     @mock.patch("osprofiler.profiler.get")
-    def test_add_trace_id_header_no_profiler(self, mock_get_profiler):
+    def test_get_trace_id_headers_no_profiler(self, mock_get_profiler):
         mock_get_profiler.return_value = False
-        headers = {"a": "a", "b": 1}
-        old_headers = dict(headers)
-        web.add_trace_id_header(headers)
-        self.assertEqual(old_headers, headers)
+        headers = web.get_trace_id_headers()
+        self.assertEqual(headers, {})
 
 
 class WebMiddlewareTestCase(test.TestCase):
