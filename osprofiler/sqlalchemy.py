@@ -16,27 +16,6 @@
 from osprofiler import profiler
 
 
-def _before_execute(name):
-    """Add listener that will send trace info before query is executed."""
-
-    def handler(conn, clauseelement, multiparams, params):
-        info = {"db.statement": str(clauseelement),
-                "db.multiparams": str(multiparams),
-                "db.params": str(params)}
-        profiler.start(name, info=info)
-
-    return handler
-
-
-def _after_execute():
-    """Add listener that will send trace info after query is executed."""
-
-    def handler(conn, clauseelement, multiparams, params, result):
-        profiler.stop(info=None)
-
-    return handler
-
-
 _DISABLED = False
 
 
@@ -64,3 +43,24 @@ def add_tracing(sqlalchemy, engine, name):
         sqlalchemy.event.listen(engine, 'before_execute',
                                 _before_execute(name))
         sqlalchemy.event.listen(engine, 'after_execute', _after_execute())
+
+
+def _before_execute(name):
+    """Add listener that will send trace info before query is executed."""
+
+    def handler(conn, clauseelement, multiparams, params):
+        info = {"db.statement": str(clauseelement),
+                "db.multiparams": str(multiparams),
+                "db.params": str(params)}
+        profiler.start(name, info=info)
+
+    return handler
+
+
+def _after_execute():
+    """Add listener that will send trace info after query is executed."""
+
+    def handler(conn, clauseelement, multiparams, params, result):
+        profiler.stop(info=None)
+
+    return handler
