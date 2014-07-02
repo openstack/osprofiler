@@ -52,7 +52,7 @@ class WebTestCase(test.TestCase):
                                          headers["X-Trace-HMAC"], "key")
         self.assertEqual({"parent_id": 'z', 'base_id': 'y'}, trace_info)
 
-    @mock.patch("osprofiler.profiler.get_profiler")
+    @mock.patch("osprofiler.profiler.get")
     def test_add_trace_id_header_no_profiler(self, mock_get_profiler):
         mock_get_profiler.return_value = False
         headers = {"a": "a", "b": 1}

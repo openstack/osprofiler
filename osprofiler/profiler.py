@@ -44,7 +44,7 @@ def init(hmac_key, base_id=None, parent_id=None):
     return __local_ctx.profiler
 
 
-def get_profiler():
+def get():
     """Get profiler instance.
 
     :returns: Profiler instance or None if profiler wasn't inited.
@@ -59,14 +59,14 @@ def start(name, info=None):
     :param info: Dictionary with extra trace information. For example in wsgi
                   it can be url, in rpc - message or in db sql - request.
     """
-    profiler = get_profiler()
+    profiler = get()
     if profiler:
         profiler.start(name, info=info)
 
 
 def stop(info=None):
     """Send new stop notification if profiler instance is presented."""
-    profiler = get_profiler()
+    profiler = get()
     if profiler:
         profiler.stop(info=info)
 

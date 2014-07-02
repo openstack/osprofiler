@@ -25,11 +25,11 @@ class ProfilerGlobMethodsTestCase(test.TestCase):
 
     def test_get_profiler_not_inited(self):
         profiler._clean()
-        self.assertIsNone(profiler.get_profiler())
+        self.assertIsNone(profiler.get())
 
     def test_get_profiler_and_init(self):
         p = profiler.init("secret", base_id="1", parent_id="2")
-        self.assertEqual(profiler.get_profiler(), p)
+        self.assertEqual(profiler.get(), p)
 
         self.assertEqual(p.get_base_id(), "1")
         # NOTE(boris-42): until we make first start we don't have

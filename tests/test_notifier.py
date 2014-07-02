@@ -24,13 +24,13 @@ class NotifierTestCase(test.TestCase):
         notifier.__notifier = notifier._noop_notifier
         super(NotifierTestCase, self).tearDown()
 
-    def test_set_notifier(self):
+    def test_set(self):
 
         def test(info):
             pass
 
-        notifier.set_notifier(test)
-        self.assertEqual(notifier.get_notifier(), test)
+        notifier.set(test)
+        self.assertEqual(notifier.get(), test)
 
     def test_get_default_notifier(self):
-        self.assertEqual(notifier.get_notifier(), notifier._noop_notifier)
+        self.assertEqual(notifier.get(), notifier._noop_notifier)

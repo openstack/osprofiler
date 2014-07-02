@@ -31,12 +31,12 @@ def notify(info):
     __notifier(info)
 
 
-def get_notifier():
+def get():
     """Returns notifier callable."""
     return __notifier
 
 
-def set_notifier(notifier):
+def set(notifier):
     """Service that are going to use profiler should set callable notifier.
 
        Callable notifier is instance of callable object, that accept exactly

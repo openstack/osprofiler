@@ -21,7 +21,7 @@ from osprofiler import utils
 
 def add_trace_id_header(headers):
     """Adds the trace id headers (and any hmac) into provided dictionary."""
-    p = profiler.get_profiler()
+    p = profiler.get()
     if p and p.hmac_key:
         data = {"base_id": p.get_base_id(), "parent_id": p.get_id()}
         pack = utils.signed_pack(data, p.hmac_key)
