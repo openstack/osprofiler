@@ -14,13 +14,13 @@
 #    under the License.
 
 
-def noop_notifier(info):
-    """Do nothing on notification."""
+def _noop_notifier(info):
+    """Do nothing on notify()."""
     pass
 
 
 # NOTE(boris-42): By default we are using noop notifier.
-__notifier = noop_notifier
+__notifier = _noop_notifier
 
 
 def notify(info):

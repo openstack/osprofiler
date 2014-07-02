@@ -16,7 +16,7 @@
 from osprofiler import profiler
 
 
-def before_execute(name):
+def _before_execute(name):
     """Add listener that will send trace info before query is executed."""
 
     def handler(conn, clauseelement, multiparams, params):
@@ -28,7 +28,7 @@ def before_execute(name):
     return handler
 
 
-def after_execute():
+def _after_execute():
     """Add listener that will send trace info after query is executed."""
 
     def handler(conn, clauseelement, multiparams, params, result):
@@ -61,5 +61,6 @@ def add_tracing(sqlalchemy, engine, name):
     """Add tracing to all sqlalchemy calls."""
 
     if not _DISABLED:
-        sqlalchemy.event.listen(engine, 'before_execute', before_execute(name))
-        sqlalchemy.event.listen(engine, 'after_execute', after_execute())
+        sqlalchemy.event.listen(engine, 'before_execute',
+                                _before_execute(name))
+        sqlalchemy.event.listen(engine, 'after_execute', _after_execute())

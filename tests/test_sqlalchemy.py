@@ -24,7 +24,7 @@ class SqlalchemyTracingTestCase(test.TestCase):
 
     @mock.patch("osprofiler.sqlalchemy.profiler")
     def test_before_execute(self, mock_profiler):
-        handler = sqlalchemy.before_execute("sql")
+        handler = sqlalchemy._before_execute("sql")
 
         handler(mock.MagicMock(), 1, 2, 3)
         expected_info = {
@@ -36,12 +36,12 @@ class SqlalchemyTracingTestCase(test.TestCase):
 
     @mock.patch("osprofiler.sqlalchemy.profiler")
     def test_after_execute(self, mock_profiler):
-        handler = sqlalchemy.after_execute()
+        handler = sqlalchemy._after_execute()
         handler(mock.MagicMock(), 1, 2, 3, mock.MagicMock())
         mock_profiler.stop.assert_called_once_with(info=None)
 
-    @mock.patch("osprofiler.sqlalchemy.before_execute")
-    @mock.patch("osprofiler.sqlalchemy.after_execute")
+    @mock.patch("osprofiler.sqlalchemy._before_execute")
+    @mock.patch("osprofiler.sqlalchemy._after_execute")
     def test_add_tracing(self, mock_after_exc, mock_before_exc):
         sa = mock.MagicMock()
         engine = mock.MagicMock()
@@ -59,8 +59,8 @@ class SqlalchemyTracingTestCase(test.TestCase):
         ]
         self.assertEqual(sa.event.listen.call_args_list, expected_calls)
 
-    @mock.patch("osprofiler.sqlalchemy.before_execute")
-    @mock.patch("osprofiler.sqlalchemy.after_execute")
+    @mock.patch("osprofiler.sqlalchemy._before_execute")
+    @mock.patch("osprofiler.sqlalchemy._after_execute")
     def test_disable_and_enable(self, mock_after_exc, mock_before_exc):
         sqlalchemy.disable()
 

@@ -21,7 +21,7 @@ from tests import test
 class NotifierTestCase(test.TestCase):
 
     def tearDown(self):
-        notifier.__notifier = notifier.noop_notifier
+        notifier.__notifier = notifier._noop_notifier
         super(NotifierTestCase, self).tearDown()
 
     def test_set_notifier(self):
@@ -33,4 +33,4 @@ class NotifierTestCase(test.TestCase):
         self.assertEqual(notifier.get_notifier(), test)
 
     def test_get_default_notifier(self):
-        self.assertEqual(notifier.get_notifier(), notifier.noop_notifier)
+        self.assertEqual(notifier.get_notifier(), notifier._noop_notifier)

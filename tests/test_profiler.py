@@ -59,27 +59,27 @@ class ProfilerGlobMethodsTestCase(test.TestCase):
 class ProfilerTestCase(test.TestCase):
 
     def test_profiler_get_base_id(self):
-        prof = profiler.Profiler("secret", base_id="1", parent_id="2")
+        prof = profiler._Profiler("secret", base_id="1", parent_id="2")
         self.assertEqual(prof.get_base_id(), "1")
 
     @mock.patch("osprofiler.profiler.uuid.uuid4")
     def test_profiler_get_parent_id(self, mock_uuid4):
         mock_uuid4.return_value = "42"
-        prof = profiler.Profiler("secret", base_id="1", parent_id="2")
+        prof = profiler._Profiler("secret", base_id="1", parent_id="2")
         prof.start("test")
         self.assertEqual(prof.get_parent_id(), "2")
 
     @mock.patch("osprofiler.profiler.uuid.uuid4")
     def test_profiler_get_base_id_unset_case(self, mock_uuid4):
         mock_uuid4.return_value = "42"
-        prof = profiler.Profiler("secret")
+        prof = profiler._Profiler("secret")
         self.assertEqual(prof.get_base_id(), "42")
         self.assertEqual(prof.get_parent_id(), "42")
 
     @mock.patch("osprofiler.profiler.uuid.uuid4")
     def test_profiler_get_id(self, mock_uuid4):
         mock_uuid4.return_value = "43"
-        prof = profiler.Profiler("secret")
+        prof = profiler._Profiler("secret")
         prof.start("test")
         self.assertEqual(prof.get_id(), "43")
 
@@ -97,14 +97,14 @@ class ProfilerTestCase(test.TestCase):
             "info": info
         }
 
-        prof = profiler.Profiler("secret", base_id="1", parent_id="2")
+        prof = profiler._Profiler("secret", base_id="1", parent_id="2")
         prof.start("test", info=info)
 
         mock_notify.assert_called_once_with(payload)
 
     @mock.patch("osprofiler.profiler.notifier.notify")
     def test_profiler_stop(self, mock_notify):
-        prof = profiler.Profiler("secret", base_id="1", parent_id="2")
+        prof = profiler._Profiler("secret", base_id="1", parent_id="2")
         prof._trace_stack.append("44")
         prof._name.append("abc")
 
@@ -125,7 +125,7 @@ class ProfilerTestCase(test.TestCase):
 
     def test_profiler_hmac(self):
         hmac = "secret"
-        prof = profiler.Profiler(hmac, base_id="1", parent_id="2")
+        prof = profiler._Profiler(hmac, base_id="1", parent_id="2")
         self.assertEqual(hmac, prof.hmac_key)
 
 
