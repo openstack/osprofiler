@@ -16,8 +16,8 @@
 import mock
 from webob import response as webob_response
 
+from osprofiler import _utils as utils
 from osprofiler import profiler
-from osprofiler import utils
 from osprofiler import web
 
 from tests import test

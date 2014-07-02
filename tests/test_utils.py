@@ -17,7 +17,7 @@ import base64
 import hashlib
 import hmac
 
-from osprofiler import utils
+from osprofiler import _utils as utils
 from tests import test
 
 

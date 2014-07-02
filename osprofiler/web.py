@@ -15,8 +15,8 @@
 
 import webob.dec
 
+from osprofiler import _utils as utils
 from osprofiler import profiler
-from osprofiler import utils
 
 
 def get_trace_id_headers():
