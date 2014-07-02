@@ -76,3 +76,19 @@ class UtilsTestCase(test.TestCase):
         hmac_data = utils.generate_hmac(data, hmac)
 
         self.assertIsNone(utils.signed_unpack(data, hmac_data, hmac))
+
+    def test_itersubclasses(self):
+
+        class A(object):
+            pass
+
+        class B(A):
+            pass
+
+        class C(A):
+            pass
+
+        class D(C):
+            pass
+
+        self.assertEqual([B, C, D], list(utils.itersubclasses(A)))

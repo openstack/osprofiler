@@ -13,8 +13,9 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
-from osprofiler import notifier
+import mock
 
+from osprofiler import notifier
 from tests import test
 
 
@@ -34,3 +35,17 @@ class NotifierTestCase(test.TestCase):
 
     def test_get_default_notifier(self):
         self.assertEqual(notifier.get(), notifier._noop_notifier)
+
+    def test_notify(self):
+        m = mock.MagicMock()
+        notifier.set(m)
+        notifier.notify(10)
+
+        m.assert_called_once_with(10)
+
+    @mock.patch("osprofiler.notifier.base.Notifier.factory")
+    def test_create(self, mock_factory):
+
+        result = notifier.create("test", 10, b=20)
+        mock_factory.assert_called_once_with("test", 10, b=20)
+        self.assertEqual(mock_factory.return_value, result)
