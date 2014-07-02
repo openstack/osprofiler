@@ -123,4 +123,5 @@ def get_notifications(ceilometer, base_id):
     """
 
     _filter = '{"=": {"resource_id": "profiler-%s"}}' % base_id
-    return ceilometer.query_samples.query(_filter, None, None)
+    return [n.to_dict()
+            for n in ceilometer.query_samples.query(_filter, None, None)]

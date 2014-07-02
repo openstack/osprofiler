@@ -230,7 +230,8 @@ class CeilometerParserTestCase(test.TestCase):
 
     def test_get_notifications(self):
         mock_ceil_client = mock.MagicMock()
-        mock_ceil_client.query_samples.query.return_value = "result"
+        results = [mock.MagicMock(), mock.MagicMock()]
+        mock_ceil_client.query_samples.query.return_value = results
         base_id = "10"
 
         result = ceilometer.get_notifications(mock_ceil_client, base_id)
@@ -238,4 +239,4 @@ class CeilometerParserTestCase(test.TestCase):
         expected_filter = '{"=": {"resource_id": "profiler-%s"}}' % base_id
         mock_ceil_client.query_samples.query.assert_called_once_with(
             expected_filter, None, None)
-        self.assertEqual(result, "result")
+        self.assertEqual(result, [results[0].to_dict(), results[1].to_dict()])
