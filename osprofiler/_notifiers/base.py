@@ -18,11 +18,26 @@ from osprofiler import _utils as utils
 
 class Notifier(object):
 
-    def notify(self, info):
+    def notify(self, info, context=None):
         """This method will be called on each notifier.notify() call.
 
         To add new drivers you should, create new subclass of this class and
         implement notify method.
+
+        :param info:  Contains information about trace element.
+                      In payload dict there are always 3 ids:
+                      "base_id" - uuid that is common for all notifications
+                                  related to one trace. Used to simplify
+                                  retrieving of all trace elements from
+                                  Ceilometer.
+                      "parent_id" - uuid of parent element in trace
+                      "trace_id" - uuid of current element in trace
+
+                      With parent_id and trace_id it's quite simple to build
+                      tree of trace elements, which simplify analyze of trace.
+
+        :param context: request context that is mostly used to specify
+                        current active user and tenant.
         """
 
     @staticmethod

@@ -16,7 +16,7 @@
 from osprofiler._notifiers import base
 
 
-def _noop_notifier(info):
+def _noop_notifier(info, context=None):
     """Do nothing on notify()."""
     pass
 

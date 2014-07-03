@@ -17,6 +17,8 @@ import base64
 import hashlib
 import hmac
 import json
+import os
+
 import six
 
 
@@ -110,3 +112,19 @@ def itersubclasses(cls, _seen=None):
             yield sub
             for sub in itersubclasses(sub, _seen):
                 yield sub
+
+
+def import_modules_from_package(package):
+    """Import modules from package and append into sys.modules
+
+    :param: package - Full package name. For example: rally.deploy.engines
+    """
+    path = [os.path.dirname(__file__), '..'] + package.split('.')
+    path = os.path.join(*path)
+    for root, dirs, files in os.walk(path):
+        for filename in files:
+            if filename.startswith('__') or not filename.endswith('.py'):
+                continue
+            new_package = ".".join(root.split(os.sep)).split("....")[1]
+            module_name = '%s.%s' % (new_package, filename[:-3])
+            __import__(module_name)

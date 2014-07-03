@@ -13,6 +13,8 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
+import mock
+
 from osprofiler._notifiers import base
 from tests import test
 
@@ -46,3 +48,7 @@ class NotifierBaseTestCase(test.TestCase):
 
     def test_notify(self):
         base.Notifier().notify("")
+
+    def test_plugins_are_imported(self):
+        base.Notifier.factory("Messaging", mock.MagicMock(), "context",
+                              "transport", "project", "service", "host")
