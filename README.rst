@@ -7,248 +7,243 @@ OSProfiler is an OpenStack cross-project profiling library.
 Background
 ----------
 
-OpenStack consists of multiple projects. Each project, in turn, has multiple services. To process some request, e.g. to boot a virtual machine, OpenStack uses multiple services from different projects. In case something works too slowly, it's extremely complicated to understand what exactly goes wrong and to locate the bottleneck.
+OpenStack consists of multiple projects. Each project, in turn, has multiple
+services. To process some request, e.g. to boot a virtual machine, OpenStack
+uses multiple services from different projects. In case something works too
+slowly, it's extremely complicated to understand what exactly goes wrong and to
+locate the bottleneck.
 
-To resolve this issue, we introduce a tiny but powerful library, **osprofiler**, that is going to be used by all OpenStack projects and their python clients. This library generates 1 trace per request, that goes through all services invoved, and builds a tree of calls (see an `example <http://pavlovic.me/rally/profiler/>`_).
+To resolve this issue, we introduce a tiny but powerful library,
+**osprofiler**, that is going to be used by all OpenStack projects and their
+python clients. To be able to generate 1 trace per request, that goes through
+all services invoved, and builds a tree of calls (see an
+`example <http://pavlovic.me/rally/profiler/>`_).
 
-*osprofiler* maintains a trace stack, which is shared between different services calling each other, thus being able to track nested method calls even across different OpenStack projects. By using a thread-safe storage, *osprofiler* takes care of the fact that each request to a certain service gets processed in a separated thread (so that each request results in a separate trace stack being maintained by this library).
 
-*osproifiler* calls a special driver (*notify()*) on start & stop of every event. These notifications contain some special info that allows the user to track the stack of calls + meta info. In the case of OpenStack, notifications are expected to be sent to *Ceilometer* using the *oslo.messaging notifier API*. This enables to use *Ceilometer* as a centralized collecter, as well as to have an OpenStack API to retrieve all notifications related to one trace. To be more specific, *osprofiler* supports `retrieving all notifications in a single request <https://gist.github.com/boris-42/9a8f905d3c5bc7496984>`_ and, optionally, their analysis by producing a `tree of calls <https://gist.github.com/boris-42/c3c3ee1c2c7db40de236>`_.
+Why not cProfile and etc?
+-------------------------
 
-To restrict its usage by non-allowed persons, *osprofiler* supports `HMAC authentication <http://en.wikipedia.org/wiki/Hash-based_message_authentication_code>`_. With this authentication mechanism enabled (and the same HMAC key set in the *osprofiler* section of the *api-paste.ini* file across all services involved), only users that know the HMAC key are able to use the profiling library and create traces.
+**The scope of this lib is a quite different:**
 
+* We are interested in getting one trace of points from different service,
+  not tracing all python calls inside one process
 
-Usage
------
+* This library should be easy integrable in OpenStack. It means that:
 
-This simple example below demonstates how to use *osprofiler*, as well as what are the contents of the trace stack maintained by this library at each step:
+  * It shouldn't require too much changes in code bases of projects
 
-.. parsed-literal::
+  * We should be able to turn it off fully
 
-    from osprofiler import profile
+  * We should be able to keep it turned on in lazy mode (trace on request)
 
-    profiler.init(base_id=1, parent_id=1)  *# Initializes a thread-safe stack for storing traces.*
-                                           *# In case there is no init() call, all future start()/stop()*
-                                           *# calls will be ignored by osprofiler.*
 
-    *# stack = [1, 1]*
+OSprofiler API version 0.2.0
+----------------------------
 
-    profiler.start(name="code block 1")  *# stack = [1, 1, uuid1], sends notification with (base_id=1, parent_id=1, trace_id=uuid1)*
+There are couple of things that you should know about API before learning it.
 
-    profiler.start(name="code block 2")  *# stack = [1, 1, uuid1, uuid2], sends notification with (base_id=1, parent_id=uuid1, trace_id=uuid2)*
-    profiler.stop()  *# stack = [1, 1, uuid1], sends notification with (base_id=1, parent_id=uuid1, trace_id=uuid2)*
+* **3 ways to add new trace point**
 
-    profiler.start(name="code block 3")  *# stack = [1, 1, uuid1, uuid3], sends notification with (base_id=1, parent_id=uuid1, trace_id=uuid3)*
-    profiler.stop()  *# stack = [1, 1, rand1], sends notification with (base_id=1, parent_id=uuid1, trace_id=uuid3)*
+    .. parsed-literal::
 
-    profiler.stop()  *# stack = [1, 1], sends notification with (base_id=1, parent_id=1, trace_id=1)*
+        from osprofiler import profiler
 
+        def some_func():
+            profiler.start("point_name", {"any_info_about_point": "in_this_dict"})
+            # your code
+            profiler.stop({"any_info_about_point": "in_this_dict"})
 
-After running this example, there will be 6 notifications for 3 events, and *osprofiler* will be able to restore the tree of calls, if needed.
 
+        @profiler.Trace("point_name", {"any_info_about_point": "in_this_dict"})
+        def some_func2():
+            pass
 
-The alternative syntax uses the `Trace object <https://github.com/stackforge/osprofiler/blob/master/osprofiler/profiler.py#L64>`_ from the profiler module, which should be used in a *with*-statement:
+        def some_func3():
+            with profiler.trace("point_name", {"any_info_about_point": "in_this_dict"}):
+                # some code here
 
+* **How works profiler actually?**
 
-.. parsed-literal::
+  * **@profiler.Trace()** and **profiler.trace()** are just syntax sugar,
+    that just call profiler.start() & profiler.stop() methods.
 
-    from osprofiler import profiler
+  * It sends to **collector** 1 message per every call of profiler.start()
+    & profiler.stop(). So every trace points crates 2 records in collector.
+    *(more about collector later)*
 
-    ...
+  * Trace points support nesting, so next sample will work properly:
 
-    with profiler.Trace(name="code block name", info={...}):
-        *# Code to be profiled*
+      .. parsed-literal::
 
+          profiler.start("parent_point")
+          profiler.start("child_point")
+          profiler.stop()
+          profiler.stop()
 
-The following example shows a real custom *notification function* from the *oslo.messaging library*:
+      In sample above, we will create 2 points:
 
+      This is implemented in quite simple manner. We have one stack that
+      contains ids of all trace points. E.g.:
 
-*oslo.messaging.profiler*
+      .. parsed-literal::
 
-.. parsed-literal::
+          profiler.start("parent_point") # trace_stack.push(<new_uuid>)
+                                         # send to collector -> trace_stack[-2:]
 
-    **import osprofiler.notifier**
+          profiler.start("parent_point") # trace_stack.push(<new_uuid>)
+                                         # send to collector -> trace_stack[-2:]
+          profiler.stop()                # send to collector -> trace_stack[-2:]
+                                         # trace_stack.pop()
 
-    **from oslo.messaging.notify import notifier**
+          profiler.stop()                # send to collector -> trace_stack[-2:]
+                                         # trace_stack.pop()
 
+      So with this information from collector, we can restore order and nesting
+      of all points.
 
-    def set_notifier(context, transport, project, service, host):
-        """Sets OSprofiler's notifer based on oslo.messaging notifier API.
+* **What is actually send to to collector?**
 
-        OSProfiler will call this method on every call of profiler.start() and
-        profiler.stop(). These messages will be collected by Ceilometer, which
-        which allows end users to retrieve traces via Ceilometer API.
+  Trace points are presented in collector as 2 messages (start and stop)
 
-        :context: the request context
-        :transport: oslo.messaging transport
-        :project: project name (e.g. nova, cinder, glance...)
-        :service: service name, that sends notification (nova-conductor)
-        :host: service's host name
-        """
+  .. parsed-literal::
+    {
+        "name": <point_name>-(start|stop)
+        "base_id": <uuid>,
+        "parent_id": <uuid>,
+        "trace_id": <uuid>,
+        "info": <dict>
+    }
 
-        *# Notifier based on oslo.messaging notifier API*
-        **_notifier = notifier.Notifier(transport, publisher_id=host,
-                                      driver="messaging", topic="profiler")**
+   * base_id - is <uuid> that is equal for all trace points that belongs
+               to one trace, it is done to simplify process of retrieving
+               all trace points related to one trace from collector
+   * parent_id - is <uuid> that has parent trace point
+   * trace_id - is <uuid> of current trace point
+   * info - it's dictionary that contains user information passed via calls of
+            profiler start & stop methods.
 
-        **def notifier_func(payload):**
-            """This method will be called on profiler.start() and profiler.stop().
 
-            :payload: Contains information about trace element.
-                      In payload dict there are always 3 ids:
-                      "base_id" - uuid that is common for all notifications related
-                                  to one trace. Used to simplify retrieving of all
-                                  trace elements from Ceilometer.
-                      "parent_id" - uuid of parent element in trace
-                      "trace_id" - uuid of current element in trace
 
-                      Using parent_id and trace_id it's quite simple to build tree
-                      of trace elements, which simplify analyze of trace.
-            """
-            payload["project"] = project
-            payload["service"] = service
-            _notifier.info(context, "profiler.%s" % service, payload)
+* **Setting up Collector.**
 
-        *# Setting the notifier function in osprofiler.*
-        **osprofiler.notifier.set_notifier(notifier_func)**
+    Profiler doesn't include any collector for trace points, end user should
+    provide method that will send message to collector. Let's take a look at
+    trivial sample, where collector is just a file:
 
+    .. parsed-literal::
 
-This notifier is perfectly suited for integrating *osprofiler* with other OpenStack projects, e.g. Nova (the corresponding code sample can be found in the **Integration example** section below).
+        import json
 
+        from osprofiler import notifier
 
+        def send_info_to_file_collector(info, context=None):
+            with open("traces", "a") as f:
+                f.write(json.dumps())
 
-Library contents
-----------------
+        notifier.set(send_info_to_file_collector)
 
-Along with the basic profiling algorithm implementation, the *osprofiler* library includes a range of **profiling applications**, available out-of-box.
+    So now on every **profiler.start()** and **profiler.stop()** call we will
+    write info about trace point to the end of  **traces** file.
 
-First, there is **SQLAlchemy profiling**. It's well known that OpenStack haevily uses *SQLAlchemy*. SQLAlchemy is a cool stuff that allows to add handlers for different events before and after SQL execution. With *osprofiler*, we can run *profiler.start()* before execution with info that contains an SQL request and call *profiler.stop()* after execution. This allows to collect the information about all DB calls across all services. To enable this DB profiling, just *osprofiler* to an **engine** instance (this will allow it to add event listeners to points before and after SQL execution):
 
-.. parsed-literal::
+* **Initialization of profiler.**
 
-    from osprofiler import sqlalchemy
+    If profiler is not initialized, all calls of profiler.start() and
+    profiler.stop() are ignored.
 
-    sqlalchemy.add_tracing(*<sqlalchemy_module>*, *<engine_instance>*, *<name>*)
+    Initialization is quite simple.
 
+    .. parsed-literal::
 
-Second, there is **Web profiling**. The main interaction mechanism between different OpenStack projects is issuing requests to each other. Thus, to be able to be easliy integrated with OpenStack projects, *osprofiler* supports processing such requests via a special **WSGI Middleware** for tracing Web applications:
+        from osprofiler import profiler
 
-.. parsed-literal::
+        profiler.init("SECRET_HMAC_KEY", base_id=<uuid>, parent_id=<uuid>)
 
-    import webob.dec
+    "SECRET_HMAC_KEY" - will be discussed later, cause it's related to the
+    integration of OSprofiler & OpenStack.
 
-    from osprofiler import profiler
+    **base_id** and **trace_id** will actually initialize trace_stack in
+    profiler, e.g. stack_trace = [base_id, trace_id].
 
-    ...
 
 
-    class WsgiMiddleware(object):
-        """WSGI Middleware that enables tracing for an application."""
+Integration with OpenStack
+--------------------------
 
-        ...
+There are 4 topics related to integration OSprofiler & OpenStack:
 
-        @webob.dec.wsgify
-        def __call__(self, request):
-            if not self.enabled:
-                return request.get_response(self.application)
+* **What to use as centralized collector**
 
-            *# Trace info is passed through headers. In case the trace info header*
-            *# is not present, no profiling will be done.*
-            **trace_info_enc = request.headers.get("X-Trace-Info")**
-            *# HMAC key is passed through headers as well.*
-            **trace_hmac = request.headers.get("X-Trace-HMAC")**
+  We decided to use Ceilometer, because:
 
-            ...
+  * It's already integrated in OpenStack, so it's quite simple to send
+    notifications to it from every project.
 
-            if trace_info_enc:
-                trace_raw = utils.binary_decode(trace_info_enc)
-                *# Validating the HMAC key.*
-                try:
-                    **validate_hmac(trace_raw, trace_hmac, self.hmac_key)**
-                except IOError:
-                    pass
-                else:
-                    trace_info = json.loads(trace_raw)
+  * There is a OpenStack API in Ceilometer that allows us to retrieve all
+    messages related to one trace. Take a look at
+    *osprofiler.parsers.ceilometer:get_notifications*
 
-                    *# Initializing the profiler with the info retrieved from headers.*
-                    **profiler.init(trace_info.get("base_id"),
-                                  trace_info.get("parent_id"),
-                                  self.hmac_key)**
 
-                    *# The trace info that will be sent to the notifier.*
-                    info = {
-                        "request": {
-                            "host_url": request.host_url,
-                            "path": request.path,
-                            "query": request.query_string,
-                            "method": request.method,
-                            "scheme": request.scheme
-                        }
-                    }
+* **How to setup profiler notifier, to send messages to this collector**
 
-                    *# Profiling the request.*
-                    **with profiler.Trace(self.name, info=info):
-                        return request.get_response(self.application)**
+  We decided to use olso.messaging Notifier API, because:
 
-            *# If there is no trace info header, just process the request without profiling.*
-            return request.get_response(self.application)
+  * oslo.messaging is integrated in all projects
 
+  * It's the simplest way to send notification to Ceilometer, take a look at:
+    *osprofiler.notifiers.messaging.Messaging:notify* method
 
-Integration example
--------------------
+  * We don't need to add any new CONF options in projects
 
-**OSProfiler** can be easily integrated with any of the core OpenStack projects, e.g. `Nova <https://github.com/boris-42/nova/commit/9ebe86bf5b4cc7150251396cfb302dd05e89085d>`_. Basically, it requires setting up the corresponding notifier function for the *WSGI service*, and then adding the *osprofiler WSGI middleware* in a special *api-paste.ini* file. The example below shows how it looks for Nova:
 
+* **How to initialize profiler, to have one trace cross all services**
 
-*nova.service*
+    To enable cross service profiling we actually need to do send from caller
+    to callee (base_id & trace_id). So callee will be able to init his profiler
+    with these values.
 
-.. parsed-literal::
+    In case of OpenStack there are 2 kinds interaction between to services:
 
-    ...
+    * REST API
 
-    from oslo.messaging import profiler
+        It's well know that there are python clients for every projects,
+        that generates proper HTTP request, and parses response to objects.
 
+        These python clients are used in 2 cases:
 
-    class Service(service.Service):
-        """Service object for binaries running on hosts."""
+        * User access OpenStack
 
-        def __init__(self, host, binary, topic, manager, ...):
+        * Service from Project 1 would like to access Service from Project 2
 
-            ...
 
-            *# Set the notifier function with the admin request context*
-            *# and corresponding project & service parameters*
-            **profiler.set_notifier(context.get_admin_context().to_dict(),
-                                  rpc.TRANSPORT, "nova", binary, host)**
-            ...
+        So what we need is to:
 
+        * Put in python clients headers with trace info (if profiler is inited)
 
-    class WSGIService(object):
-        """Provides ability to launch API from a 'paste' configuration."""
+        * Add OSprofiler WSGI middleware to service, that will init profiler, if
+          there are special trace headers.
 
-        def __init__(self, name, loader=None, use_ssl=False, max_url_len=None):
+        Actually the algorithm is a bit more complex. Python client are signed
+        trace info, and WSGI middleware checks that it's signed with HMAC that
+        is specified in api-paste.ini. So only user that knows HMAC key in
+        api-paste.ini can init properly profiler and send trace info that will
+        be actually processed.
 
-            ...
 
-            *# Set the notifier function with the admin request context*
-            *# and corresponding project & service parameters*
-            **profiler.set_notifier(context.get_admin_context().to_dict(),
-                                  rpc.TRANSPORT, "nova", name, self.host)**
-            ...
+    * RPC API
 
+        RPC calls are used for interaction between services of one project. As
+        we all known for RPC projects are using oslo.messaging. So the best way
+        to enable cross service tracing (inside on project). Is to add trace
+        info to all messages (if profiler is inited). And initialize profiler
+        on callee side.
 
-*etc/nova/api-paste.ini*
+* **What points should be by default tracked**
 
-.. parsed-literal::
+   I think that for all projects we should include by default 3 kinds o points:
 
-    ...
-    [composite:openstack_compute_api_v2]
-    use = call:nova.api.auth:pipeline_factory
-    noauth = compute_req_id faultwrap sizelimit **osprofiler** noauth ...
-    keystone = compute_req_id faultwrap sizelimit **osprofiler** authtoken ...
-    keystone_nolimit = compute_req_id faultwrap sizelimit **osprofiler** authtoken ...
+   * All HTTP calls
 
-    ...
-    [filter:osprofiler]
-    paste.filter_factory = osprofiler.web:WsgiMiddleware.factory
-    hmac_key = SECRET_KEY
-    enabled = yes
+   * All RPC calls
+
+   * All DB calls
