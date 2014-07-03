@@ -71,6 +71,28 @@ def stop(info=None):
         profiler.stop(info=info)
 
 
+def trace(name, info=None):
+    """Trace decorator.
+
+    Very useful if you would like to add trace point on existing method:
+
+    >>  @profiler.trace("my_point")
+    >>  def my_method(self, some_args):
+    >>      #code
+
+    :param name: The name of action. E.g. wsgi, rpc, db, etc..
+    :param info: Dictionary with extra trace information. For example in wsgi
+                 it can be url, in rpc - message or in db sql - request.
+
+    """
+
+    def wrapper(f):
+        with Trace(name, info=info):
+            return f
+
+    return wrapper
+
+
 class Trace(object):
 
     def __init__(self, name, info=None):

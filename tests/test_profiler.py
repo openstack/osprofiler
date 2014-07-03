@@ -133,7 +133,7 @@ class TraceTestCase(test.TestCase):
 
     @mock.patch("osprofiler.profiler.stop")
     @mock.patch("osprofiler.profiler.start")
-    def test_trace(self, mock_start, mock_stop):
+    def test_with_trace(self, mock_start, mock_stop):
 
         with profiler.Trace("a", info="a1"):
             mock_start.assert_called_once_with("a", info="a1")
@@ -142,4 +142,16 @@ class TraceTestCase(test.TestCase):
                 mock_start.assert_called_once_with("b", info="b1")
             mock_stop.assert_called_once_with()
             mock_stop.reset_mock()
+        mock_stop.assert_called_once_with()
+
+    @mock.patch("osprofiler.profiler.stop")
+    @mock.patch("osprofiler.profiler.start")
+    def test_decorator_trace(self, mock_start, mock_stop):
+
+        @profiler.trace("a", info="b")
+        def method(a, b=10):
+            return a + b
+
+        self.assertEqual(30, method(10, b=20))
+        mock_start.assert_called_once_with("a", info="b")
         mock_stop.assert_called_once_with()
