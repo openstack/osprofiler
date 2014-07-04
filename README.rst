@@ -16,14 +16,14 @@ locate the bottleneck.
 To resolve this issue, we introduce a tiny but powerful library,
 **osprofiler**, that is going to be used by all OpenStack projects and their
 python clients. To be able to generate 1 trace per request, that goes through
-all services invoved, and builds a tree of calls (see an
+all involved services, and builds a tree of calls (see an
 `example <http://pavlovic.me/rally/profiler/>`_).
 
 
 Why not cProfile and etc?
 -------------------------
 
-**The scope of this lib is a quite different:**
+**The scope of this library is quite different:**
 
 * We are interested in getting one trace of points from different service,
   not tracing all python calls inside one process
@@ -34,7 +34,8 @@ Why not cProfile and etc?
 
   * We should be able to turn it off fully
 
-  * We should be able to keep it turned on in lazy mode (trace on request)
+  * We should be able to keep it turned on in lazy mode in production
+    (e.g. admin should be able to "trace" on request)
 
 
 OSprofiler API version 0.2.0
@@ -62,16 +63,17 @@ There are couple of things that you should know about API before learning it.
             with profiler.trace("point_name", {"any_info_about_point": "in_this_dict"}):
                 # some code here
 
-* **How works profiler actually?**
+* **How profiler works?**
 
   * **@profiler.Trace()** and **profiler.trace()** are just syntax sugar,
-    that just call profiler.start() & profiler.stop() methods.
+    that just calls profiler.start() & profiler.stop() methods.
 
   * It sends to **collector** 1 message per every call of profiler.start()
-    & profiler.stop(). So every trace points crates 2 records in collector.
-    *(more about collector later)*
+    & profiler.stop(). So every trace point crates 2 records in collector.
+    *(more about collector & records later)*
 
-  * Trace points support nesting, so next sample will work properly:
+  * There is a support of nested trace points. Sample below, works and will
+    produce 2 trace points:
 
       .. parsed-literal::
 
@@ -79,8 +81,6 @@ There are couple of things that you should know about API before learning it.
           profiler.start("child_point")
           profiler.stop()
           profiler.stop()
-
-      In sample above, we will create 2 points:
 
       This is implemented in quite simple manner. We have one stack that
       contains ids of all trace points. E.g.:
@@ -98,12 +98,13 @@ There are couple of things that you should know about API before learning it.
           profiler.stop()                # send to collector -> trace_stack[-2:]
                                          # trace_stack.pop()
 
-      So with this information from collector, we can restore order and nesting
-      of all points.
+      Having (pranet_id, id) from all trace points is enough to build a tree
+      of nested trace points.
 
 * **What is actually send to to collector?**
 
-  Trace points are presented in collector as 2 messages (start and stop)
+  Trace points contain 2 messages (start and stop). These messages are
+  send to collector:
 
   .. parsed-literal::
     {
@@ -114,13 +115,13 @@ There are couple of things that you should know about API before learning it.
         "info": <dict>
     }
 
-   * base_id - is <uuid> that is equal for all trace points that belongs
+   * base_id - <uuid> that is equal for all trace points that belongs
                to one trace, it is done to simplify process of retrieving
                all trace points related to one trace from collector
-   * parent_id - is <uuid> that has parent trace point
-   * trace_id - is <uuid> of current trace point
+   * parent_id - <uuid> of parent trace point
+   * trace_id - <uuid> of current trace point
    * info - it's dictionary that contains user information passed via calls of
-            profiler start & stop methods.
+            profiler start() & stop() methods.
 
 
 
@@ -138,7 +139,7 @@ There are couple of things that you should know about API before learning it.
 
         def send_info_to_file_collector(info, context=None):
             with open("traces", "a") as f:
-                f.write(json.dumps())
+                f.write(json.dumps(info))
 
         notifier.set(send_info_to_file_collector)
 
@@ -148,10 +149,10 @@ There are couple of things that you should know about API before learning it.
 
 * **Initialization of profiler.**
 
-    If profiler is not initialized, all calls of profiler.start() and
-    profiler.stop() are ignored.
+    If profiler is not initialized, all calls of **profiler.start()** and
+    **profiler.stop()** will be ignored.
 
-    Initialization is quite simple.
+    Initialization is quite simple procedure.
 
     .. parsed-literal::
 
@@ -162,7 +163,7 @@ There are couple of things that you should know about API before learning it.
     "SECRET_HMAC_KEY" - will be discussed later, cause it's related to the
     integration of OSprofiler & OpenStack.
 
-    **base_id** and **trace_id** will actually initialize trace_stack in
+    **base_id** and **trace_id** will be used to initialize trace_stack in
     profiler, e.g. stack_trace = [base_id, trace_id].
 
 
@@ -172,7 +173,7 @@ Integration with OpenStack
 
 There are 4 topics related to integration OSprofiler & OpenStack:
 
-* **What to use as centralized collector**
+* **What we should use as a centralized collector**
 
   We decided to use Ceilometer, because:
 
@@ -196,13 +197,13 @@ There are 4 topics related to integration OSprofiler & OpenStack:
   * We don't need to add any new CONF options in projects
 
 
-* **How to initialize profiler, to have one trace cross all services**
+* **How to initialize profiler, to get one trace cross all services**
 
     To enable cross service profiling we actually need to do send from caller
     to callee (base_id & trace_id). So callee will be able to init his profiler
     with these values.
 
-    In case of OpenStack there are 2 kinds interaction between to services:
+    In case of OpenStack there are 2 kinds interaction between 2 services:
 
     * REST API
 
@@ -223,20 +224,20 @@ There are 4 topics related to integration OSprofiler & OpenStack:
         * Add OSprofiler WSGI middleware to service, that will init profiler, if
           there are special trace headers.
 
-        Actually the algorithm is a bit more complex. Python client are signed
-        trace info, and WSGI middleware checks that it's signed with HMAC that
-        is specified in api-paste.ini. So only user that knows HMAC key in
-        api-paste.ini can init properly profiler and send trace info that will
-        be actually processed.
+        Actually the algorithm is a bit more complex. Python client sign trace
+        info with passed to profiler.init HMAC key, and WSGI middleware checks
+        that it's signed with HMAC that is specified in api-paste.ini. So only
+        user that knows HMAC key in api-paste.ini can init properly profiler
+        and send trace info that will be actually processed.
 
 
     * RPC API
 
-        RPC calls are used for interaction between services of one project. As
-        we all known for RPC projects are using oslo.messaging. So the best way
-        to enable cross service tracing (inside on project). Is to add trace
-        info to all messages (if profiler is inited). And initialize profiler
-        on callee side.
+        RPC calls are used for interaction between services of one project.
+        It's well known that projects are using oslo.messaging to deal with RPC.
+        So the best way to enable cross service tracing (inside of project). Is
+        to add trace info to all messages (in case of inited profiler). And
+        initialize profiler on callee side, if there is a trace info in message.
 
 * **What points should be by default tracked**
 
