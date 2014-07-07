@@ -66,14 +66,14 @@ There are couple of things that you should know about API before learning it.
 * **How profiler works?**
 
   * **@profiler.Trace()** and **profiler.trace()** are just syntax sugar,
-    that just calls profiler.start() & profiler.stop() methods.
+    that just calls **profiler.start()** & **profiler.stop()** methods.
 
-  * It sends to **collector** 1 message per every call of profiler.start()
-    & profiler.stop(). So every trace point crates 2 records in collector.
-    *(more about collector & records later)*
+  * Every call of **profiler.start()** & **profiler.stop()** sends to
+    **collector** 1 message. It means that every trace point crates 2 records
+    in collector. *(more about collector & records later)*
 
-  * There is a support of nested trace points. Sample below, works and will
-    produce 2 trace points:
+  * Nested trace points are supported. Sample below, works and will produce 2
+    trace points:
 
       .. parsed-literal::
 
@@ -82,8 +82,8 @@ There are couple of things that you should know about API before learning it.
           profiler.stop()
           profiler.stop()
 
-      This is implemented in quite simple manner. We have one stack that
-      contains ids of all trace points. E.g.:
+      Implementation in quite simple. Profiler has one stack that contains ids
+      of all trace points. E.g.:
 
       .. parsed-literal::
 
@@ -98,12 +98,12 @@ There are couple of things that you should know about API before learning it.
           profiler.stop()                # send to collector -> trace_stack[-2:]
                                          # trace_stack.pop()
 
-      Having (pranet_id, id) from all trace points is enough to build a tree
-      of nested trace points.
+      it's simple to build a tree of nested trace points, having
+      **(pranet_id, point_id)** of all trace points.
 
 * **What is actually send to to collector?**
 
-  Trace points contain 2 messages (start and stop). These messages are
+  Trace points contain 2 messages (start and stop). Messages like below are
   send to collector:
 
   .. parsed-literal::
@@ -121,15 +121,15 @@ There are couple of things that you should know about API before learning it.
    * parent_id - <uuid> of parent trace point
    * trace_id - <uuid> of current trace point
    * info - it's dictionary that contains user information passed via calls of
-            profiler start() & stop() methods.
+            profiler **start()** & **stop()** methods.
 
 
 
 * **Setting up Collector.**
 
-    Profiler doesn't include any collector for trace points, end user should
-    provide method that will send message to collector. Let's take a look at
-    trivial sample, where collector is just a file:
+    Profiler doesn't include trace points collector. End user should provide
+    method that will send messages to collector. Let's take a look at trivial
+    sample, where collector is just a file:
 
     .. parsed-literal::
 
@@ -137,9 +137,10 @@ There are couple of things that you should know about API before learning it.
 
         from osprofiler import notifier
 
+        f = open("traces", "a")
+
         def send_info_to_file_collector(info, context=None):
-            with open("traces", "a") as f:
-                f.write(json.dumps(info))
+            f.write(json.dumps(info))
 
         notifier.set(send_info_to_file_collector)
 
@@ -163,7 +164,7 @@ There are couple of things that you should know about API before learning it.
     "SECRET_HMAC_KEY" - will be discussed later, cause it's related to the
     integration of OSprofiler & OpenStack.
 
-    **base_id** and **trace_id** will be used to initialize trace_stack in
+    **base_id** and **trace_id** will be used to initialize stack_trace in
     profiler, e.g. stack_trace = [base_id, trace_id].
 
 
@@ -178,14 +179,14 @@ There are 4 topics related to integration OSprofiler & OpenStack:
   We decided to use Ceilometer, because:
 
   * It's already integrated in OpenStack, so it's quite simple to send
-    notifications to it from every project.
+    notifications to it from all projects.
 
   * There is a OpenStack API in Ceilometer that allows us to retrieve all
     messages related to one trace. Take a look at
     *osprofiler.parsers.ceilometer:get_notifications*
 
 
-* **How to setup profiler notifier, to send messages to this collector**
+* **How to setup profiler notifier**
 
   We decided to use olso.messaging Notifier API, because:
 
