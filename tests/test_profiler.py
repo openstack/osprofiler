@@ -148,10 +148,29 @@ class TraceTestCase(test.TestCase):
     @mock.patch("osprofiler.profiler.start")
     def test_decorator_trace(self, mock_start, mock_stop):
 
-        @profiler.trace("a", info="b")
+        @profiler.trace("a", info={"b": 20})
         def method(a, b=10):
             return a + b
 
-        self.assertEqual(30, method(10, b=20))
-        mock_start.assert_called_once_with("a", info="b")
+        self.assertEqual(40, method(10, b=30))
+        expected_info = {
+            "b": 20,
+            "method": "tests.test_profiler.method",
+            "args": str((10,)),
+            "kwargs": str({"b": 30})
+        }
+        mock_start.assert_called_once_with("a", info=expected_info)
+        mock_stop.assert_called_once_with()
+
+    @mock.patch("osprofiler.profiler.stop")
+    @mock.patch("osprofiler.profiler.start")
+    def test_decorator_trace_without_args(self, mock_start, mock_stop):
+
+        @profiler.trace("a", info={}, hide_args=True)
+        def method2(a, b=10):
+            return a + b
+
+        self.assertEqual(30, method2(10, b=20))
+        expected_info = {"method": "tests.test_profiler.method2"}
+        mock_start.assert_called_once_with("a", info=expected_info)
         mock_stop.assert_called_once_with()

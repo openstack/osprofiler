@@ -14,6 +14,7 @@
 #    under the License.
 
 import collections
+import functools
 import threading
 import uuid
 
@@ -71,7 +72,7 @@ def stop(info=None):
         profiler.stop(info=info)
 
 
-def trace(name, info=None):
+def trace(name, info=None, hide_args=False):
     """Trace decorator.
 
     Very useful if you would like to add trace point on existing method:
@@ -83,14 +84,27 @@ def trace(name, info=None):
     :param name: The name of action. E.g. wsgi, rpc, db, etc..
     :param info: Dictionary with extra trace information. For example in wsgi
                  it can be url, in rpc - message or in db sql - request.
-
+    :param hide_args: Don't push to trace info args and kwargs. Quite useful
+                      if you have some info in args that you wont to share,
+                      e.g. passwords.
     """
+    info = info or {}
 
-    def wrapper(f):
-        with Trace(name, info=info):
-            return f
+    def decorator(f):
+        info["method"] = "%s.%s" % (f.__module__, f.__name__)
 
-    return wrapper
+        @functools.wraps(f)
+        def wrapper(*args, **kwargs):
+            if not hide_args:
+                info["args"] = str(args)
+                info["kwargs"] = str(kwargs)
+
+            with Trace(name, info=info):
+                return f(*args, **kwargs)
+
+        return wrapper
+
+    return decorator
 
 
 class Trace(object):
