@@ -76,6 +76,17 @@ class CeilometerParserTestCase(test.TestCase):
 
         self.assertEqual(ceilometer._build_tree(test_input), expected_output)
 
+    def test_parse_notifications_empty(self):
+        expected = {
+            "info": {
+                "name": "total",
+                "started": 0,
+                "finished": 0
+            },
+            "children": []
+        }
+        self.assertEqual(ceilometer.parse_notifications([]), expected)
+
     def test_parse_notifications(self):
         samples = [
             {

@@ -109,7 +109,7 @@ def parse_notifications(notifications):
         "info": {
             "name": "total",
             "started": 0,
-            "finished": msec(finished_at - started_at)
+            "finished": msec(finished_at - started_at) if started_at else 0
         },
         "children": _build_tree(result)
     }
