@@ -63,6 +63,10 @@ class WebMiddlewareTestCase(test.TestCase):
         profiler._clean()
         self.addCleanup(profiler._clean)
 
+    def tearDown(self):
+        web.enable()
+        super(WebMiddlewareTestCase, self).tearDown()
+
     def test_factory(self):
         mock_app = mock.MagicMock()
         local_conf = {"enabled": True, "hmac_key": "123"}
@@ -197,3 +201,21 @@ class WebMiddlewareTestCase(test.TestCase):
             }
         }
         mock_profiler_trace.assert_called_once_with("wsgi", info=expected_info)
+
+    @mock.patch("osprofiler.web.profiler.init")
+    def test_wsgi_middleware_disable_via_python(self, mock_profiler_init):
+        request = mock.MagicMock()
+        request.get_response.return_value = "yeah!"
+        web.disable()
+        middleware = web.WsgiMiddleware("app", "hmac_key", enabled=True)
+        self.assertEqual("yeah!", middleware(request))
+        self.assertEqual(mock_profiler_init.call_count, 0)
+
+    def test_disable(self):
+        web.disable()
+        self.assertTrue(web._DISABLED)
+
+    def test_enabled(self):
+        web.disable()
+        web.enable()
+        self.assertFalse(web._DISABLED)

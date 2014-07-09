@@ -32,6 +32,25 @@ def get_trace_id_headers():
     return {}
 
 
+_DISABLED = False
+
+
+def disable():
+    """Disable middleware.
+
+    This is the alternative way to disable middleware. It will be used to be
+    able to disable middleware via oslo.config.
+    """
+    global _DISABLED
+    _DISABLED = True
+
+
+def enable():
+    """Enable middleware."""
+    global _DISABLED
+    _DISABLED = False
+
+
 class WsgiMiddleware(object):
     """WSGI Middleware that enables tracing for an application."""
 
@@ -60,7 +79,7 @@ class WsgiMiddleware(object):
 
     @webob.dec.wsgify
     def __call__(self, request):
-        if not self.enabled:
+        if _DISABLED or not self.enabled:
             return request.get_response(self.application)
 
         trace_info = utils.signed_unpack(request.headers.get("X-Trace-Info"),
