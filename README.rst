@@ -41,7 +41,7 @@ Why not cProfile and etc?
 OSprofiler API version 0.2.0
 ----------------------------
 
-There are couple of things that you should know about API before learning it.
+There are a couple of things that you should know about API before learning it.
 
 * **3 ways to add new trace point**
 
@@ -69,11 +69,10 @@ There are couple of things that you should know about API before learning it.
     that just calls **profiler.start()** & **profiler.stop()** methods.
 
   * Every call of **profiler.start()** & **profiler.stop()** sends to
-    **collector** 1 message. It means that every trace point crates 2 records
-    in collector. *(more about collector & records later)*
+    **collector** 1 message. It means that every trace point creates 2 records
+    in the collector. *(more about collector & records later)*
 
-  * Nested trace points are supported. Sample below, works and will produce 2
-    trace points:
+  * Nested trace points are supported. The sample below produces 2 trace points:
 
       .. parsed-literal::
 
@@ -82,7 +81,7 @@ There are couple of things that you should know about API before learning it.
           profiler.stop()
           profiler.stop()
 
-      Implementation in quite simple. Profiler has one stack that contains ids
+      Implementation is quite simple. Profiler has one stack that contains ids
       of all trace points. E.g.:
 
       .. parsed-literal::
@@ -98,13 +97,13 @@ There are couple of things that you should know about API before learning it.
           profiler.stop()                # send to collector -> trace_stack[-2:]
                                          # trace_stack.pop()
 
-      it's simple to build a tree of nested trace points, having
+      It's simple to build a tree of nested trace points, having
       **(pranet_id, point_id)** of all trace points.
 
-* **What is actually send to to collector?**
+* **Process of sending to collector**
 
   Trace points contain 2 messages (start and stop). Messages like below are
-  send to collector:
+  sent to collector:
 
   .. parsed-literal::
     {
@@ -115,8 +114,8 @@ There are couple of things that you should know about API before learning it.
         "info": <dict>
     }
 
-   * base_id - <uuid> that is equal for all trace points that belongs
-               to one trace, it is done to simplify process of retrieving
+   * base_id - <uuid> that is equal for all trace points that belong
+               to one trace, it is done to simplify the process of retrieving
                all trace points related to one trace from collector
    * parent_id - <uuid> of parent trace point
    * trace_id - <uuid> of current trace point
@@ -127,9 +126,9 @@ There are couple of things that you should know about API before learning it.
 
 * **Setting up Collector.**
 
-    Profiler doesn't include trace points collector. End user should provide
-    method that will send messages to collector. Let's take a look at trivial
-    sample, where collector is just a file:
+    Profiler doesn't include trace point collector. End user should provide
+    method that sends messages to the collector. Let's take a look at trivial
+    sample, where the collector is just a file:
 
     .. parsed-literal::
 
@@ -145,7 +144,7 @@ There are couple of things that you should know about API before learning it.
         notifier.set(send_info_to_file_collector)
 
     So now on every **profiler.start()** and **profiler.stop()** call we will
-    write info about trace point to the end of  **traces** file.
+    write info about trace point to the end of **traces** file.
 
 
 * **Initialization of profiler.**
@@ -181,7 +180,7 @@ There are 4 topics related to integration OSprofiler & OpenStack:
   * It's already integrated in OpenStack, so it's quite simple to send
     notifications to it from all projects.
 
-  * There is a OpenStack API in Ceilometer that allows us to retrieve all
+  * There is an OpenStack API in Ceilometer that allows us to retrieve all
     messages related to one trace. Take a look at
     *osprofiler.parsers.ceilometer:get_notifications*
 
@@ -198,18 +197,18 @@ There are 4 topics related to integration OSprofiler & OpenStack:
   * We don't need to add any new CONF options in projects
 
 
-* **How to initialize profiler, to get one trace cross all services**
+* **How to initialize profiler, to get one trace across all services**
 
     To enable cross service profiling we actually need to do send from caller
     to callee (base_id & trace_id). So callee will be able to init his profiler
     with these values.
 
-    In case of OpenStack there are 2 kinds interaction between 2 services:
+    In case of OpenStack there are 2 kinds of interaction between 2 services:
 
     * REST API
 
-        It's well know that there are python clients for every projects,
-        that generates proper HTTP request, and parses response to objects.
+        It's well known that there are python clients for every project,
+        that generate proper HTTP requests, and parse responses to objects.
 
         These python clients are used in 2 cases:
 
@@ -226,9 +225,9 @@ There are 4 topics related to integration OSprofiler & OpenStack:
           there are special trace headers.
 
         Actually the algorithm is a bit more complex. Python client sign trace
-        info with passed to profiler.init HMAC key, and WSGI middleware checks
+        info with a HMAC key passed to profiler.init, and WSGI middleware checks
         that it's signed with HMAC that is specified in api-paste.ini. So only
-        user that knows HMAC key in api-paste.ini can init properly profiler
+        the user that knows HMAC key in api-paste.ini can init profiler properly
         and send trace info that will be actually processed.
 
 
@@ -236,11 +235,11 @@ There are 4 topics related to integration OSprofiler & OpenStack:
 
         RPC calls are used for interaction between services of one project.
         It's well known that projects are using oslo.messaging to deal with RPC.
-        So the best way to enable cross service tracing (inside of project). Is
+        So the best way to enable cross service tracing (inside of project) is
         to add trace info to all messages (in case of inited profiler). And
         initialize profiler on callee side, if there is a trace info in message.
 
-* **What points should be by default tracked**
+* **What points should be tracked by default**
 
    I think that for all projects we should include by default 3 kinds o points:
 
