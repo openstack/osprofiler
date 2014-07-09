@@ -24,24 +24,23 @@ class SqlalchemyTracingTestCase(test.TestCase):
 
     @mock.patch("osprofiler.sqlalchemy.profiler")
     def test_before_execute(self, mock_profiler):
-        handler = sqlalchemy._before_execute("sql")
+        handler = sqlalchemy._before_cursor_execute("sql")
 
-        handler(mock.MagicMock(), 1, 2, 3)
+        handler(mock.MagicMock(), 1, 2, 3, 4, 5)
         expected_info = {
-            "db.statement": "1",
-            "db.multiparams": "2",
-            "db.params": "3"
+            "db.statement": 2,
+            "db.params": 3
         }
         mock_profiler.start.assert_called_once_with("sql", info=expected_info)
 
     @mock.patch("osprofiler.sqlalchemy.profiler")
     def test_after_execute(self, mock_profiler):
-        handler = sqlalchemy._after_execute()
-        handler(mock.MagicMock(), 1, 2, 3, mock.MagicMock())
-        mock_profiler.stop.assert_called_once_with(info=None)
+        handler = sqlalchemy._after_cursor_execute()
+        handler(mock.MagicMock(), 1, 2, 3, 4, 5)
+        mock_profiler.stop.assert_called_once_with()
 
-    @mock.patch("osprofiler.sqlalchemy._before_execute")
-    @mock.patch("osprofiler.sqlalchemy._after_execute")
+    @mock.patch("osprofiler.sqlalchemy._before_cursor_execute")
+    @mock.patch("osprofiler.sqlalchemy._after_cursor_execute")
     def test_add_tracing(self, mock_after_exc, mock_before_exc):
         sa = mock.MagicMock()
         engine = mock.MagicMock()
@@ -54,13 +53,13 @@ class SqlalchemyTracingTestCase(test.TestCase):
         mock_before_exc.assert_called_once_with("sql")
         mock_after_exc.assert_called_once_with()
         expected_calls = [
-            mock.call(engine, "before_execute", "before"),
-            mock.call(engine, "after_execute", "after")
+            mock.call(engine, "before_cursor_execute", "before"),
+            mock.call(engine, "after_cursor_execute", "after")
         ]
         self.assertEqual(sa.event.listen.call_args_list, expected_calls)
 
-    @mock.patch("osprofiler.sqlalchemy._before_execute")
-    @mock.patch("osprofiler.sqlalchemy._after_execute")
+    @mock.patch("osprofiler.sqlalchemy._before_cursor_execute")
+    @mock.patch("osprofiler.sqlalchemy._after_cursor_execute")
     def test_disable_and_enable(self, mock_after_exc, mock_before_exc):
         sqlalchemy.disable()
 

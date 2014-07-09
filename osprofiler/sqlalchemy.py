@@ -20,11 +20,7 @@ _DISABLED = False
 
 
 def disable():
-    """add_tracing does not add event listeners for sqlalchemy.
-
-    This is quite important in case of sql migrations. Because it's not allowed
-    to add these events.
-    """
+    """Disable tracing of all DB queries. Reduce a lot size of profiles."""
     global _DISABLED
     _DISABLED = True
 
@@ -40,27 +36,26 @@ def add_tracing(sqlalchemy, engine, name):
     """Add tracing to all sqlalchemy calls."""
 
     if not _DISABLED:
-        sqlalchemy.event.listen(engine, 'before_execute',
-                                _before_execute(name))
-        sqlalchemy.event.listen(engine, 'after_execute', _after_execute())
+        sqlalchemy.event.listen(engine, 'before_cursor_execute',
+                                _before_cursor_execute(name))
+        sqlalchemy.event.listen(engine, 'after_cursor_execute',
+                                _after_cursor_execute())
 
 
-def _before_execute(name):
+def _before_cursor_execute(name):
     """Add listener that will send trace info before query is executed."""
 
-    def handler(conn, clauseelement, multiparams, params):
-        info = {"db.statement": str(clauseelement),
-                "db.multiparams": str(multiparams),
-                "db.params": str(params)}
+    def handler(conn, cursor, statement, params, context, executemany):
+        info = {"db.statement": statement, "db.params": params}
         profiler.start(name, info=info)
 
     return handler
 
 
-def _after_execute():
+def _after_cursor_execute():
     """Add listener that will send trace info after query is executed."""
 
-    def handler(conn, clauseelement, multiparams, params, result):
-        profiler.stop(info=None)
+    def handler(conn, cursor, statement, params, context, executemany):
+        profiler.stop()
 
     return handler
