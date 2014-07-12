@@ -14,7 +14,9 @@
 #    under the License.
 
 import collections
+import copy
 import mock
+import re
 
 from osprofiler import profiler
 
@@ -129,7 +131,7 @@ class ProfilerTestCase(test.TestCase):
         self.assertEqual(hmac, prof.hmac_key)
 
 
-class TraceTestCase(test.TestCase):
+class WithTraceTestCase(test.TestCase):
 
     @mock.patch("osprofiler.profiler.stop")
     @mock.patch("osprofiler.profiler.start")
@@ -144,33 +146,169 @@ class TraceTestCase(test.TestCase):
             mock_stop.reset_mock()
         mock_stop.assert_called_once_with()
 
+
+@profiler.trace("function", info={"info": "some_info"})
+def tracede_func(i):
+    return i
+
+
+@profiler.trace("hide_args", hide_args=True)
+def trace_hide_args_func(a, i=10):
+    return (a, i)
+
+
+class TraceDecoratorTestCase(test.TestCase):
+
     @mock.patch("osprofiler.profiler.stop")
     @mock.patch("osprofiler.profiler.start")
-    def test_decorator_trace(self, mock_start, mock_stop):
-
-        @profiler.trace("a", info={"b": 20})
-        def method(a, b=10):
-            return a + b
-
-        self.assertEqual(40, method(10, b=30))
+    def test_with_args(self, mock_start, mock_stop):
+        self.assertEqual(1, tracede_func(1))
         expected_info = {
-            "b": 20,
-            "method": "tests.test_profiler.method",
-            "args": str((10,)),
-            "kwargs": str({"b": 30})
+            "info": "some_info",
+            "function": {
+                "name": "tests.test_profiler.tracede_func",
+                "args": str((1,)),
+                "kwargs": str({})
+            }
         }
-        mock_start.assert_called_once_with("a", info=expected_info)
+        mock_start.assert_called_once_with("function", info=expected_info)
         mock_stop.assert_called_once_with()
 
     @mock.patch("osprofiler.profiler.stop")
     @mock.patch("osprofiler.profiler.start")
-    def test_decorator_trace_without_args(self, mock_start, mock_stop):
+    def test_without_args(self, mock_start, mock_stop):
+        self.assertEqual((1, 2), trace_hide_args_func(1, i=2))
+        expected_info = {
+            "function": {
+                "name": "tests.test_profiler.trace_hide_args_func"
+            }
+        }
+        mock_start.assert_called_once_with("hide_args", info=expected_info)
+        mock_stop.assert_called_once_with()
 
-        @profiler.trace("a", info={}, hide_args=True)
-        def method2(a, b=10):
-            return a + b
 
-        self.assertEqual(30, method2(10, b=20))
-        expected_info = {"method": "tests.test_profiler.method2"}
-        mock_start.assert_called_once_with("a", info=expected_info)
+class FakeTracedCls(object):
+
+    def method1(self, a, b, c=10):
+        return a + b + c
+
+    def method2(self, d, e):
+        return d - e
+
+    def method3(self, g=10, h=20):
+        return g * h
+
+    def _method(self, i):
+        return i
+
+
+@profiler.trace_cls("rpc", info={"a": 10})
+class FakeTraceClassWithInfo(FakeTracedCls):
+    pass
+
+
+@profiler.trace_cls("a", info={"b": 20}, hide_args=True)
+class FakeTraceClassHideArgs(FakeTracedCls):
+    pass
+
+
+@profiler.trace_cls("rpc", trace_private=True)
+class FakeTracePrivate(FakeTracedCls):
+    pass
+
+
+def py3_info(info):
+    # NOTE(boris-42): py33 I hate you.
+    info_py3 = copy.deepcopy(info)
+    new_name = re.sub("FakeTrace[^.]*", "FakeTracedCls",
+                      info_py3["function"]["name"])
+    info_py3["function"]["name"] = new_name
+    return info_py3
+
+
+def possible_mock_calls(name, info):
+    # NOTE(boris-42): py33 I hate you.
+    return [mock.call(name, info=info), mock.call(name, info=py3_info(info))]
+
+
+class TraceClsDecoratorTestCase(test.TestCase):
+
+    @mock.patch("osprofiler.profiler.stop")
+    @mock.patch("osprofiler.profiler.start")
+    def test_args(self, mock_start, mock_stop):
+        fake_cls = FakeTraceClassWithInfo()
+        self.assertEqual(30, fake_cls.method1(5, 15))
+        expected_info = {
+            "a": 10,
+            "function": {
+                "name": "tests.test_profiler.FakeTraceClassWithInfo.method1",
+                "args": str((fake_cls, 5, 15)),
+                "kwargs": str({})
+            }
+        }
+        self.assertEqual(1, len(mock_start.call_args_list))
+        self.assertIn(mock_start.call_args_list[0],
+                      possible_mock_calls("rpc", expected_info))
+        mock_stop.assert_called_once_with()
+
+    @mock.patch("osprofiler.profiler.stop")
+    @mock.patch("osprofiler.profiler.start")
+    def test_kwargs(self, mock_start, mock_stop):
+        fake_cls = FakeTraceClassWithInfo()
+        self.assertEqual(50, fake_cls.method3(g=5, h=10))
+        expected_info = {
+            "a": 10,
+            "function": {
+                "name": "tests.test_profiler.FakeTraceClassWithInfo.method3",
+                "args": str((fake_cls,)),
+                "kwargs": str({"g": 5, "h": 10})
+            }
+        }
+        self.assertEqual(1, len(mock_start.call_args_list))
+        self.assertIn(mock_start.call_args_list[0],
+                      possible_mock_calls("rpc", expected_info))
+        mock_stop.assert_called_once_with()
+
+    @mock.patch("osprofiler.profiler.stop")
+    @mock.patch("osprofiler.profiler.start")
+    def test_without_private(self, mock_start, mock_stop):
+        fake_cls = FakeTraceClassHideArgs()
+        self.assertEqual(10, fake_cls._method(10))
+        self.assertFalse(mock_start.called)
+        self.assertFalse(mock_stop.called)
+
+    @mock.patch("osprofiler.profiler.stop")
+    @mock.patch("osprofiler.profiler.start")
+    def test_without_args(self, mock_start, mock_stop):
+        fake_cls = FakeTraceClassHideArgs()
+        self.assertEqual(40, fake_cls.method1(5, 15, c=20))
+        expected_info = {
+            "b": 20,
+            "function": {
+                "name": "tests.test_profiler.FakeTraceClassHideArgs.method1"
+            }
+        }
+
+        self.assertEqual(1, len(mock_start.call_args_list))
+        self.assertIn(mock_start.call_args_list[0],
+                      possible_mock_calls("a", expected_info))
+        mock_stop.assert_called_once_with()
+
+    @mock.patch("osprofiler.profiler.stop")
+    @mock.patch("osprofiler.profiler.start")
+    def test_private_methods(self, mock_start, mock_stop):
+        fake_cls = FakeTracePrivate()
+        self.assertEqual(5, fake_cls._method(5))
+
+        expected_info = {
+            "function": {
+                "name": "tests.test_profiler.FakeTracePrivate._method",
+                "args": str((fake_cls, 5)),
+                "kwargs": str({})
+            }
+        }
+
+        self.assertEqual(1, len(mock_start.call_args_list))
+        self.assertIn(mock_start.call_args_list[0],
+                      possible_mock_calls("rpc", expected_info))
         mock_stop.assert_called_once_with()

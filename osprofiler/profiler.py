@@ -15,6 +15,7 @@
 
 import collections
 import functools
+import inspect
 import threading
 import uuid
 
@@ -73,12 +74,12 @@ def stop(info=None):
 
 
 def trace(name, info=None, hide_args=False):
-    """Trace decorator.
+    """Trace decorator for functions.
 
-    Very useful if you would like to add trace point on existing method:
+    Very useful if you would like to add trace point on existing function:
 
     >>  @profiler.trace("my_point")
-    >>  def my_method(self, some_args):
+    >>  def my_func(self, some_args):
     >>      #code
 
     :param name: The name of action. E.g. wsgi, rpc, db, etc..
@@ -91,18 +92,59 @@ def trace(name, info=None, hide_args=False):
     info = info or {}
 
     def decorator(f):
-        info["method"] = "%s.%s" % (f.__module__, f.__name__)
 
         @functools.wraps(f)
         def wrapper(*args, **kwargs):
+            info["function"] = {"name": _get_full_func_name(f)}
+
             if not hide_args:
-                info["args"] = str(args)
-                info["kwargs"] = str(kwargs)
+                info["function"]["args"] = str(args)
+                info["function"]["kwargs"] = str(kwargs)
 
             with Trace(name, info=info):
                 return f(*args, **kwargs)
 
         return wrapper
+
+    return decorator
+
+
+def trace_cls(name, info=None, hide_args=False, trace_private=False):
+    """Trace decorator for instances of class .
+
+    Very useful if you would like to add trace point on existing method:
+
+    >>  @profiler.trace_cls("rpc")
+    >>  RpcManagerClass(object):
+    >>
+    >>      def my_method(self, some_args):
+    >>          pass
+    >>
+    >>      def my_method2(self, some_arg1, some_arg2, kw=None, kw2=None)
+    >>          pass
+    >>
+
+    :param name: The name of action. E.g. wsgi, rpc, db, etc..
+    :param info: Dictionary with extra trace information. For example in wsgi
+                 it can be url, in rpc - message or in db sql - request.
+    :param hide_args: Don't push to trace info args and kwargs. Quite useful
+                      if you have some info in args that you wont to share,
+                      e.g. passwords.
+
+    :param trace_private: Trace methods that starts with "_". It wont trace
+                          methods that starts "__" even if it is turned on.
+    """
+
+    def decorator(cls):
+        for attr_name, attr in inspect.getmembers(cls):
+            if not callable(attr) or attr_name.startswith("__"):
+                continue
+            if not trace_private and attr_name.startswith("_"):
+                continue
+
+            setattr(cls, attr_name,
+                    trace(name, info=info, hide_args=hide_args)(attr))
+        return cls
 
     return decorator
 
@@ -132,6 +174,17 @@ class Trace(object):
 
     def __exit__(self, etype, value, traceback):
         stop()
+
+
+def _get_full_func_name(f):
+    if hasattr(f, "__qualname__"):
+        # NOTE(boris-42): Most proper way to get full name in py33
+        return ".".join([f.__module__, f.__qualname__])
+
+    if inspect.ismethod(f):
+        return ".".join([f.__module__, f.im_class.__name__, f.__name__])
+
+    return ".".join([f.__module__, f.__name__])
 
 
 class _Profiler(object):
