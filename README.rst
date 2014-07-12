@@ -7,11 +7,11 @@ OSProfiler is an OpenStack cross-project profiling library.
 Background
 ----------
 
-OpenStack consists of multiple projects. Each project, in turn, has multiple
-services. To process some request, e.g. to boot a virtual machine, OpenStack
-uses multiple services from different projects. In case something works too
-slowly, it's extremely complicated to understand what exactly goes wrong and to
-locate the bottleneck.
+OpenStack consists of multiple projects. Each project, in turn, is composed of
+multiple services. To process some request, e.g. to boot a virtual machine,
+OpenStack uses multiple services from different projects. In the case something
+works too slowly, it's extremely complicated to understand what exactly goes
+wrong and to locate the bottleneck.
 
 To resolve this issue, we introduce a tiny but powerful library,
 **osprofiler**, that is going to be used by all OpenStack projects and their
@@ -26,24 +26,25 @@ Why not cProfile and etc?
 **The scope of this library is quite different:**
 
 * We are interested in getting one trace of points from different service,
-  not tracing all python calls inside one process
+  not tracing all python calls inside one process.
 
-* This library should be easy integrable in OpenStack. It means that:
+* This library should be easy integratable in OpenStack. This means that:
 
-  * It shouldn't require too much changes in code bases of projects
+  * It shouldn't require too many changes in code bases of integrating
+    projects.
 
-  * We should be able to turn it off fully
+  * We should be able to turn it off fully.
 
   * We should be able to keep it turned on in lazy mode in production
-    (e.g. admin should be able to "trace" on request)
+    (e.g. admin should be able to "trace" on request).
 
 
 OSprofiler API version 0.2.0
 ----------------------------
 
-There are a couple of things that you should know about API before learning it.
+There are a couple of things that you should know about API before using it.
 
-* **3 ways to add new trace point**
+* **3 ways to add a new trace point**
 
     .. parsed-literal::
 
@@ -81,8 +82,8 @@ There are a couple of things that you should know about API before learning it.
           profiler.stop()
           profiler.stop()
 
-      Implementation is quite simple. Profiler has one stack that contains ids
-      of all trace points. E.g.:
+      The implementation is quite simple. Profiler has one stack that contains
+      ids of all trace points. E.g.:
 
       .. parsed-literal::
 
@@ -98,12 +99,12 @@ There are a couple of things that you should know about API before learning it.
                                          # trace_stack.pop()
 
       It's simple to build a tree of nested trace points, having
-      **(pranet_id, point_id)** of all trace points.
+      **(parent_id, point_id)** of all trace points.
 
 * **Process of sending to collector**
 
   Trace points contain 2 messages (start and stop). Messages like below are
-  sent to collector:
+  sent to a collector:
 
   .. parsed-literal::
     {
@@ -115,7 +116,7 @@ There are a couple of things that you should know about API before learning it.
     }
 
    * base_id - <uuid> that is equal for all trace points that belong
-               to one trace, it is done to simplify the process of retrieving
+               to one trace, this is done to simplify the process of retrieving
                all trace points related to one trace from collector
    * parent_id - <uuid> of parent trace point
    * trace_id - <uuid> of current trace point
@@ -124,11 +125,11 @@ There are a couple of things that you should know about API before learning it.
 
 
 
-* **Setting up Collector.**
+* **Setting up the collector.**
 
-    Profiler doesn't include trace point collector. End user should provide
-    method that sends messages to the collector. Let's take a look at trivial
-    sample, where the collector is just a file:
+    The profiler doesn't include a trace point collector. The user/developer
+    should instead provide a method that sends messages to a collector. Let's
+    take a look at a trivial sample, where the collector is just a file:
 
     .. parsed-literal::
 
@@ -136,23 +137,22 @@ There are a couple of things that you should know about API before learning it.
 
         from osprofiler import notifier
 
-        f = open("traces", "a")
-
         def send_info_to_file_collector(info, context=None):
-            f.write(json.dumps(info))
+            with open("traces", "a") as f:
+                f.write(json.dumps(info))
 
         notifier.set(send_info_to_file_collector)
 
     So now on every **profiler.start()** and **profiler.stop()** call we will
-    write info about trace point to the end of **traces** file.
+    write info about the trace point to the end of the **traces** file.
 
 
 * **Initialization of profiler.**
 
-    If profiler is not initialized, all calls of **profiler.start()** and
+    If profiler is not initialized, all calls to **profiler.start()** and
     **profiler.stop()** will be ignored.
 
-    Initialization is quite simple procedure.
+    Initialization is a quite simple procedure.
 
     .. parsed-literal::
 
@@ -160,22 +160,20 @@ There are a couple of things that you should know about API before learning it.
 
         profiler.init("SECRET_HMAC_KEY", base_id=<uuid>, parent_id=<uuid>)
 
-    "SECRET_HMAC_KEY" - will be discussed later, cause it's related to the
+   ``SECRET_HMAC_KEY`` - will be discussed later, because it's related to the
     integration of OSprofiler & OpenStack.
 
     **base_id** and **trace_id** will be used to initialize stack_trace in
     profiler, e.g. stack_trace = [base_id, trace_id].
 
-
-
 Integration with OpenStack
 --------------------------
 
-There are 4 topics related to integration OSprofiler & OpenStack:
+There are 4 topics related to integration OSprofiler & `OpenStack`_:
 
-* **What we should use as a centralized collector**
+* **What we should use as a centralized collector?**
 
-  We decided to use Ceilometer, because:
+  We decided to use `Ceilometer`_, because:
 
   * It's already integrated in OpenStack, so it's quite simple to send
     notifications to it from all projects.
@@ -185,22 +183,22 @@ There are 4 topics related to integration OSprofiler & OpenStack:
     *osprofiler.parsers.ceilometer:get_notifications*
 
 
-* **How to setup profiler notifier**
+* **How to setup profiler notifier?**
 
   We decided to use olso.messaging Notifier API, because:
 
-  * oslo.messaging is integrated in all projects
+  * `oslo.messaging`_ is integrated in all projects
 
-  * It's the simplest way to send notification to Ceilometer, take a look at:
-    *osprofiler.notifiers.messaging.Messaging:notify* method
+  * It's the simplest way to send notification to Ceilometer, take a
+    look at: *osprofiler.notifiers.messaging.Messaging:notify* method
 
-  * We don't need to add any new CONF options in projects
+  * We don't need to add any new `CONF`_ options in projects
 
 
-* **How to initialize profiler, to get one trace across all services**
+* **How to initialize profiler, to get one trace across all services?**
 
     To enable cross service profiling we actually need to do send from caller
-    to callee (base_id & trace_id). So callee will be able to init his profiler
+    to callee (base_id & trace_id). So callee will be able to init its profiler
     with these values.
 
     In case of OpenStack there are 2 kinds of interaction between 2 services:
@@ -212,7 +210,7 @@ There are 4 topics related to integration OSprofiler & OpenStack:
 
         These python clients are used in 2 cases:
 
-        * User access OpenStack
+        * User access -> OpenStack
 
         * Service from Project 1 would like to access Service from Project 2
 
@@ -221,14 +219,17 @@ There are 4 topics related to integration OSprofiler & OpenStack:
 
         * Put in python clients headers with trace info (if profiler is inited)
 
-        * Add OSprofiler WSGI middleware to service, that will init profiler, if
-          there are special trace headers.
+        * Add OSprofiler WSGI middleware to service, that will init profiler,
+          if there are special trace headers.
 
-        Actually the algorithm is a bit more complex. Python client sign trace
-        info with a HMAC key passed to profiler.init, and WSGI middleware checks
-        that it's signed with HMAC that is specified in api-paste.ini. So only
-        the user that knows HMAC key in api-paste.ini can init profiler properly
-        and send trace info that will be actually processed.
+        Actually the algorithm is a bit more complex. The Python client will
+        also sign the trace info with a `HMAC`_ key passed to profiler.init,
+        and on reception the WSGI middleware will check that it's signed with
+        the **same** HMAC key that is specified in api-paste.ini. This ensures
+        that only the user that knows the HMAC key in api-paste.ini can init
+        a profiler properly and send trace info that will be actually
+        processed. This ensures that trace info that is sent in that does
+        **not** pass the HMAC validation will be discarded.
 
 
     * RPC API
@@ -237,14 +238,21 @@ There are 4 topics related to integration OSprofiler & OpenStack:
         It's well known that projects are using oslo.messaging to deal with RPC.
         So the best way to enable cross service tracing (inside of project) is
         to add trace info to all messages (in case of inited profiler). And
-        initialize profiler on callee side, if there is a trace info in message.
+        initialize profiler on callee side, if there is trace info in the
+        message.
 
-* **What points should be tracked by default**
+* **What points should be tracked by default?**
 
-   I think that for all projects we should include by default 3 kinds o points:
+   I think that for all projects we should include by default 3 kinds of points:
 
    * All HTTP calls
 
    * All RPC calls
 
    * All DB calls
+
+.. _CONF: http://docs.openstack.org/developer/oslo.config/
+.. _HMAC: http://en.wikipedia.org/wiki/Hash-based_message_authentication_code
+.. _OpenStack: http://openstack.org/
+.. _Ceilometer: https://wiki.openstack.org/wiki/Ceilometer
+.. _oslo.messaging: https://pypi.python.org/pypi/oslo.messaging
