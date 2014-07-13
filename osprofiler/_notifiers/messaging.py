@@ -29,7 +29,8 @@ class Messaging(base.Notifier):
         self.service = service
 
         self.notifier = messaging.Notifier(
-            transport, publisher_id=host, driver="messaging", topic="profiler")
+            transport, publisher_id=host, driver="messaging",
+            topic="profiler", retry=0)
 
     def notify(self, info, context=None):
         """Send notifications to Ceilometer via oslo.messaging notifier API.
