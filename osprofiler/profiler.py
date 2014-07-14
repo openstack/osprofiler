@@ -137,7 +137,9 @@ def trace_cls(name, info=None, hide_args=False, trace_private=False):
 
     def decorator(cls):
         for attr_name, attr in inspect.getmembers(cls):
-            if not callable(attr) or attr_name.startswith("__"):
+            if not (inspect.ismethod(attr) or inspect.isfunction(attr)):
+                continue
+            if attr_name.startswith("__"):
                 continue
             if not trace_private and attr_name.startswith("_"):
                 continue
