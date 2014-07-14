@@ -39,7 +39,7 @@ Why not cProfile and etc?
     (e.g. admin should be able to "trace" on request).
 
 
-OSprofiler API version 0.2.0
+OSprofiler API version 0.2.5
 ----------------------------
 
 There are a couple of things that you should know about API before using it.
@@ -234,8 +234,11 @@ There are 4 topics related to integration OSprofiler & `OpenStack`_:
 
         * Put in python clients headers with trace info (if profiler is inited)
 
-        * Add OSprofiler WSGI middleware to service, that will init profiler,
-          if there are special trace headers.
+        * Add `OSprofiler WSGI middleware`_ to service, that initializes
+          profiler, if there are special trace headers, that are signed by HMAC
+          from api-paste.ini
+
+
 
         Actually the algorithm is a bit more complex. The Python client will
         also sign the trace info with a `HMAC`_ key passed to profiler.init,
@@ -250,24 +253,44 @@ There are 4 topics related to integration OSprofiler & `OpenStack`_:
     * RPC API
 
         RPC calls are used for interaction between services of one project.
-        It's well known that projects are using oslo.messaging to deal with RPC.
-        So the best way to enable cross service tracing (inside of project) is
-        to add trace info to all messages (in case of inited profiler). And
-        initialize profiler on callee side, if there is trace info in the
-        message.
+        It's well known that projects are using `oslo.messaging`_ to deal with
+        RPC. It's very good, because projects deal with RPC in similar way.
+
+        So there are 2 required changes:
+
+        * On callee side put in request context trace info (if profiler was
+          initialized)
+
+        * On caller side initialize profiler, if there is trace info in request
+          context.
+
+        * Trace all methods of callee API (can be done via profiler.trace_cls).
+
 
 * **What points should be tracked by default?**
 
-   I think that for all projects we should include by default 3 kinds of points:
+   I think that for all projects we should include by default 5 kinds of points:
 
-   * All HTTP calls
+   * All HTTP calls - helps to get information about: what HTTP requests were
+     done, duration of calls (latency of service), information about projects
+     involved in request.
 
-   * All RPC calls
+   * All RPC calls - helps to understand duration of parts of request related
+     to different services in one project. This information is essential to
+     understand which service produce the bottleneck.
 
-   * All DB calls
+   * All DB API calls - in some cases slow DB query can produce bottleneck. So
+     it's quite useful to track how much time request spend in DB layer.
+
+   * All driver calls - in case of nova, cinder and others we have vendor
+     drivers. Duration
+
+   * ALL SQL requests (turned off by default, because it produce a lot of
+     traffic)
 
 .. _CONF: http://docs.openstack.org/developer/oslo.config/
 .. _HMAC: http://en.wikipedia.org/wiki/Hash-based_message_authentication_code
 .. _OpenStack: http://openstack.org/
 .. _Ceilometer: https://wiki.openstack.org/wiki/Ceilometer
 .. _oslo.messaging: https://pypi.python.org/pypi/oslo.messaging
+.. _OSprofiler WSGI middleware: https://github.com/stackforge/osprofiler/blob/master/osprofiler/web.py
