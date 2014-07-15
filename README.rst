@@ -234,21 +234,32 @@ There are 4 topics related to integration OSprofiler & `OpenStack`_:
 
         * Put in python clients headers with trace info (if profiler is inited)
 
-        * Add `OSprofiler WSGI middleware`_ to service, that initializes
-          profiler, if there are special trace headers, that are signed by HMAC
-          from api-paste.ini
+        * Add `OSprofiler WSGI middleware`_ to your service, this initializes
+          the profiler, if and only if there are special trace headers, that
+          are signed by one of the HMAC keys from api-paste.ini (if multiple
+          keys exist the signing process will continue to use the key that was
+          accepted during validation).
 
+          * The common items that are used to configure the middleware are the
+            following (these can be provided when initializing the middleware
+            object or when setting up the api-paste.ini file)::
 
+                hmac_keys = KEY1, KEY2 (can be a single key as well)
 
         Actually the algorithm is a bit more complex. The Python client will
-        also sign the trace info with a `HMAC`_ key passed to profiler.init,
-        and on reception the WSGI middleware will check that it's signed with
-        the **same** HMAC key that is specified in api-paste.ini. This ensures
-        that only the user that knows the HMAC key in api-paste.ini can init
-        a profiler properly and send trace info that will be actually
-        processed. This ensures that trace info that is sent in that does
-        **not** pass the HMAC validation will be discarded.
-
+        also sign the trace info with a `HMAC`_ key (lets call that key ``A``)
+        passed to profiler.init, and on reception the WSGI middleware will
+        check that it's signed with *one of* the HMAC keys (the wsgi
+        server should have key ``A`` as well, but may also have keys ``B``
+        and ``C``) that are specified in api-paste.ini. This ensures that only
+        the user that knows the HMAC key ``A`` in api-paste.ini can init a
+        profiler properly and send trace info that will be actually
+        processed. This ensures that trace info that is sent in that
+        does **not** pass the HMAC validation will be discarded. **NOTE:** The
+        application of many possible *validation* keys makes it possible to
+        roll out a key upgrade in a non-impactful manner (by adding a key into
+        the list and rolling out that change and then removing the older key at
+        some time in the future).
 
     * RPC API
 

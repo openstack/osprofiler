@@ -46,6 +46,21 @@ except (AttributeError, ImportError):
         return result == 0
 
 
+def split(text, strip=True):
+    """Splits a comma separated text blob into its components.
+
+    Does nothing if already a list or tuple.
+    """
+    if isinstance(text, (tuple, list)):
+        return text
+    if not isinstance(text, six.string_types):
+        raise TypeError("Unknown how to split '%s': %s" % (text, type(text)))
+    if strip:
+        return [t.strip() for t in text.split(",") if t.strip()]
+    else:
+        return text.split(",")
+
+
 def binary_encode(text, encoding='utf-8'):
     """Converts a string of into a binary type using given encoding.
 
@@ -74,7 +89,6 @@ def binary_decode(data, encoding='utf-8'):
 
 def generate_hmac(data, hmac_key):
     """Generate a hmac using a known key given the provided content."""
-
     h = hmac.new(binary_encode(hmac_key), digestmod=hashlib.sha1)
     h.update(binary_encode(data))
     return h.hexdigest()
@@ -82,7 +96,6 @@ def generate_hmac(data, hmac_key):
 
 def signed_pack(data, hmac_key):
     """Pack and sign data with hmac_key."""
-
     raw_data = base64.urlsafe_b64encode(binary_encode(json.dumps(data)))
 
     # NOTE(boris-42): Don't generate_hmac if there is no hmac_key, mostly
@@ -92,30 +105,39 @@ def signed_pack(data, hmac_key):
     return raw_data, generate_hmac(raw_data, hmac_key) if hmac_key else None
 
 
-def signed_unpack(data, hmac_data, hmac_key):
+def signed_unpack(data, hmac_data, hmac_keys):
     """Unpack data and check that it was signed with hmac_key.
 
     :param data: json string that was singed_packed.
     :param hmac_data: hmac data that was generated from json by hmac_key on
                       user side
-    :param hmac_key: server side hmac_key, that should be the same as user
+    :param hmac_keys: server side hmac_keys, one of these should be the same
+                      as user used to sign with
 
     :returns: None in case of something wrong, Object in case of everything OK.
     """
-
-    # NOTE(boris-42): For security reason, if there is no hmac_data or hmac_key
-    #                 we don't trust data => return None.
-    if not (hmac_key and hmac_data):
+    # NOTE(boris-42): For security reason, if there is no hmac_data or
+    #                 hmac_keys we don't trust data => return None.
+    if not (hmac_keys and hmac_data):
         return None
-
     hmac_data = hmac_data.strip()
-    try:
-        user_hmac_data = generate_hmac(data, hmac_key)
-        if not compare_digest(hmac_data, user_hmac_data):
-            return None
-        return json.loads(binary_decode(base64.urlsafe_b64decode(data)))
-    except Exception:
+    if not hmac_data:
         return None
+    for hmac_key in hmac_keys:
+        try:
+            user_hmac_data = generate_hmac(data, hmac_key)
+        except Exception:
+            pass
+        else:
+            if compare_digest(hmac_data, user_hmac_data):
+                try:
+                    contents = json.loads(
+                        binary_decode(base64.urlsafe_b64decode(data)))
+                    contents['hmac_key'] = hmac_key
+                    return contents
+                except Exception:
+                    return None
+    return None
 
 
 def itersubclasses(cls, _seen=None):

@@ -13,10 +13,17 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
+import six
 import webob.dec
 
 from osprofiler import _utils as utils
 from osprofiler import profiler
+
+
+# Trace keys that are required or optional, any other
+# keys that are present will cause the trace to be rejected...
+_REQUIRED_KEYS = ('base_id', 'hmac_key')
+_OPTIONAL_KEYS = ('parent_id',)
 
 
 def get_trace_id_headers():
@@ -54,19 +61,21 @@ def enable():
 class WsgiMiddleware(object):
     """WSGI Middleware that enables tracing for an application."""
 
-    def __init__(self, application, hmac_key, enabled=False):
+    def __init__(self, application, hmac_keys, enabled=False):
         """Initialize middleware with api-paste.ini arguments.
 
         :application: wsgi app
-        :hmac_key: Only trace header that was signed with this hmac key will be
-                   processed. This limitation is essential, cause it allows
-                   to profile OpenStack who knows this key => avoid DDOS.
+        :hmac_keys: Only trace header that was signed with one of these
+                    hmac keys will be processed. This limitation is
+                    essential, because it allows to profile OpenStack
+                    by only those who knows this key which helps
+                    avoid DDOS.
         :enabled: This middleware can be turned off fully if enabled is False.
         """
         self.application = application
         self.name = "wsgi"
         self.enabled = enabled
-        self.hmac_key = hmac_key
+        self.hmac_keys = utils.split(hmac_keys or "")
 
     @classmethod
     def factory(cls, global_conf, **local_conf):
@@ -75,7 +84,14 @@ class WsgiMiddleware(object):
         return filter_
 
     def _trace_is_valid(self, trace_info):
-        return (isinstance(trace_info, dict) and "base_id" in trace_info)
+        if not isinstance(trace_info, dict):
+            return False
+        trace_keys = set(six.iterkeys(trace_info))
+        if not all(k in trace_keys for k in _REQUIRED_KEYS):
+            return False
+        if trace_keys.difference(_REQUIRED_KEYS + _OPTIONAL_KEYS):
+            return False
+        return True
 
     @webob.dec.wsgify
     def __call__(self, request):
@@ -84,14 +100,12 @@ class WsgiMiddleware(object):
 
         trace_info = utils.signed_unpack(request.headers.get("X-Trace-Info"),
                                          request.headers.get("X-Trace-HMAC"),
-                                         self.hmac_key)
+                                         self.hmac_keys)
 
         if not self._trace_is_valid(trace_info):
             return request.get_response(self.application)
 
-        profiler.init(self.hmac_key,
-                      base_id=trace_info.get("base_id"),
-                      parent_id=trace_info.get("parent_id"))
+        profiler.init(**trace_info)
         info = {
             "request": {
                 "host_url": request.host_url,
