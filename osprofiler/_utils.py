@@ -21,6 +21,30 @@ import os
 
 import six
 
+try:
+    # Only in python 2.7.7+ (and python 3.3+)
+    # https://docs.python.org/2/library/hmac.html#hmac.compare_digest
+    from hmac import compare_digest  # noqa
+except (AttributeError, ImportError):
+    # Taken/slightly modified from:
+    # https://mail.python.org/pipermail/python-checkins/2012-June/114532.html
+    def compare_digest(a, b):
+        """Returns the equivalent of 'a == b', but avoids content based short
+        circuiting to reduce the vulnerability to timing attacks.
+        """
+        # We assume the length of the expected digest is public knowledge,
+        # thus this early return isn't leaking anything an attacker wouldn't
+        # already know
+        if len(a) != len(b):
+            return False
+
+        # We assume that integers in the bytes range are all cached,
+        # thus timing shouldn't vary much due to integer object creation
+        result = 0
+        for x, y in zip(a, b):
+            result |= ord(x) ^ ord(y)
+        return result == 0
+
 
 def binary_encode(text, encoding='utf-8'):
     """Converts a string of into a binary type using given encoding.
@@ -84,10 +108,11 @@ def signed_unpack(data, hmac_data, hmac_key):
     if not (hmac_key and hmac_data):
         return None
 
+    hmac_data = hmac_data.strip()
     try:
-        if generate_hmac(data, hmac_key) != hmac_data.strip():
+        user_hmac_data = generate_hmac(data, hmac_key)
+        if not compare_digest(hmac_data, user_hmac_data):
             return None
-
         return json.loads(binary_decode(base64.urlsafe_b64decode(data)))
     except Exception:
         return None
