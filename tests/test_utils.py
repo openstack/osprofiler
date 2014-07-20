@@ -92,3 +92,8 @@ class UtilsTestCase(test.TestCase):
             pass
 
         self.assertEqual([B, C, D], list(utils.itersubclasses(A)))
+
+        class E(type):
+            pass
+
+        self.assertEqual([], list(utils.itersubclasses(E)))
