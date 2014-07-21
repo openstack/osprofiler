@@ -34,7 +34,8 @@ class MessagingTestCase(test.TestCase):
                                             transport, project, service, host)
 
         messaging.Notifier.assert_called_once_with(
-            transport, publisher_id=host, driver="messaging", topic="profiler")
+            transport, publisher_id=host, driver="messaging",
+            topic="profiler", retry=0)
 
         info = {
             "a": 10
