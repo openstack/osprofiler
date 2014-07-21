@@ -1,4 +1,4 @@
-# Copyright 2011 OpenStack Foundation.
+# Copyright 2014 Mirantis Inc.
 # All Rights Reserved.
 #
 #    Licensed under the Apache License, Version 2.0 (the "License"); you may
@@ -13,19 +13,12 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
-import os
 
-from six.moves import configparser
+class CommandError(Exception):
+    """Invalid usage of CLI."""
 
-from osprofiler import _utils as utils
+    def __init__(self, message=None):
+        self.message = message
 
-
-utils.import_modules_from_package("osprofiler._notifiers")
-
-_conf = configparser.ConfigParser()
-_conf.read(os.path.join(
-    os.path.dirname(os.path.dirname(__file__)), 'setup.cfg'))
-try:
-    __version__ = _conf.get('metadata', 'version')
-except (configparser.NoOptionError, configparser.NoSectionError):
-    __version__ = None
+    def __str__(self):
+        return self.message or self.__class__.__doc__
