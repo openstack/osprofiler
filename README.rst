@@ -181,6 +181,41 @@ There are a couple of things that you should know about API before using it.
     **base_id** and **trace_id** will be used to initialize stack_trace in
     profiler, e.g. stack_trace = [base_id, trace_id].
 
+
+* **OSProfiler CLI.**
+
+  To make it easier for end users to work with profiler from CLI, osprofiler
+  has entry point that allows us to retrieve information about traces and
+  present it in human readable from.
+
+  Available commands:
+
+  * Help message with all available commands and their arguments:
+
+      .. parsed-literal::
+
+          $ osprofiler -h/--help
+
+  * OSProfiler version:
+
+      .. parsed-literal::
+
+          $ osprofiler -v/--version
+
+  * Results of profiling can be obtained in JSON (option: ``--json``) and HTML
+    (option: ``--html``) formats:
+
+      .. parsed-literal::
+
+          $ osprofiler trace show <trace_id> --json/--html
+
+      hint: option ``--out`` will redirect result of ``osprofiler trace show``
+      in specified file:
+
+      .. parsed-literal::
+
+          $ osprofiler trace show <trace_id> --json/--html --out /path/to/file
+
 Integration with OpenStack
 --------------------------
 
