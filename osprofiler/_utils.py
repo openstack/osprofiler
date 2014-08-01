@@ -121,10 +121,6 @@ def signed_unpack(data, hmac_data, hmac_key):
 def itersubclasses(cls, _seen=None):
     """Generator over all subclasses of a given class in depth first order."""
 
-    if not isinstance(cls, type):
-        raise TypeError("itersubclasses must be called with "
-                        "new-style classes, not %.100r" % cls)
-
     _seen = _seen or set()
     try:
         subs = cls.__subclasses__()

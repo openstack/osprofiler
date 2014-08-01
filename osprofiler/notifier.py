@@ -18,7 +18,6 @@ from osprofiler._notifiers import base
 
 def _noop_notifier(info, context=None):
     """Do nothing on notify()."""
-    pass
 
 
 # NOTE(boris-42): By default we are using noop notifier.
