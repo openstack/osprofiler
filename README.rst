@@ -57,7 +57,7 @@ There are a couple of things that you should know about API before using it.
             profiler.stop({"any_info_about_point": "in_this_dict"})
 
 
-        @profiler.Trace("point_name",
+        @profiler.trace("point_name",
                         info={"any_info_about_point": "in_this_dict"},
                         hide_args=False)
         def some_func2(*args, **kwargs):
@@ -65,7 +65,7 @@ There are a couple of things that you should know about API before using it.
             pass
 
         def some_func3():
-            with profiler.trace("point_name",
+            with profiler.Trace("point_name",
                                 info={"any_key": "with_any_value"}):
                 # some code here
 
@@ -185,7 +185,7 @@ There are a couple of things that you should know about API before using it.
 * **OSProfiler CLI.**
 
   To make it easier for end users to work with profiler from CLI, osprofiler
-  has entry point that allows us to retrieve information about traces and
+  has entry point that allows them to retrieve information about traces and
   present it in human readable from.
 
   Available commands:
