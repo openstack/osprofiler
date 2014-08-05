@@ -55,8 +55,26 @@ class UtilsTestCase(test.TestCase):
 
         packed_data, hmac_data = utils.signed_pack(data, hmac)
 
-        self.assertEqual(utils.signed_unpack(packed_data, hmac_data, hmac),
-                         data)
+        process_data = utils.signed_unpack(packed_data, hmac_data, [hmac])
+        self.assertIn("hmac_key", process_data)
+        process_data.pop('hmac_key')
+        self.assertEqual(data, process_data)
+
+    def test_signed_pack_unpack_many_keys(self):
+        keys = ['secret', 'secret2', 'secret3']
+        data = {"some": "data"}
+        packed_data, hmac_data = utils.signed_pack(data, keys[-1])
+
+        process_data = utils.signed_unpack(packed_data, hmac_data, keys)
+        self.assertEqual(keys[-1], process_data['hmac_key'])
+
+    def test_signed_pack_unpack_many_wrong_keys(self):
+        keys = ['secret', 'secret2', 'secret3']
+        data = {"some": "data"}
+        packed_data, hmac_data = utils.signed_pack(data, 'password')
+
+        process_data = utils.signed_unpack(packed_data, hmac_data, keys)
+        self.assertIsNone(process_data)
 
     def test_signed_unpack_wrong_key(self):
         data = {"some": "data"}
