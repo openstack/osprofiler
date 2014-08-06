@@ -17,11 +17,21 @@ import base64
 import hashlib
 import hmac
 
+import mock
+
 from osprofiler import _utils as utils
 from tests import test
 
 
 class UtilsTestCase(test.TestCase):
+
+    def test_split(self):
+        self.assertEqual([1, 2], utils.split([1, 2]))
+        self.assertEqual(["A", "B"], utils.split("A, B"))
+        self.assertEqual(["A", " B"], utils.split("A, B", strip=False))
+
+    def test_split_wrong_type(self):
+        self.assertRaises(TypeError, utils.split, 1)
 
     def test_binary_encode_and_decode(self):
         self.assertEqual("text",
@@ -87,6 +97,12 @@ class UtilsTestCase(test.TestCase):
         packed_data, hmac_data = utils.signed_pack(data, "secret")
         self.assertIsNone(utils.signed_unpack(packed_data, hmac_data, None))
         self.assertIsNone(utils.signed_unpack(packed_data, None, "secret"))
+        self.assertIsNone(utils.signed_unpack(packed_data, " ", "secret"))
+
+    @mock.patch("osprofiler._utils.generate_hmac")
+    def test_singed_unpack_generate_hmac_failed(self, mock_generate_hmac):
+        mock_generate_hmac.side_effect = Exception
+        self.assertIsNone(utils.signed_unpack("data", "hmac_data", "hmac_key"))
 
     def test_signed_unpack_invalid_json(self):
         hmac = "secret"
