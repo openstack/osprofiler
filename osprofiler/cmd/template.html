@@ -154,11 +154,12 @@
             };
           }, metadata);
 
+          info["duration"] = info["finished"] - info["started"]
           info["metadata"] = "<pre>" + JSON.stringify(metadata, "", 4) + "</pre>"
 
           var trace_data = "<div class='row'>"
           columns = ["name", "project", "service", "host", "started",
-                     "finished", "host", "metadata"];
+                     "finished", "duration", "metadata"];
           for (var i = 0; i < columns.length; i++){
             trace_data += "<div class='col-md-2 text-right text-capitalize'><strong>" + columns[i] + " </strong></div>";
             trace_data += "<div class='col-md-10 text-left'>" + info[columns[i]] + "</div>";
