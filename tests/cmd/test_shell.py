@@ -155,9 +155,11 @@ class ShellTestCase(test.TestCase):
         mock_get.return_value = None
 
         fake_trace_id = "fake_id"
-        msg = ("Trace with UUID %s not found. There are 2 possible reasons: \n"
+        msg = ("Trace with UUID %s not found. There are 3 possible reasons: \n"
                " 1) You are using not admin credentials\n"
-               " 2) You specified wrong trace id" % fake_trace_id)
+               " 2) You specified wrong trace id\n"
+               " 3) You specified wrong HMAC Key in original calling"
+               % fake_trace_id)
 
         self._test_with_command_error("trace show %s" % fake_trace_id, msg)
 
