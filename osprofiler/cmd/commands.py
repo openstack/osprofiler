@@ -74,7 +74,7 @@ class TraceCommands(BaseCommand):
             with open(os.path.join(os.path.dirname(__file__),
                                    "template.html")) as html_template:
                 output = html_template.read().replace(
-                    "$DATA", json.dumps(parsed_notifications))
+                    "$DATA", json.dumps(parsed_notifications, indent=2))
         else:
             raise exc.CommandError("You should choose one of the following "
                                    "output-formats: --json or --html.")
