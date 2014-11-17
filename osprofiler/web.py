@@ -22,8 +22,8 @@ from osprofiler import profiler
 
 # Trace keys that are required or optional, any other
 # keys that are present will cause the trace to be rejected...
-_REQUIRED_KEYS = ('base_id', 'hmac_key')
-_OPTIONAL_KEYS = ('parent_id',)
+_REQUIRED_KEYS = ("base_id", "hmac_key")
+_OPTIONAL_KEYS = ("parent_id",)
 
 
 def get_trace_id_headers():

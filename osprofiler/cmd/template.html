@@ -10,27 +10,21 @@
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.2.0/css/bootstrap-theme.min.css">
 
     <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.2.10/angular.min.js"></script>
-
     <script src="https://angular-ui.github.io/bootstrap/ui-bootstrap-tpls-0.11.0.js"></script>
 
-
     <style>
-
       .trace {
         min-width: 900px;
         width: 100%;
       }
-
       .trace tr.active-true {
         background-color: #D9EDF7!important;
       }
-
       .trace tr td {
         width: 14%;
         white-space: nowrap;
         padding: 2px;
         border-right: 1px solid #eee;
-
       }
       .trace tr td.details {
         width: 10%;
@@ -43,11 +37,9 @@
         width: 10%;
         font-weight: bold;
       }
-
       .bold {
         font-weight: bold;
       }
-
       .duration {
         width: 25px;
         margin: 0px;
@@ -55,9 +47,7 @@
         background-color: #c6eff3;
         border-radius: 4px;
         font-size: 10px;
-
       }
-
       .duration div{
         padding-top: 4px;
         padding-bottom: 4px;
@@ -91,12 +81,10 @@
             </tr>
           </table>
 
-
         <div ng-hide="hide_children">
           <div ng-repeat="data in data.children" ng-include="'tree_item_renderer.html'"> </div>
         </div>
       </div>
-
 
     </script>
 
@@ -170,8 +158,7 @@
             '<div class="modal-header"> Trace Point Details </div>' +
             '<div class="modal-body">' + trace_data + '</div>' +
             '<div class="modal-footer"> <span class="glyphicon glyphicon-cloud </div>'
-          )
-
+          );
 
           var modal_instance = $modal.open({
             "template": output,
@@ -180,7 +167,6 @@
         }
 
         $scope.tree = [convert_input(OSProfilerData)];
-
       }
 
     </script>
@@ -188,9 +174,6 @@
 
   <body>
     <div ng-controller="ProfilerCtlr">
-      <table>
-
-      </table>
       <table class="trace">
         <tr class="bold text-left" style="border-bottom: solid 1px gray">
           <td class="level">Levels</td>

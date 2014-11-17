@@ -61,7 +61,7 @@ def split(text, strip=True):
         return text.split(",")
 
 
-def binary_encode(text, encoding='utf-8'):
+def binary_encode(text, encoding="utf-8"):
     """Converts a string of into a binary type using given encoding.
 
     Does nothing if text not unicode string.
@@ -74,7 +74,7 @@ def binary_encode(text, encoding='utf-8'):
         raise TypeError("Expected binary or string type")
 
 
-def binary_decode(data, encoding='utf-8'):
+def binary_decode(data, encoding="utf-8"):
     """Converts a binary type into a text type using given encoding.
 
     Does nothing if data is already unicode string.
@@ -133,7 +133,7 @@ def signed_unpack(data, hmac_data, hmac_keys):
                 try:
                     contents = json.loads(
                         binary_decode(base64.urlsafe_b64decode(data)))
-                    contents['hmac_key'] = hmac_key
+                    contents["hmac_key"] = hmac_key
                     return contents
                 except Exception:
                     return None
@@ -161,12 +161,12 @@ def import_modules_from_package(package):
 
     :param: package - Full package name. For example: rally.deploy.engines
     """
-    path = [os.path.dirname(__file__), '..'] + package.split('.')
+    path = [os.path.dirname(__file__), ".."] + package.split(".")
     path = os.path.join(*path)
     for root, dirs, files in os.walk(path):
         for filename in files:
-            if filename.startswith('__') or not filename.endswith('.py'):
+            if filename.startswith("__") or not filename.endswith(".py"):
                 continue
             new_package = ".".join(root.split(os.sep)).split("....")[1]
-            module_name = '%s.%s' % (new_package, filename[:-3])
+            module_name = "%s.%s" % (new_package, filename[:-3])
             __import__(module_name)

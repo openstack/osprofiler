@@ -30,34 +30,34 @@ class ShellTestCase(test.TestCase):
         super(ShellTestCase, self).setUp()
         self.old_environment = os.environ.copy()
         os.environ = {
-            'OS_USERNAME': 'username',
-            'OS_USER_ID': 'user_id',
-            'OS_PASSWORD': 'password',
-            'OS_USER_DOMAIN_ID': 'user_domain_id',
-            'OS_USER_DOMAIN_NAME': 'user_domain_name',
-            'OS_PROJECT_DOMAIN_ID': 'project_domain_id',
-            'OS_PROJECT_DOMAIN_NAME': 'project_domain_name',
-            'OS_PROJECT_ID': 'project_id',
-            'OS_PROJECT_NAME': 'project_name',
-            'OS_TENANT_ID': 'tenant_id',
-            'OS_TENANT_NAME': 'tenant_name',
-            'OS_AUTH_URL': 'http://127.0.0.1:5000/v3/',
-            'OS_AUTH_TOKEN': 'pass',
-            'OS_CACERT': '/path/to/cacert',
-            'OS_SERVICE_TYPE': 'service_type',
-            'OS_ENDPOINT_TYPE': 'public',
-            'OS_REGION_NAME': 'test'
+            "OS_USERNAME": "username",
+            "OS_USER_ID": "user_id",
+            "OS_PASSWORD": "password",
+            "OS_USER_DOMAIN_ID": "user_domain_id",
+            "OS_USER_DOMAIN_NAME": "user_domain_name",
+            "OS_PROJECT_DOMAIN_ID": "project_domain_id",
+            "OS_PROJECT_DOMAIN_NAME": "project_domain_name",
+            "OS_PROJECT_ID": "project_id",
+            "OS_PROJECT_NAME": "project_name",
+            "OS_TENANT_ID": "tenant_id",
+            "OS_TENANT_NAME": "tenant_name",
+            "OS_AUTH_URL": "http://127.0.0.1:5000/v3/",
+            "OS_AUTH_TOKEN": "pass",
+            "OS_CACERT": "/path/to/cacert",
+            "OS_SERVICE_TYPE": "service_type",
+            "OS_ENDPOINT_TYPE": "public",
+            "OS_REGION_NAME": "test"
         }
 
         self.ceiloclient = mock.MagicMock()
-        sys.modules['ceilometerclient'] = self.ceiloclient
-        self.addCleanup(sys.modules.pop, 'ceilometerclient', None)
-        ceilo_modules = ['client', 'exc', 'shell']
+        sys.modules["ceilometerclient"] = self.ceiloclient
+        self.addCleanup(sys.modules.pop, "ceilometerclient", None)
+        ceilo_modules = ["client", "exc", "shell"]
         for module in ceilo_modules:
-            sys.modules['ceilometerclient.%s' % module] = getattr(
+            sys.modules["ceilometerclient.%s" % module] = getattr(
                 self.ceiloclient, module)
             self.addCleanup(
-                sys.modules.pop, 'ceilometerclient.%s' % module, None)
+                sys.modules.pop, "ceilometerclient.%s" % module, None)
 
     def tearDown(self):
         super(ShellTestCase, self).tearDown()
@@ -66,9 +66,9 @@ class ShellTestCase(test.TestCase):
     @mock.patch("sys.stdout", six.StringIO())
     @mock.patch("osprofiler.cmd.shell.OSProfilerShell")
     def test_shell_main(self, mock_shell):
-        mock_shell.side_effect = exc.CommandError('some_message')
+        mock_shell.side_effect = exc.CommandError("some_message")
         shell.main()
-        self.assertEqual('some_message\n', sys.stdout.getvalue())
+        self.assertEqual("some_message\n", sys.stdout.getvalue())
 
     def run_command(self, cmd):
         shell.OSProfilerShell(cmd.split())
@@ -80,8 +80,8 @@ class ShellTestCase(test.TestCase):
             self.assertEqual(str(actual_error), expected_message)
         else:
             raise ValueError(
-                'Expected: `osprofiler.cmd.exc.CommandError` is raised with '
-                'message: "%s".' % expected_message)
+                "Expected: `osprofiler.cmd.exc.CommandError` is raised with "
+                "message: '%s'." % expected_message)
 
     def test_username_is_not_presented(self):
         os.environ.pop("OS_USERNAME")
@@ -117,13 +117,13 @@ class ShellTestCase(test.TestCase):
         self._test_with_command_error("trace show fake-uuid", msg)
 
     def test_trace_show_ceilometrclient_is_missed(self):
-        sys.modules['ceilometerclient'] = None
-        sys.modules['ceilometerclient.client'] = None
-        sys.modules['ceilometerclient.exc'] = None
-        sys.modules['ceilometerclient.shell'] = None
+        sys.modules["ceilometerclient"] = None
+        sys.modules["ceilometerclient.client"] = None
+        sys.modules["ceilometerclient.exc"] = None
+        sys.modules["ceilometerclient.shell"] = None
 
         self.assertRaises(ImportError, shell.main,
-                          'trace show fake_uuid'.split())
+                          "trace show fake_uuid".split())
 
     def test_trace_show_unauthorized(self):
         class FakeHTTPUnauthorized(Exception):
@@ -169,8 +169,8 @@ class ShellTestCase(test.TestCase):
     def test_trace_show_in_json(self, mock_notifications, mock_get):
         mock_get.return_value = "some notification"
         notifications = {
-            'info': {
-                'started': 0, 'finished': 0, 'name': 'total'}, 'children': []}
+            "info": {
+                "started": 0, "finished": 0, "name": "total"}, "children": []}
         mock_notifications.return_value = notifications
 
         self.run_command("trace show fake_id --json")
@@ -184,8 +184,8 @@ class ShellTestCase(test.TestCase):
         mock_get.return_value = "some notification"
 
         notifications = {
-            'info': {
-                'started': 0, 'finished': 0, 'name': 'total'}, 'children': []}
+            "info": {
+                "started": 0, "finished": 0, "name": "total"}, "children": []}
         mock_notifications.return_value = notifications
 
         #NOTE(akurilin): to simplify assert statement, html-template should be
@@ -216,8 +216,8 @@ class ShellTestCase(test.TestCase):
     def test_trace_show_write_to_file(self, mock_notifications, mock_get):
         mock_get.return_value = "some notification"
         notifications = {
-            'info': {
-                'started': 0, 'finished': 0, 'name': 'total'}, 'children': []}
+            "info": {
+                "started": 0, "finished": 0, "name": "total"}, "children": []}
         mock_notifications.return_value = notifications
 
         with mock.patch("osprofiler.cmd.commands.open",

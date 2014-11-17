@@ -234,7 +234,7 @@ class _Profiler(object):
 
         self._name.append(name)
         self._trace_stack.append(str(uuid.uuid4()))
-        self._notify('%s-start' % name, info)
+        self._notify("%s-start" % name, info)
 
     def stop(self, info=None):
         """Finish latests event.
@@ -248,12 +248,12 @@ class _Profiler(object):
 
     def _notify(self, name, info):
         payload = {
-            'name': name,
-            'base_id': self.get_base_id(),
-            'trace_id': self.get_id(),
-            'parent_id': self.get_parent_id()
+            "name": name,
+            "base_id": self.get_base_id(),
+            "trace_id": self.get_id(),
+            "parent_id": self.get_parent_id()
         }
         if info:
-            payload['info'] = info
+            payload["info"] = info
 
         notifier.notify(payload)
