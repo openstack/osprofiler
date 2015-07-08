@@ -74,8 +74,12 @@ def parse_notifications(notifications):
             if k not in skip_keys:
                 result[key]["info"][k] = meta[k]
 
-        timestamp = datetime.datetime.strptime(n["timestamp"],
-                                               "%Y-%m-%dT%H:%M:%S.%f")
+        try:
+            timestamp = datetime.datetime.strptime(n["timestamp"],
+                                                   "%Y-%m-%dT%H:%M:%S.%f")
+        except ValueError:
+            timestamp = datetime.datetime.strptime(n["timestamp"],
+                                                   "%Y-%m-%dT%H:%M:%S")
 
         if meta["name"].endswith("stop"):
             result[key]["info"]["finished"] = timestamp
