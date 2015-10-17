@@ -1,4 +1,4 @@
 [gerrit]
 host=review.openstack.org
 port=29418
-project=stackforge/osprofiler.git
+project=openstack/osprofiler.git
