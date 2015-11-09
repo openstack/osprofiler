@@ -25,7 +25,7 @@ Problem description
 Currently OSprofiler works only with one backend Celiometer which actually
 doesn't work well and adds huge overhead. More over often Ceilometer is not
 installed/used at all. To resolve this we should add support for different
-backends like: MongoDB, InfluenceDB, ElasticSearch, ...
+backends like: MongoDB, InfluxDB, ElasticSearch, ...
 
 
 Proposed change
@@ -33,7 +33,7 @@ Proposed change
 
 And new osprofiler.drivers mechanism, each driver will do 2 things:
 send notifications and parse all notification in unififed tree strcture
-that can be processed by the rest lib.
+that can be processed by the REST lib.
 
 Deprecate osprofiler.notifiers and osprofiler.parsers
 
