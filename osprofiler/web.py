@@ -40,6 +40,7 @@ def get_trace_id_headers():
 
 
 _DISABLED = False
+_HMAC_KEYS = None
 
 
 def disable():
@@ -52,16 +53,17 @@ def disable():
     _DISABLED = True
 
 
-def enable():
+def enable(hmac_keys=None):
     """Enable middleware."""
-    global _DISABLED
+    global _DISABLED, _HMAC_KEYS
     _DISABLED = False
+    _HMAC_KEYS = utils.split(hmac_keys or "")
 
 
 class WsgiMiddleware(object):
     """WSGI Middleware that enables tracing for an application."""
 
-    def __init__(self, application, hmac_keys, enabled=False):
+    def __init__(self, application, hmac_keys=None, enabled=False):
         """Initialize middleware with api-paste.ini arguments.
 
         :application: wsgi app
@@ -100,7 +102,7 @@ class WsgiMiddleware(object):
 
         trace_info = utils.signed_unpack(request.headers.get("X-Trace-Info"),
                                          request.headers.get("X-Trace-HMAC"),
-                                         self.hmac_keys)
+                                         _HMAC_KEYS or self.hmac_keys)
 
         if not self._trace_is_valid(trace_info):
             return request.get_response(self.application)

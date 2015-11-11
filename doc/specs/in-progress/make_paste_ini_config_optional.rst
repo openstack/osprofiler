@@ -60,20 +60,20 @@ Assignee(s)
 -----------
 
 Primary assignee:
-  <launchpad-id or None>
+  dbelova
 
 Work Items
 ----------
 
-- Modify  osprofiler.web.WsgiMiddleware to make ``hmac_keys`` optional
+- Modify osprofiler.web.WsgiMiddleware to make ``hmac_keys`` optional (done)
 
 - Add alternative way to setup osprofiler.web.WsgiMiddleware, e.g. extra
-  argument to enable() hmac_keys
+  argument hmac_keys to enable() method (done)
 
-- Cut new release 0.3.1
+- Cut new release 0.3.1 (tbd)
 
-- Fix the code in all projects: remove api-paste.ini arguments and add
-  extra argument to osprofiler.web.enable
+- Fix the code in all projects: remove api-paste.ini arguments and use
+  osprofiler.web.enable with extra argument (tbd)
 
 
 Dependencies
