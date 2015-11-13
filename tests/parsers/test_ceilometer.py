@@ -21,7 +21,6 @@ from tests import test
 
 
 class CeilometerParserTestCase(test.TestCase):
-
     def test_build_empty_tree(self):
         self.assertEqual(ceilometer._build_tree({}), [])
 
@@ -88,167 +87,319 @@ class CeilometerParserTestCase(test.TestCase):
         self.assertEqual(ceilometer.parse_notifications([]), expected)
 
     def test_parse_notifications(self):
-        samples = [
+        events = [
             {
-                "id": "896f5e52-d4c9-11e3-a117-46c0b36ac153",
-                "metadata": {
-                    "base_id": "f5587500-07d1-41a0-b434-525d3c28ac49",
-                    "event_type": "profiler.nova",
-                    "host": "0.0.0.0",
-                    "service": "osapi_compute",
-                    "project": "nova",
-                    "name": "WSGI-stop",
-                    "parent_id": "82281b35-63aa-45fc-8578-5a32a66370ab",
-                    "trace_id": "837eb0bd-323a-4e3f-b223-3be78ad86aab"
-                },
-                "meter": "WSGI-stop",
-                "project_id": None,
-                "recorded_at": "2014-05-06T02:53:03.110724",
-                "resource_id": "profiler-f5587500-07d1-41a0-b434-525d3c28ac49",
-                "source": "openstack",
-                "timestamp": "2014-05-06T02:52:59.357020",
-                "type": "gauge",
-                "unit": "sample",
-                "user_id": None,
-                "volume": 1.0
+                "traits": [
+                    {
+                        "type": "string",
+                        "name": "base_id",
+                        "value": "7253ca8c-33b3-4f84-b4f1-f5a4311ddfa4"
+                    },
+                    {
+                        "type": "string",
+                        "name": "host",
+                        "value": "ubuntu"
+                    },
+                    {
+                        "type": "string",
+                        "name": "method",
+                        "value": "POST"
+                    },
+                    {
+                        "type": "string",
+                        "name": "name",
+                        "value": "wsgi-start"
+                    },
+                    {
+                        "type": "string",
+                        "name": "parent_id",
+                        "value": "7253ca8c-33b3-4f84-b4f1-f5a4311ddfa4"
+                    },
+                    {
+                        "type": "string",
+                        "name": "project",
+                        "value": "keystone"
+                    },
+                    {
+                        "type": "string",
+                        "name": "service",
+                        "value": "main"
+                    },
+                    {
+                        "type": "string",
+                        "name": "timestamp",
+                        "value": "2015-12-23T14:02:22.338776"
+                    },
+                    {
+                        "type": "string",
+                        "name": "trace_id",
+                        "value": "06320327-2c2c-45ae-923a-515de890276a"
+                    }
+                ],
+                "raw": {},
+                "generated": "2015-12-23T10:41:38.415793",
+                "event_type": "profiler.main",
+                "message_id": "65fc1553-3082-4a6f-9d1e-0e3183f57a47"},
+            {
+                "traits":
+                    [
+                        {
+                            "type": "string",
+                            "name": "base_id",
+                            "value": "7253ca8c-33b3-4f84-b4f1-f5a4311ddfa4"
+                        },
+                        {
+                            "type": "string",
+                            "name": "host",
+                            "value": "ubuntu"
+                        },
+                        {
+                            "type": "string",
+                            "name": "name",
+                            "value": "wsgi-stop"
+                        },
+                        {
+                            "type": "string",
+                            "name": "parent_id",
+                            "value": "7253ca8c-33b3-4f84-b4f1-f5a4311ddfa4"
+                        },
+                        {
+                            "type": "string",
+                            "name": "project",
+                            "value": "keystone"
+                        },
+                        {
+                            "type": "string",
+                            "name": "service",
+                            "value": "main"
+                        },
+                        {
+                            "type": "string",
+                            "name": "timestamp",
+                            "value": "2015-12-23T14:02:22.380405"
+                        },
+                        {
+                            "type": "string",
+                            "name": "trace_id",
+                            "value": "016c97fd-87f3-40b2-9b55-e431156b694b"
+                        }
+                    ],
+                "raw": {},
+                "generated": "2015-12-23T10:41:38.406052",
+                "event_type": "profiler.main",
+                "message_id": "3256d9f1-48ba-4ac5-a50b-64fa42c6e264"},
+            {
+                "traits":
+                    [
+                        {
+                            "type": "string",
+                            "name": "base_id",
+                            "value": "7253ca8c-33b3-4f84-b4f1-f5a4311ddfa4"
+                        },
+                        {
+                            "type": "string",
+                            "name": "db.params",
+                            "value": "[]"
+                        },
+                        {
+                            "type": "string",
+                            "name": "db.statement",
+                            "value": "SELECT 1"
+                        },
+                        {
+                            "type": "string",
+                            "name": "host",
+                            "value": "ubuntu"
+                        },
+                        {
+                            "type": "string",
+                            "name": "name",
+                            "value": "db-start"
+                        },
+                        {
+                            "type": "string",
+                            "name": "parent_id",
+                            "value": "06320327-2c2c-45ae-923a-515de890276a"
+                        },
+                        {
+                            "type": "string",
+                            "name": "project",
+                            "value": "keystone"
+                        },
+                        {
+                            "type": "string",
+                            "name": "service",
+                            "value": "main"
+                        },
+                        {
+                            "type": "string",
+                            "name": "timestamp",
+                            "value": "2015-12-23T14:02:22.395365"
+                        },
+                        {
+                            "type": "string",
+                            "name": "trace_id",
+                            "value": "1baf1d24-9ca9-4f4c-bd3f-01b7e0c0735a"
+                        }
+                    ],
+                "raw": {},
+                "generated": "2015-12-23T10:41:38.984161",
+                "event_type": "profiler.main",
+                "message_id": "60368aa4-16f0-4f37-a8fb-89e92fdf36ff"
             },
             {
-                "id": "895043a0-d4c9-11e3-a117-46c0b36ac153",
-                "metadata": {
-                    "base_id": "f5587500-07d1-41a0-b434-525d3c28ac49",
-                    "event_type": "profiler.nova",
-                    "host": "0.0.0.0",
-                    "service": "osapi_compute",
-                    "project": "nova",
-                    "name": "WSGI-start",
-                    "parent_id": "82281b35-63aa-45fc-8578-5a32a66370ab",
-                    "trace_id": "837eb0bd-323a-4e3f-b223-3be78ad86aab"
-                },
-                "meter": "WSGI-start",
-                "project_id": None,
-                "recorded_at": "2014-05-06T02:53:03.020620",
-                "resource_id": "profiler-f5587500-07d1-41a0-b434-525d3c28ac49",
-                "source": "openstack",
-                "timestamp": "2014-05-06T02:52:59.225552",
-                "type": "gauge",
-                "unit": "sample",
-                "user_id": None,
-                "volume": 1.0
+                "traits":
+                    [
+                        {
+                            "type": "string",
+                            "name": "base_id",
+                            "value": "7253ca8c-33b3-4f84-b4f1-f5a4311ddfa4"
+                        },
+                        {
+                            "type": "string",
+                            "name": "host",
+                            "value": "ubuntu"
+                        },
+                        {
+                            "type": "string",
+                            "name": "name",
+                            "value": "db-stop"
+                        },
+                        {
+                            "type": "string",
+                            "name": "parent_id",
+                            "value": "06320327-2c2c-45ae-923a-515de890276a"
+                        },
+                        {
+                            "type": "string",
+                            "name": "project",
+                            "value": "keystone"
+                        },
+                        {
+                            "type": "string",
+                            "name": "service",
+                            "value": "main"
+                        },
+                        {
+                            "type": "string",
+                            "name": "timestamp",
+                            "value": "2015-12-23T14:02:22.415486"
+                        },
+                        {
+                            "type": "string",
+                            "name": "trace_id",
+                            "value": "1baf1d24-9ca9-4f4c-bd3f-01b7e0c0735a"
+                        }
+                    ],
+                "raw": {},
+                "generated": "2015-12-23T10:41:39.019378",
+                "event_type": "profiler.main",
+                "message_id": "3fbeb339-55c5-4f28-88e4-15bee251dd3d"
             },
-
             {
-                "id": "89558414-d4c9-11e3-a117-46c0b36ac153",
-                "metadata": {
-                    "base_id": "f5587500-07d1-41a0-b434-525d3c28ac49",
-                    "event_type": "profiler.nova",
-                    "host": "0.0.0.0",
-                    "service": "osapi_compute",
-                    "project": "nova",
-                    "info.db:multiparams": "(immutabledict({}),)",
-                    "info.db:params": "{}",
-                    "name": "db-start",
-                    "parent_id": "837eb0bd-323a-4e3f-b223-3be78ad86aab",
-                    "trace_id": "f8ab042e-1085-4df2-9f3a-cfb6390b8090"
-                },
-                "meter": "db-start",
-                "project_id": None,
-                "recorded_at": "2014-05-06T02:53:03.038692",
-                "resource_id": "profiler-f5587500-07d1-41a0-b434-525d3c28ac49",
-                "source": "openstack",
-                "timestamp": "2014-05-06T02:52:59.273422",
-                "type": "gauge",
-                "unit": "sample",
-                "user_id": None,
-                "volume": 1.0
-            },
-            {
-                "id": "892d3018-d4c9-11e3-a117-46c0b36ac153",
-                "metadata": {
-                    "base_id": "f5587500-07d1-41a0-b434-525d3c28ac49",
-                    "event_type": "profiler.generic",
-                    "host": "ubuntu",
-                    "service": "nova-conductor",
-                    "project": "nova",
-                    "name": "db-stop",
-                    "parent_id": "aad4748f-99d5-45c8-be0a-4025894bb3db",
-                    "trace_id": "8afee05d-0ad2-4515-bd03-db0f2d30eed0"
-                },
-                "meter": "db-stop",
-                "project_id": None,
-                "recorded_at": "2014-05-06T02:53:02.894015",
-                "resource_id": "profiler-f5587500-07d1-41a0-b434-525d3c28ac49",
-                "source": "openstack",
-                "timestamp": "2014-05-06T02:53:00.473201",
-                "type": "gauge",
-                "unit": "sample",
-                "user_id": None,
-                "volume": 1.0
+                "traits":
+                    [
+                        {
+                            "type": "string",
+                            "name": "base_id",
+                            "value": "7253ca8c-33b3-4f84-b4f1-f5a4311ddfa4"
+                        },
+                        {
+                            "type": "string",
+                            "name": "host",
+                            "value": "ubuntu"
+                        },
+                        {
+                            "type": "string",
+                            "name": "method",
+                            "value": "GET"
+                        },
+                        {
+                            "type": "string",
+                            "name": "name",
+                            "value": "wsgi-start"
+                        },
+                        {
+                            "type": "string",
+                            "name": "parent_id",
+                            "value": "7253ca8c-33b3-4f84-b4f1-f5a4311ddfa4"
+                        },
+                        {
+                            "type": "string",
+                            "name": "project",
+                            "value": "keystone"
+                        },
+                        {
+                            "type": "string",
+                            "name": "service",
+                            "value": "main"
+                        },
+                        {
+                            "type": "string",
+                            "name": "timestamp",
+                            "value": "2015-12-23T14:02:22.427444"
+                        },
+                        {
+                            "type": "string",
+                            "name": "trace_id",
+                            "value": "016c97fd-87f3-40b2-9b55-e431156b694b"
+                        }
+                    ],
+                "raw": {},
+                "generated": "2015-12-23T10:41:38.360409",
+                "event_type": "profiler.main",
+                "message_id": "57b971a9-572f-4f29-9838-3ed2564c6b5b"
             }
         ]
 
-        excepted = {
-            "info": {
-                "finished": 1247,
-                "name": "total",
-                "started": 0
-            },
-            "children": [
-                {
-                    "info": {
-                        "finished": 131,
-                        "host": "0.0.0.0",
-                        "service": "osapi_compute",
-                        "name": "WSGI",
-                        "project": "nova",
-                        "started": 0
-                    },
-                    "parent_id": "82281b35-63aa-45fc-8578-5a32a66370ab",
-                    "trace_id": "837eb0bd-323a-4e3f-b223-3be78ad86aab",
-                    "children": [{
-                        "children": [],
-                        "info": {
-                            "finished": 47,
-                            "host": "0.0.0.0",
-                            "service": "osapi_compute",
-                            "project": "nova",
-                            "info.db:multiparams": "(immutabledict({}),)",
-                            "info.db:params": "{}",
-                            "name": "db",
-                            "started": 47
-                        },
+        expected = {"children": [
+            {"children": [
+                {"children": [],
+                 "info": {"finished": 76,
+                          "host": "ubuntu",
+                          "meta.db.params": "[]",
+                          "meta.db.statement": "SELECT 1",
+                          "meta.host": "ubuntu",
+                          "name": "db",
+                          "project": "keystone",
+                          "service": "main",
+                          "started": 56},
+                 "parent_id": "06320327-2c2c-45ae-923a-515de890276a",
+                 "trace_id": "1baf1d24-9ca9-4f4c-bd3f-01b7e0c0735a"}],
+                "info": {"finished": 0,
+                         "host": "ubuntu",
+                         "meta.host": "ubuntu",
+                         "meta.method": "POST",
+                         "name": "wsgi",
+                         "project": "keystone",
+                         "service": "main",
+                         "started": 0},
+                "parent_id": "7253ca8c-33b3-4f84-b4f1-f5a4311ddfa4",
+                "trace_id": "06320327-2c2c-45ae-923a-515de890276a"},
+            {"children": [],
+             "info": {"finished": 41,
+                      "host": "ubuntu",
+                      "meta.host": "ubuntu",
+                      "meta.method": "GET",
+                      "name": "wsgi",
+                      "project": "keystone",
+                      "service": "main",
+                      "started": 88},
+             "parent_id": "7253ca8c-33b3-4f84-b4f1-f5a4311ddfa4",
+             "trace_id": "016c97fd-87f3-40b2-9b55-e431156b694b"}],
+            "info": {"finished": 88, "name": "total", "started": 0}}
 
-                        "parent_id": "837eb0bd-323a-4e3f-b223-3be78ad86aab",
-                        "trace_id": "f8ab042e-1085-4df2-9f3a-cfb6390b8090"
-                    }]
-                },
-                {
-                    "children": [],
-                    "info": {
-                        "finished": 1247,
-                        "host": "ubuntu",
-                        "name": "db",
-                        "service": "nova-conductor",
-                        "project": "nova",
-                        "started": 1247
-                    },
-                    "parent_id": "aad4748f-99d5-45c8-be0a-4025894bb3db",
-                    "trace_id": "8afee05d-0ad2-4515-bd03-db0f2d30eed0"
-                }
-            ]
-        }
-
-        self.assertEqual(ceilometer.parse_notifications(samples), excepted)
+        self.assertEqual(expected, ceilometer.parse_notifications(events))
 
     def test_get_notifications(self):
         mock_ceil_client = mock.MagicMock()
         results = [mock.MagicMock(), mock.MagicMock()]
-        mock_ceil_client.query_samples.query.return_value = results
+        mock_ceil_client.events.list.return_value = results
         base_id = "10"
 
         result = ceilometer.get_notifications(mock_ceil_client, base_id)
 
-        expected_filter = (
-            "{\"=\": {\"resource_id\": \"profiler-%s\"}}" % base_id)
-        mock_ceil_client.query_samples.query.assert_called_once_with(
-            expected_filter, None, None)
+        expected_filter = [{"field": "base_id", "op": "eq", "value": base_id}]
+        mock_ceil_client.events.list.assert_called_once_with(expected_filter,
+                                                             limit=100000)
         self.assertEqual(result, [results[0].to_dict(), results[1].to_dict()])

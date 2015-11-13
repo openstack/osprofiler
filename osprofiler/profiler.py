@@ -14,8 +14,10 @@
 #    under the License.
 
 import collections
+import datetime
 import functools
 import inspect
+import socket
 import threading
 import uuid
 
@@ -245,6 +247,7 @@ class _Profiler(object):
             base_id = str(uuid.uuid4())
         self._trace_stack = collections.deque([base_id, parent_id or base_id])
         self._name = collections.deque()
+        self._host = socket.gethostname()
 
     def get_base_id(self):
         """Return base if of trace.
@@ -272,7 +275,7 @@ class _Profiler(object):
         trace_id - current event id.
 
         As we are writing this code special for OpenStack, and there will be
-        only one implementation of notifier based on ceilometer notifer api.
+        only one implementation of notifier based on ceilometer notifier api.
         That already contains timestamps, so we don't measure time by hand.
 
         :param name: name of trace element (db, wsgi, rpc, etc..)
@@ -280,6 +283,8 @@ class _Profiler(object):
                      trace element. (sql request, rpc message or url...)
         """
 
+        info = info or {}
+        info["host"] = self._host
         self._name.append(name)
         self._trace_stack.append(str(uuid.uuid4()))
         self._notify("%s-start" % name, info)
@@ -291,6 +296,8 @@ class _Profiler(object):
 
         :param info: Dict with useful info. It will be send in notification.
         """
+        info = info or {}
+        info["host"] = self._host
         self._notify("%s-stop" % self._name.pop(), info)
         self._trace_stack.pop()
 
@@ -299,7 +306,8 @@ class _Profiler(object):
             "name": name,
             "base_id": self.get_base_id(),
             "trace_id": self.get_id(),
-            "parent_id": self.get_parent_id()
+            "parent_id": self.get_parent_id(),
+            "timestamp": datetime.datetime.utcnow(),
         }
         if info:
             payload["info"] = info

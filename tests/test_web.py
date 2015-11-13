@@ -254,7 +254,6 @@ class WebMiddlewareTestCase(test.TestCase):
                                                    parent_id="2")
         expected_info = {
             "request": {
-                "host_url": request.host_url,
                 "path": request.path,
                 "query": request.query_string,
                 "method": request.method,

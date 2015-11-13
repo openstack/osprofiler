@@ -111,7 +111,6 @@ class WsgiMiddleware(object):
         profiler.init(**trace_info)
         info = {
             "request": {
-                "host_url": request.host_url,
                 "path": request.path,
                 "query": request.query_string,
                 "method": request.method,

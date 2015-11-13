@@ -13,7 +13,6 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
-
 import datetime
 
 
@@ -56,35 +55,50 @@ def parse_notifications(notifications):
     finished_at = 0
 
     for n in notifications:
-        meta = n["metadata"]
-        key = meta["trace_id"]
+        traits = n["traits"]
 
-        if key not in result:
-            result[key] = {
-                "info": {
-                    "name": meta["name"].split("-")[0]
-                },
-                "parent_id": meta["parent_id"],
-                "trace_id": meta["trace_id"]
-            }
+        def find_field(f_name):
+            return [t["value"] for t in traits if t["name"] == f_name][0]
 
-        skip_keys = ["base_id", "trace_id", "parent_id", "name", "event_type"]
-
-        for k in meta:
-            if k not in skip_keys:
-                result[key]["info"][k] = meta[k]
+        trace_id = find_field("trace_id")
+        parent_id = find_field("parent_id")
+        name = find_field("name")
+        project = find_field("project")
+        service = find_field("service")
+        host = find_field("host")
+        timestamp = find_field("timestamp")
 
         try:
-            timestamp = datetime.datetime.strptime(n["timestamp"],
+            timestamp = datetime.datetime.strptime(timestamp,
                                                    "%Y-%m-%dT%H:%M:%S.%f")
         except ValueError:
-            timestamp = datetime.datetime.strptime(n["timestamp"],
+            timestamp = datetime.datetime.strptime(timestamp,
                                                    "%Y-%m-%dT%H:%M:%S")
 
-        if meta["name"].endswith("stop"):
-            result[key]["info"]["finished"] = timestamp
+        if trace_id not in result:
+            result[trace_id] = {
+                "info": {
+                    "name": name.split("-")[0],
+                    "project": project,
+                    "service": service,
+                    "meta.host": host,
+                    "host": host,
+                },
+                "trace_id": trace_id,
+                "parent_id": parent_id,
+            }
+
+        skip_keys = ["base_id", "trace_id", "parent_id",
+                     "name", "project", "service", "host", "timestamp"]
+
+        for k in traits:
+            if k["name"] not in skip_keys:
+                result[trace_id]["info"]["meta.%s" % k["name"]] = k["value"]
+
+        if name.endswith("stop"):
+            result[trace_id]["info"]["finished"] = timestamp
         else:
-            result[key]["info"]["started"] = timestamp
+            result[trace_id]["info"]["started"] = timestamp
 
         if not started_at or started_at > timestamp:
             started_at = timestamp
@@ -96,7 +110,7 @@ def parse_notifications(notifications):
         # NOTE(boris-42): Unfortunately this is the simplest way that works in
         #                 py26 and py27
         microsec = (dt.microseconds + (dt.seconds + dt.days * 24 * 3600) * 1e6)
-        return (int)(microsec / 1000.0)
+        return int(microsec / 1000.0)
 
     for r in result.values():
         # NOTE(boris-42): We are not able to guarantee that ceilometer consumed
@@ -126,6 +140,8 @@ def get_notifications(ceilometer, base_id):
     :param base_id: Base id of trace elements.
     """
 
-    _filter = "{\"=\": {\"resource_id\": \"profiler-%s\"}}" % base_id
+    _filter = [{"field": "base_id", "op": "eq", "value": base_id}]
+    # limit is hardcoded in this code state. Later that will be changed via
+    # connection string usage
     return [n.to_dict()
-            for n in ceilometer.query_samples.query(_filter, None, None)]
+            for n in ceilometer.events.list(_filter, limit=100000)]

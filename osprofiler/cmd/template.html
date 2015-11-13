@@ -125,19 +125,17 @@
           var metadata = {};
           angular.forEach(info, function(value, key) {
             var parts = key.split(".");
-            if (parts[0] == "info"){
+            if (parts[0] == "meta"){
 
-              if (parts.length != 2){
-                this[key] = value;
+              if (parts.length == 2){
+                this[parts[1]] = value;
               }
               else{
-                var group_name = parts[1].split(":");
-                if (group_name.length == 2){
-                  if (!(group_name[0] in this))
-                    this[group_name[0]] = {};
+                var group_name = parts[1];
+                if (!(group_name in this))
+                  this[group_name] = {};
 
-                  this[group_name[0]][group_name[1]] = value;
-                }
+                this[group_name][parts[2]] = value;
               }
             };
           }, metadata);

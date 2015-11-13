@@ -27,10 +27,7 @@ class SqlalchemyTracingTestCase(test.TestCase):
         handler = sqlalchemy._before_cursor_execute("sql")
 
         handler(mock.MagicMock(), 1, 2, 3, 4, 5)
-        expected_info = {
-            "db.statement": 2,
-            "db.params": 3
-        }
+        expected_info = {"db": {"statement": 2, "params": 3}}
         mock_profiler.start.assert_called_once_with("sql", info=expected_info)
 
     @mock.patch("osprofiler.sqlalchemy.profiler")
