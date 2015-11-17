@@ -63,6 +63,8 @@ class WebMiddlewareTestCase(test.TestCase):
     def setUp(self):
         super(WebMiddlewareTestCase, self).setUp()
         profiler._clean()
+        # it's default state of _ENABLED param, so let's set it here
+        web._ENABLED = None
         self.addCleanup(profiler._clean)
 
     def tearDown(self):
@@ -299,9 +301,9 @@ class WebMiddlewareTestCase(test.TestCase):
 
     def test_disable(self):
         web.disable()
-        self.assertTrue(web._DISABLED)
+        self.assertFalse(web._ENABLED)
 
     def test_enabled(self):
         web.disable()
         web.enable()
-        self.assertFalse(web._DISABLED)
+        self.assertTrue(web._ENABLED)

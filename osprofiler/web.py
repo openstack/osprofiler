@@ -39,7 +39,7 @@ def get_trace_id_headers():
     return {}
 
 
-_DISABLED = False
+_ENABLED = None
 _HMAC_KEYS = None
 
 
@@ -49,14 +49,14 @@ def disable():
     This is the alternative way to disable middleware. It will be used to be
     able to disable middleware via oslo.config.
     """
-    global _DISABLED
-    _DISABLED = True
+    global _ENABLED
+    _ENABLED = False
 
 
 def enable(hmac_keys=None):
     """Enable middleware."""
-    global _DISABLED, _HMAC_KEYS
-    _DISABLED = False
+    global _ENABLED, _HMAC_KEYS
+    _ENABLED = True
     _HMAC_KEYS = utils.split(hmac_keys or "")
 
 
@@ -97,7 +97,8 @@ class WsgiMiddleware(object):
 
     @webob.dec.wsgify
     def __call__(self, request):
-        if _DISABLED or not self.enabled:
+        if (_ENABLED is not None and not _ENABLED or
+                _ENABLED is None and not self.enabled):
             return request.get_response(self.application)
 
         trace_info = utils.signed_unpack(request.headers.get("X-Trace-Info"),
