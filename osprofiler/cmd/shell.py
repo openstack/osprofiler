@@ -68,8 +68,8 @@ class OSProfilerShell(object):
             add_help=True
         )
 
-        parser.add_argument('-v', '--version',
-                            action='version',
+        parser.add_argument("-v", "--version",
+                            action="version",
                             version=osprofiler.__version__)
 
         self._append_ceilometer_args(parser)
@@ -79,24 +79,24 @@ class OSProfilerShell(object):
         return parser
 
     def _append_ceilometer_args(self, parent_parser):
-        parser = parent_parser.add_argument_group('ceilometer')
+        parser = parent_parser.add_argument_group("ceilometer")
         parser.add_argument(
-            '--ceilometer-url', default=cliutils.env('CEILOMETER_URL'),
-            help='Defaults to env[CEILOMETER_URL].')
+            "--ceilometer-url", default=cliutils.env("CEILOMETER_URL"),
+            help="Defaults to env[CEILOMETER_URL].")
         parser.add_argument(
-            '--ceilometer-api-version',
-            default=cliutils.env('CEILOMETER_API_VERSION', default='2'),
-            help='Defaults to env[CEILOMETER_API_VERSION] or 2.')
+            "--ceilometer-api-version",
+            default=cliutils.env("CEILOMETER_API_VERSION", default="2"),
+            help="Defaults to env[CEILOMETER_API_VERSION] or 2.")
 
     def _append_identity_args(self, parent_parser):
         # FIXME(fabgia): identity related parameters should be passed by the
         # Keystone client itself to avoid constant update in all the services
         # clients. When this fix is merged this method can be made obsolete.
         # Bug: https://bugs.launchpad.net/python-keystoneclient/+bug/1332337
-        parser = parent_parser.add_argument_group('identity')
-        parser.add_argument('-k', '--insecure',
+        parser = parent_parser.add_argument_group("identity")
+        parser.add_argument("-k", "--insecure",
                             default=False,
-                            action='store_true',
+                            action="store_true",
                             help="Explicitly allow osprofiler to "
                             "perform \"insecure\" SSL (https) requests. "
                             "The server's certificate will "
@@ -105,113 +105,113 @@ class OSProfilerShell(object):
                             "caution.")
 
         # User related options
-        parser.add_argument('--os-username',
-                            default=cliutils.env('OS_USERNAME'),
-                            help='Defaults to env[OS_USERNAME].')
+        parser.add_argument("--os-username",
+                            default=cliutils.env("OS_USERNAME"),
+                            help="Defaults to env[OS_USERNAME].")
 
-        parser.add_argument('--os-user-id',
-                            default=cliutils.env('OS_USER_ID'),
-                            help='Defaults to env[OS_USER_ID].')
+        parser.add_argument("--os-user-id",
+                            default=cliutils.env("OS_USER_ID"),
+                            help="Defaults to env[OS_USER_ID].")
 
-        parser.add_argument('--os-password',
-                            default=cliutils.env('OS_PASSWORD'),
-                            help='Defaults to env[OS_PASSWORD].')
+        parser.add_argument("--os-password",
+                            default=cliutils.env("OS_PASSWORD"),
+                            help="Defaults to env[OS_PASSWORD].")
 
         # Domain related options
-        parser.add_argument('--os-user-domain-id',
-                            default=cliutils.env('OS_USER_DOMAIN_ID'),
-                            help='Defaults to env[OS_USER_DOMAIN_ID].')
+        parser.add_argument("--os-user-domain-id",
+                            default=cliutils.env("OS_USER_DOMAIN_ID"),
+                            help="Defaults to env[OS_USER_DOMAIN_ID].")
 
-        parser.add_argument('--os-user-domain-name',
-                            default=cliutils.env('OS_USER_DOMAIN_NAME'),
-                            help='Defaults to env[OS_USER_DOMAIN_NAME].')
+        parser.add_argument("--os-user-domain-name",
+                            default=cliutils.env("OS_USER_DOMAIN_NAME"),
+                            help="Defaults to env[OS_USER_DOMAIN_NAME].")
 
-        parser.add_argument('--os-project-domain-id',
-                            default=cliutils.env('OS_PROJECT_DOMAIN_ID'),
-                            help='Defaults to env[OS_PROJECT_DOMAIN_ID].')
+        parser.add_argument("--os-project-domain-id",
+                            default=cliutils.env("OS_PROJECT_DOMAIN_ID"),
+                            help="Defaults to env[OS_PROJECT_DOMAIN_ID].")
 
-        parser.add_argument('--os-project-domain-name',
-                            default=cliutils.env('OS_PROJECT_DOMAIN_NAME'),
-                            help='Defaults to env[OS_PROJECT_DOMAIN_NAME].')
+        parser.add_argument("--os-project-domain-name",
+                            default=cliutils.env("OS_PROJECT_DOMAIN_NAME"),
+                            help="Defaults to env[OS_PROJECT_DOMAIN_NAME].")
 
         # Project V3 or Tenant V2 related options
-        parser.add_argument('--os-project-id',
-                            default=cliutils.env('OS_PROJECT_ID'),
-                            help='Another way to specify tenant ID. '
-                                 'This option is mutually exclusive with '
-                                 ' --os-tenant-id. '
-                                 'Defaults to env[OS_PROJECT_ID].')
+        parser.add_argument("--os-project-id",
+                            default=cliutils.env("OS_PROJECT_ID"),
+                            help="Another way to specify tenant ID. "
+                                 "This option is mutually exclusive with "
+                                 " --os-tenant-id. "
+                                 "Defaults to env[OS_PROJECT_ID].")
 
-        parser.add_argument('--os-project-name',
-                            default=cliutils.env('OS_PROJECT_NAME'),
-                            help='Another way to specify tenant name. '
-                                 'This option is mutually exclusive with '
-                                 ' --os-tenant-name. '
-                                 'Defaults to env[OS_PROJECT_NAME].')
+        parser.add_argument("--os-project-name",
+                            default=cliutils.env("OS_PROJECT_NAME"),
+                            help="Another way to specify tenant name. "
+                                 "This option is mutually exclusive with "
+                                 " --os-tenant-name. "
+                                 "Defaults to env[OS_PROJECT_NAME].")
 
-        parser.add_argument('--os-tenant-id',
-                            default=cliutils.env('OS_TENANT_ID'),
-                            help='This option is mutually exclusive with '
-                                 ' --os-project-id. '
-                                 'Defaults to env[OS_PROJECT_ID].')
+        parser.add_argument("--os-tenant-id",
+                            default=cliutils.env("OS_TENANT_ID"),
+                            help="This option is mutually exclusive with "
+                                 " --os-project-id. "
+                                 "Defaults to env[OS_PROJECT_ID].")
 
-        parser.add_argument('--os-tenant-name',
-                            default=cliutils.env('OS_TENANT_NAME'),
-                            help='Defaults to env[OS_TENANT_NAME].')
+        parser.add_argument("--os-tenant-name",
+                            default=cliutils.env("OS_TENANT_NAME"),
+                            help="Defaults to env[OS_TENANT_NAME].")
 
         # Auth related options
-        parser.add_argument('--os-auth-url',
-                            default=cliutils.env('OS_AUTH_URL'),
-                            help='Defaults to env[OS_AUTH_URL].')
+        parser.add_argument("--os-auth-url",
+                            default=cliutils.env("OS_AUTH_URL"),
+                            help="Defaults to env[OS_AUTH_URL].")
 
-        parser.add_argument('--os-auth-token',
-                            default=cliutils.env('OS_AUTH_TOKEN'),
-                            help='Defaults to env[OS_AUTH_TOKEN].')
+        parser.add_argument("--os-auth-token",
+                            default=cliutils.env("OS_AUTH_TOKEN"),
+                            help="Defaults to env[OS_AUTH_TOKEN].")
 
-        parser.add_argument('--os-cacert',
-                            metavar='<ca-certificate-file>',
-                            dest='os_cacert',
-                            default=cliutils.env('OS_CACERT'),
-                            help='Path of CA TLS certificate(s) used to verify'
-                            ' the remote server\'s certificate. Without this '
-                            'option ceilometer looks for the default system CA'
-                            ' certificates.')
+        parser.add_argument("--os-cacert",
+                            metavar="<ca-certificate-file>",
+                            dest="os_cacert",
+                            default=cliutils.env("OS_CACERT"),
+                            help="Path of CA TLS certificate(s) used to verify"
+                            " the remote server\"s certificate. Without this "
+                            "option ceilometer looks for the default system CA"
+                            " certificates.")
 
-        parser.add_argument('--os-cert',
-                            help='Path of certificate file to use in SSL '
-                            'connection. This file can optionally be '
-                            'prepended with the private key.')
+        parser.add_argument("--os-cert",
+                            help="Path of certificate file to use in SSL "
+                            "connection. This file can optionally be "
+                            "prepended with the private key.")
 
-        parser.add_argument('--os-key',
-                            help='Path of client key to use in SSL '
-                            'connection. This option is not necessary '
-                            'if your key is prepended to your cert file.')
+        parser.add_argument("--os-key",
+                            help="Path of client key to use in SSL "
+                            "connection. This option is not necessary "
+                            "if your key is prepended to your cert file.")
 
         # Service Catalog related options
-        parser.add_argument('--os-service-type',
-                            default=cliutils.env('OS_SERVICE_TYPE'),
-                            help='Defaults to env[OS_SERVICE_TYPE].')
+        parser.add_argument("--os-service-type",
+                            default=cliutils.env("OS_SERVICE_TYPE"),
+                            help="Defaults to env[OS_SERVICE_TYPE].")
 
-        parser.add_argument('--os-endpoint-type',
-                            default=cliutils.env('OS_ENDPOINT_TYPE'),
-                            help='Defaults to env[OS_ENDPOINT_TYPE].')
+        parser.add_argument("--os-endpoint-type",
+                            default=cliutils.env("OS_ENDPOINT_TYPE"),
+                            help="Defaults to env[OS_ENDPOINT_TYPE].")
 
-        parser.add_argument('--os-region-name',
-                            default=cliutils.env('OS_REGION_NAME'),
-                            help='Defaults to env[OS_REGION_NAME].')
+        parser.add_argument("--os-region-name",
+                            default=cliutils.env("OS_REGION_NAME"),
+                            help="Defaults to env[OS_REGION_NAME].")
 
     def _append_subcommands(self, parent_parser):
-        subcommands = parent_parser.add_subparsers(help='<subcommands>')
+        subcommands = parent_parser.add_subparsers(help="<subcommands>")
         for group_cls in commands.BaseCommand.__subclasses__():
             group_parser = subcommands.add_parser(group_cls.group_name)
             subcommand_parser = group_parser.add_subparsers()
 
             for name, callback in inspect.getmembers(
                     group_cls(), predicate=inspect.ismethod):
-                command = name.replace('_', '-')
-                desc = callback.__doc__ or ''
-                help_message = desc.strip().split('\n')[0]
-                arguments = getattr(callback, 'arguments', [])
+                command = name.replace("_", "-")
+                desc = callback.__doc__ or ""
+                help_message = desc.strip().split("\n")[0]
+                arguments = getattr(callback, "arguments", [])
 
                 command_parser = subcommand_parser.add_parser(
                     command, help=help_message, description=desc)

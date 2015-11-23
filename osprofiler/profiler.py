@@ -243,7 +243,7 @@ class _Profiler(object):
 
         :param info: Dict with useful info. It will be send in notification.
         """
-        self._notify('%s-stop' % self._name.pop(), info)
+        self._notify("%s-stop" % self._name.pop(), info)
         self._trace_stack.pop()
 
     def _notify(self, name, info):

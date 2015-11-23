@@ -24,8 +24,8 @@ utils.import_modules_from_package("osprofiler._notifiers")
 
 _conf = configparser.ConfigParser()
 _conf.read(os.path.join(
-    os.path.dirname(os.path.dirname(__file__)), 'setup.cfg'))
+    os.path.dirname(os.path.dirname(__file__)), "setup.cfg"))
 try:
-    __version__ = _conf.get('metadata', 'version')
+    __version__ = _conf.get("metadata", "version")
 except (configparser.NoOptionError, configparser.NoSectionError):
     __version__ = None

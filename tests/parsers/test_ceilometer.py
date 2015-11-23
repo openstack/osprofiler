@@ -247,7 +247,8 @@ class CeilometerParserTestCase(test.TestCase):
 
         result = ceilometer.get_notifications(mock_ceil_client, base_id)
 
-        expected_filter = '{"=": {"resource_id": "profiler-%s"}}' % base_id
+        expected_filter = (
+            "{\"=\": {\"resource_id\": \"profiler-%s\"}}" % base_id)
         mock_ceil_client.query_samples.query.assert_called_once_with(
             expected_filter, None, None)
         self.assertEqual(result, [results[0].to_dict(), results[1].to_dict()])

@@ -36,9 +36,9 @@ def add_tracing(sqlalchemy, engine, name):
     """Add tracing to all sqlalchemy calls."""
 
     if not _DISABLED:
-        sqlalchemy.event.listen(engine, 'before_cursor_execute',
+        sqlalchemy.event.listen(engine, "before_cursor_execute",
                                 _before_cursor_execute(name))
-        sqlalchemy.event.listen(engine, 'after_cursor_execute',
+        sqlalchemy.event.listen(engine, "after_cursor_execute",
                                 _after_cursor_execute())
 
 

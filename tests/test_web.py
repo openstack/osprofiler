@@ -48,9 +48,9 @@ class WebTestCase(test.TestCase):
 
         trace_info = utils.signed_unpack(headers["X-Trace-Info"],
                                          headers["X-Trace-HMAC"], ["key"])
-        self.assertIn('hmac_key', trace_info)
-        self.assertEqual('key', trace_info.pop('hmac_key'))
-        self.assertEqual({"parent_id": 'z', 'base_id': 'y'}, trace_info)
+        self.assertIn("hmac_key", trace_info)
+        self.assertEqual("key", trace_info.pop("hmac_key"))
+        self.assertEqual({"parent_id": "z", "base_id": "y"}, trace_info)
 
     @mock.patch("osprofiler.profiler.get")
     def test_get_trace_id_headers_no_profiler(self, mock_get_profiler):
@@ -280,7 +280,7 @@ class WebMiddlewareTestCase(test.TestCase):
         request.query_string = "query"
         request.method = "method"
         request.scheme = "scheme"
-        hmac_key = 'super_secret_key2'
+        hmac_key = "super_secret_key2"
 
         pack = utils.signed_pack({"base_id": "1", "parent_id": "2"}, hmac_key)
         request.headers = {
@@ -290,7 +290,7 @@ class WebMiddlewareTestCase(test.TestCase):
             "X-Trace-HMAC": pack[1]
         }
 
-        web.enable('super_secret_key1,super_secret_key2')
+        web.enable("super_secret_key1,super_secret_key2")
         middleware = web.WsgiMiddleware("app", enabled=True)
         self.assertEqual("yeah!", middleware(request))
         mock_profiler_init.assert_called_once_with(hmac_key=hmac_key,

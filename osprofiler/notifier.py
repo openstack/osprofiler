@@ -55,6 +55,6 @@ def create(plugin_name, *args, **kwargs):
     :param *args: args that will be passed to plugin init method
     :param **kwargs: kwargs that will be passed to plugin init method
     :returns: Callable notifier method
-    :raise TypeError: In case of invalid name of plugin raises TypeError
+    :raises TypeError: In case of invalid name of plugin raises TypeError
     """
     return base.Notifier.factory(plugin_name, *args, **kwargs)

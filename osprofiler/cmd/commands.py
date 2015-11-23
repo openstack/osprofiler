@@ -28,12 +28,12 @@ class BaseCommand(object):
 class TraceCommands(BaseCommand):
     group_name = "trace"
 
-    @cliutils.arg('trace_id', help='trace id')
-    @cliutils.arg('--json', dest='use_json', action='store_true',
-                  help='show trace in JSON')
-    @cliutils.arg('--html', dest='use_html', action='store_true',
-                  help='show trace in HTML')
-    @cliutils.arg('--out', dest='file_name', help='save output in file')
+    @cliutils.arg("trace_id", help="trace id")
+    @cliutils.arg("--json", dest="use_json", action="store_true",
+                  help="show trace in JSON")
+    @cliutils.arg("--html", dest="use_html", action="store_true",
+                  help="show trace in HTML")
+    @cliutils.arg("--out", dest="file_name", help="save output in file")
     def show(self, args):
         """Displays trace-results by given trace id in HTML or JSON format."""
         try:
@@ -50,7 +50,7 @@ class TraceCommands(BaseCommand):
             notifications = ceiloparser.get_notifications(
                 client, args.trace_id)
         except Exception as e:
-            if hasattr(e, 'http_status') and e.http_status == 401:
+            if hasattr(e, "http_status") and e.http_status == 401:
                 msg = "Invalid OpenStack Identity credentials."
             else:
                 msg = "Something has gone wrong. See logs for more details."
@@ -80,7 +80,7 @@ class TraceCommands(BaseCommand):
                                    "output-formats: --json or --html.")
 
         if args.file_name:
-            with open(args.file_name, 'w+') as output_file:
+            with open(args.file_name, "w+") as output_file:
                 output_file.write(output)
         else:
             print (output)

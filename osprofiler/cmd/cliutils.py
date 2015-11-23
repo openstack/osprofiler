@@ -25,7 +25,7 @@ def env(*args, **kwargs):
         value = os.environ.get(arg)
         if value:
             return value
-    return kwargs.get('default', '')
+    return kwargs.get("default", "")
 
 
 def arg(*args, **kwargs):
@@ -46,7 +46,7 @@ def arg(*args, **kwargs):
 def add_arg(func, *args, **kwargs):
     """Bind CLI arguments to a shell.py `do_foo` function."""
 
-    if not hasattr(func, 'arguments'):
+    if not hasattr(func, "arguments"):
         func.arguments = []
 
     # NOTE(sirp): avoid dups that can occur when the module is shared across
