@@ -29,8 +29,10 @@ except (AttributeError, ImportError):
     # Taken/slightly modified from:
     # https://mail.python.org/pipermail/python-checkins/2012-June/114532.html
     def compare_digest(a, b):
-        """Returns the equivalent of 'a == b', but avoids content based short
-        circuiting to reduce the vulnerability to timing attacks.
+        """Returns the equivalent of 'a == b'.
+
+        This method avoids content based short circuiting to reduce the
+        vulnerability to timing attacks.
         """
         # We assume the length of the expected digest is public knowledge,
         # thus this early return isn't leaking anything an attacker wouldn't

@@ -188,7 +188,7 @@ class ShellTestCase(test.TestCase):
                 "started": 0, "finished": 0, "name": "total"}, "children": []}
         mock_notifications.return_value = notifications
 
-        #NOTE(akurilin): to simplify assert statement, html-template should be
+        # NOTE(akurilin): to simplify assert statement, html-template should be
         # replaced.
         html_template = (
             "A long time ago in a galaxy far, far away..."
