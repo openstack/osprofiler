@@ -19,6 +19,8 @@ import inspect
 import threading
 import uuid
 
+import six
+
 from osprofiler import notifier
 
 
@@ -149,6 +151,52 @@ def trace_cls(name, info=None, hide_args=False, trace_private=False):
         return cls
 
     return decorator
+
+
+class TracedMeta(type):
+    """Metaclass to comfortably trace all children of a specific class.
+
+    Possible usage:
+
+    >>>  @six.add_metaclass(profiler.TracedMeta)
+    >>>  class RpcManagerClass(object):
+    >>>      __trace_args__ = {'name': 'rpc',
+    >>>                        'info': None,
+    >>>                        'hide_args': False,
+    >>>                        'trace_private': False}
+    >>>
+    >>>      def my_method(self, some_args):
+    >>>          pass
+    >>>
+    >>>      def my_method2(self, some_arg1, some_arg2, kw=None, kw2=None)
+    >>>          pass
+
+    Adding of this metaclass requires to set __trace_args__ attribute to the
+    class we want to modify. __trace_args__ is the dictionary with one
+    mandatory key included - "name", that will define name of action to be
+    traced - E.g. wsgi, rpc, db, etc...
+    """
+    def __init__(cls, cls_name, bases, attrs):
+        super(TracedMeta, cls).__init__(cls_name, bases, attrs)
+
+        trace_args = getattr(cls, "__trace_args__", {})
+        if "name" not in trace_args:
+            raise TypeError("Please specify __trace_args__ class level "
+                            "dictionary attribute with mandatory 'name' key - "
+                            "e.g. __trace_args__ = {'name': 'rpc'}")
+
+        for attr_name, attr_value in six.iteritems(attrs):
+            if not (inspect.ismethod(attr_value) or
+                    inspect.isfunction(attr_value)):
+                continue
+            if attr_name.startswith("__"):
+                continue
+            if (not trace_args.pop("trace_private", False) and
+                    attr_name.startswith("_")):
+                continue
+
+            setattr(cls, attr_name, trace(**trace_args)(getattr(cls,
+                                                                attr_name)))
 
 
 class Trace(object):
