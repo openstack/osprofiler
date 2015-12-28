@@ -250,7 +250,7 @@ class _Profiler(object):
         self._host = socket.gethostname()
 
     def get_base_id(self):
-        """Return base if of trace.
+        """Return base id of a trace.
 
         Base id is the same for all elements in one trace. It's main goal is
         to be able to retrieve by one request all trace elements from storage.

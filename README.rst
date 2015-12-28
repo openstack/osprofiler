@@ -135,7 +135,7 @@ There are a couple of things that you should know about API before using it.
                all trace points related to one trace from collector
    * parent_id - <uuid> of parent trace point
    * trace_id - <uuid> of current trace point
-   * info - it's dictionary that contains user information passed via calls of
+   * info - the dictionary that contains user information passed when calling
             profiler **start()** & **stop()** methods.
 
 
