@@ -181,7 +181,8 @@ class TracedMeta(type):
     def __init__(cls, cls_name, bases, attrs):
         super(TracedMeta, cls).__init__(cls_name, bases, attrs)
 
-        trace_args = getattr(cls, "__trace_args__", {})
+        trace_args = dict(getattr(cls, "__trace_args__", {}))
+        trace_private = trace_args.pop("trace_private", False)
         if "name" not in trace_args:
             raise TypeError("Please specify __trace_args__ class level "
                             "dictionary attribute with mandatory 'name' key - "
@@ -193,8 +194,7 @@ class TracedMeta(type):
                 continue
             if attr_name.startswith("__"):
                 continue
-            if (not trace_args.pop("trace_private", False) and
-                    attr_name.startswith("_")):
+            if not trace_private and attr_name.startswith("_"):
                 continue
 
             setattr(cls, attr_name, trace(**trace_args)(getattr(cls,
