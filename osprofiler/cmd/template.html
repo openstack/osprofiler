@@ -17,7 +17,7 @@
         min-width: 900px;
         width: 100%;
       }
-      .trace tr.active-true {
+      .trace tr:hover {
         background-color: #D9EDF7!important;
       }
       .trace tr td {
@@ -59,7 +59,7 @@
 
         <div ng-init="hide_children=false">
           <table class="trace cursor_pointer_on_hover">
-            <tr class="active-{{hover}}" ng-init="hover=false" ng-mouseenter="hover=true" ng-mouseleave="hover=false">
+            <tr>
               <td class="level" style="padding-left:{{data.level * 5}}px;">
                 <button type="button" class="btn btn-default btn-xs" ng-disabled="data.is_leaf" ng-click="hide_children=!hide_children">
                   <span class="glyphicon glyphicon-{{ (data.is_leaf) ? 'cloud' : ((hide_children) ? 'plus': 'minus')}}"></span>
