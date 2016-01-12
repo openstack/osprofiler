@@ -44,13 +44,17 @@ Assignee(s)
 -----------
 
 Primary assignee:
-  <launchpad-id or None>
+  boris-42
 
 
 Work Items
 ----------
 
-- Make patch in DevStack
+- Make DevStack plugin for OSprofiler
+
+- Configure Celiometer
+
+- Configure services that support OSprofiler
 
 
 Dependencies

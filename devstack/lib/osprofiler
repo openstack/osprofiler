@@ -1,0 +1,82 @@
+# lib/rally
+# Functions to control the configuration and operation of the **Rally**
+
+# Dependencies:
+#
+# - ``functions`` file
+# - ``DEST``, ``DATA_DIR``, ``STACK_USER`` must be defined
+
+# ``stack.sh`` calls the entry points in this order:
+#
+# - install_osprofiler
+# - configure_osprofiler
+# - init_osprofiler
+
+# Save trace setting
+XTRACE=$(set +o | grep xtrace)
+set +o xtrace
+
+
+# Defaults
+# --------
+
+OLD_STYLE_CONF_FILES=(
+    /etc/cinder/cinder.conf
+    /etc/heat/heat.conf
+)
+
+NEW_STYLE_CONF_FILES=(
+    /etc/keystone/keystone.conf
+    /etc/nova/nova.conf
+    /etc/neutron/neutron.conf
+    /etc/glance/glance-api.conf
+    /etc/glance/glance-registry.conf
+    /etc/trove/trove.conf
+    /etc/trove/trove-conductor.conf
+    /etc/trove/trove-guestagent.conf
+    /etc/trove/trove-taskmanager.conf
+)
+
+# This will update CEILOMETER_NOTIFICATION_TOPICS in ceilometer.conf file
+export CEILOMETER_NOTIFICATION_TOPICS=notifications,profiler
+
+
+# Functions
+# ---------
+
+# configure_osprofiler() - Nothing for now
+function configure_osprofiler() {
+
+    for conf in ${OLD_STYLE_CONF_FILES[@]}; do
+        if [ -f $conf ]
+        then
+            iniset $conf profiler profiler_enabled True
+            iniset $conf profiler trace_sqlalchemy True
+            iniset $conf profiler hmac_keys SECRET_KEY
+        fi
+    done
+
+    for conf in ${NEW_STYLE_CONF_FILES[@]}; do
+        if [ -f $conf ]
+        then
+            iniset $conf profiler enabled True
+            iniset $conf profiler trace_sqlalchemy True
+            iniset $conf profiler hmac_keys SECRET_KEY
+        fi
+    done
+}
+
+
+# init_rally() - Initialize databases, etc.
+function init_osprofiler() {
+
+    echo "Do nothing here for now"
+}
+
+# Restore xtrace
+$XTRACE
+
+# Tell emacs to use shell-script-mode
+## Local variables:
+## mode: shell-script
+## End:
