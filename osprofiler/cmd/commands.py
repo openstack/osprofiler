@@ -28,7 +28,7 @@ class BaseCommand(object):
 class TraceCommands(BaseCommand):
     group_name = "trace"
 
-    @cliutils.arg("trace_id", help="trace id")
+    @cliutils.arg("trace", help="File with trace or trace id")
     @cliutils.arg("--json", dest="use_json", action="store_true",
                   help="show trace in JSON")
     @cliutils.arg("--html", dest="use_html", action="store_true",
@@ -36,45 +36,52 @@ class TraceCommands(BaseCommand):
     @cliutils.arg("--out", dest="file_name", help="save output in file")
     def show(self, args):
         """Displays trace-results by given trace id in HTML or JSON format."""
-        try:
-            import ceilometerclient.client
-            import ceilometerclient.exc
-            import ceilometerclient.shell
-        except ImportError:
-            raise ImportError(
-                "To use this command, you should install 'ceilometerclient' "
-                "manually. Use command:\n 'pip install ceilometerclient'.")
-        try:
-            client = ceilometerclient.client.get_client(
-                args.ceilometer_api_version, **args.__dict__)
-            notifications = ceiloparser.get_notifications(
-                client, args.trace_id)
-        except Exception as e:
-            if hasattr(e, "http_status") and e.http_status == 401:
-                msg = "Invalid OpenStack Identity credentials."
-            else:
-                msg = "Something has gone wrong. See logs for more details."
 
-            raise exc.CommandError(msg)
+        trace = None
 
-        if not notifications:
+        if os.path.exists(args.trace):
+            trace = json.load(open(args.trace))
+        else:
+            try:
+                import ceilometerclient.client
+                import ceilometerclient.exc
+                import ceilometerclient.shell
+            except ImportError:
+                raise ImportError(
+                    "To use this command, you should install "
+                    "'ceilometerclient' manually. Use command:\n "
+                    "'pip install ceilometerclient'.")
+            try:
+                client = ceilometerclient.client.get_client(
+                    args.ceilometer_api_version, **args.__dict__)
+                notifications = ceiloparser.get_notifications(
+                    client, args.trace)
+            except Exception as e:
+                if hasattr(e, "http_status") and e.http_status == 401:
+                    msg = "Invalid OpenStack Identity credentials."
+                else:
+                    msg = "Something has gone wrong. See logs for more details"
+                raise exc.CommandError(msg)
+
+            if notifications:
+                trace = ceiloparser.parse_notifications(notifications)
+
+        if not trace:
             msg = ("Trace with UUID %s not found. "
                    "There are 3 possible reasons: \n"
                    " 1) You are using not admin credentials\n"
                    " 2) You specified wrong trace id\n"
                    " 3) You specified wrong HMAC Key in original calling"
-                   % args.trace_id)
+                   % args.trace)
             raise exc.CommandError(msg)
 
-        parsed_notifications = ceiloparser.parse_notifications(notifications)
-
         if args.use_json:
-            output = json.dumps(parsed_notifications)
+            output = json.dumps(trace)
         elif args.use_html:
             with open(os.path.join(os.path.dirname(__file__),
                                    "template.html")) as html_template:
                 output = html_template.read().replace(
-                    "$DATA", json.dumps(parsed_notifications, indent=2))
+                    "$DATA", json.dumps(trace, indent=2))
         else:
             raise exc.CommandError("You should choose one of the following "
                                    "output-formats: --json or --html.")
