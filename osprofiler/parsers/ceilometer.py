@@ -68,12 +68,8 @@ def parse_notifications(notifications):
         host = find_field("host")
         timestamp = find_field("timestamp")
 
-        try:
-            timestamp = datetime.datetime.strptime(timestamp,
-                                                   "%Y-%m-%dT%H:%M:%S.%f")
-        except ValueError:
-            timestamp = datetime.datetime.strptime(timestamp,
-                                                   "%Y-%m-%dT%H:%M:%S")
+        timestamp = datetime.datetime.strptime(timestamp,
+                                               "%Y-%m-%dT%H:%M:%S.%f")
 
         if trace_id not in result:
             result[trace_id] = {
