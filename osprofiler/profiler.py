@@ -148,6 +148,8 @@ def trace_cls(name, info=None, hide_args=False, trace_private=False):
     """
 
     def decorator(cls):
+        clss = cls if type(cls) is type else cls.__class__
+        mro_dicts = [c.__dict__ for c in inspect.getmro(clss)]
         for attr_name, attr in inspect.getmembers(cls):
             if not (inspect.ismethod(attr) or inspect.isfunction(attr)):
                 continue
@@ -156,8 +158,18 @@ def trace_cls(name, info=None, hide_args=False, trace_private=False):
             if not trace_private and attr_name.startswith("_"):
                 continue
 
-            setattr(cls, attr_name,
-                    trace(name, info=info, hide_args=hide_args)(attr))
+            wrapped_obj = None
+            for cls_dict in mro_dicts:
+                if attr_name in cls_dict:
+                    wrapped_obj = cls_dict[attr_name]
+                    break
+
+            wrapped_method = trace(name, info=info, hide_args=hide_args)(attr)
+            if isinstance(wrapped_obj, staticmethod):
+                wrapped_method = staticmethod(wrapped_method)
+            elif isinstance(wrapped_obj, classmethod):
+                wrapped_method = classmethod(wrapped_method)
+            setattr(cls, attr_name, wrapped_method)
         return cls
 
     return decorator

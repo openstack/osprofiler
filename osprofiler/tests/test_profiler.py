@@ -227,6 +227,13 @@ class FakeTracePrivate(FakeTracedCls):
     pass
 
 
+@profiler.trace_cls("rpc")
+class FakeTraceStatic(FakeTracedCls):
+    @staticmethod
+    def method4(arg):
+        return arg
+
+
 def py3_info(info):
     # NOTE(boris-42): py33 I hate you.
     info_py3 = copy.deepcopy(info)
@@ -318,6 +325,33 @@ class TraceClsDecoratorTestCase(test.TestCase):
                 "name": ("osprofiler.tests.test_profiler"
                          ".FakeTracePrivate._method"),
                 "args": str((fake_cls, 5)),
+                "kwargs": str({})
+            }
+        }
+
+        self.assertEqual(1, len(mock_start.call_args_list))
+        self.assertIn(mock_start.call_args_list[0],
+                      possible_mock_calls("rpc", expected_info))
+        mock_stop.assert_called_once_with()
+
+    @mock.patch("osprofiler.profiler.stop")
+    @mock.patch("osprofiler.profiler.start")
+    def test_static(self, mock_start, mock_stop):
+        fake_cls = FakeTraceStatic()
+
+        self.assertEqual(25, fake_cls.method4(25))
+
+        expected_info = {
+            "function": {
+                # fixme(boris-42): Static methods are treated differently in
+                #                  Python 2.x and Python 3.x. So in PY2 we
+                #                  expect to see method4 because method is
+                #                  static and doesn't have reference to class
+                #                  - and FakeTraceStatic.method4 in PY3
+                "name":
+                    "osprofiler.tests.test_profiler.method4" if six.PY2 else
+                    "osprofiler.tests.test_profiler.FakeTraceStatic.method4",
+                "args": str((25,)),
                 "kwargs": str({})
             }
         }
