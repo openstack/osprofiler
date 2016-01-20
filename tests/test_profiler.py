@@ -103,7 +103,7 @@ class ProfilerTestCase(test.TestCase):
             "parent_id": "2",
             "trace_id": "44",
             "info": info,
-            "timestamp": now,
+            "timestamp": now.strftime("%Y-%m-%dT%H:%M:%S.%f"),
         }
 
         prof = profiler._Profiler("secret", base_id="1", parent_id="2")
@@ -129,7 +129,7 @@ class ProfilerTestCase(test.TestCase):
             "parent_id": "2",
             "trace_id": "44",
             "info": info,
-            "timestamp": now,
+            "timestamp": now.strftime("%Y-%m-%dT%H:%M:%S.%f"),
         }
 
         mock_notify.assert_called_once_with(payload)

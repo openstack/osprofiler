@@ -307,7 +307,8 @@ class _Profiler(object):
             "base_id": self.get_base_id(),
             "trace_id": self.get_id(),
             "parent_id": self.get_parent_id(),
-            "timestamp": datetime.datetime.utcnow(),
+            "timestamp": datetime.datetime.utcnow().strftime(
+                "%Y-%m-%dT%H:%M:%S.%f"),
         }
         if info:
             payload["info"] = info
