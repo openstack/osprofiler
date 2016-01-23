@@ -35,6 +35,16 @@ def _clean():
     __local_ctx.profiler = None
 
 
+def _ensure_no_multiple_traced(traceable_attrs):
+    for attr_name, attr in traceable_attrs:
+        traced_times = getattr(attr, "__traced__", 0)
+        if traced_times:
+            raise ValueError("Can not apply new trace on top of"
+                             " previously traced attribute '%s' since"
+                             " it has been traced %s times previously"
+                             % (attr_name, traced_times))
+
+
 def init(hmac_key, base_id=None, parent_id=None):
     """Init profiler instance for current thread.
 
@@ -78,7 +88,7 @@ def stop(info=None):
         profiler.stop(info=info)
 
 
-def trace(name, info=None, hide_args=False):
+def trace(name, info=None, hide_args=False, allow_multiple_trace=True):
     """Trace decorator for functions.
 
     Very useful if you would like to add trace point on existing function:
@@ -93,6 +103,10 @@ def trace(name, info=None, hide_args=False):
     :param hide_args: Don't push to trace info args and kwargs. Quite useful
                       if you have some info in args that you wont to share,
                       e.g. passwords.
+    :param allow_multiple_trace: If the wrapped function has already been
+                                 traced either allow the new trace to occur
+                                 or raise a value error denoting that multiple
+                                 tracing is not allowed (by default allow).
     """
     if not info:
         info = {}
@@ -101,6 +115,22 @@ def trace(name, info=None, hide_args=False):
     info["function"] = {}
 
     def decorator(f):
+        trace_times = getattr(f, "__traced__", 0)
+        if not allow_multiple_trace and trace_times:
+            raise ValueError("Function '%s' has already"
+                             " been traced %s times" % (f, trace_times))
+
+        try:
+            f.__traced__ = trace_times + 1
+        except AttributeError:
+            # Tries to work around the following:
+            #
+            # AttributeError: 'instancemethod' object has no
+            # attribute '__traced__'
+            try:
+                f.im_func.__traced__ = trace_times + 1
+            except AttributeError:  # nosec
+                pass
 
         @functools.wraps(f)
         def wrapper(*args, **kwargs):
@@ -121,7 +151,8 @@ def trace(name, info=None, hide_args=False):
     return decorator
 
 
-def trace_cls(name, info=None, hide_args=False, trace_private=False):
+def trace_cls(name, info=None, hide_args=False,
+              trace_private=False, allow_multiple_trace=True):
     """Trace decorator for instances of class .
 
     Very useful if you would like to add trace point on existing method:
@@ -142,14 +173,19 @@ def trace_cls(name, info=None, hide_args=False, trace_private=False):
     :param hide_args: Don't push to trace info args and kwargs. Quite useful
                       if you have some info in args that you wont to share,
                       e.g. passwords.
-
     :param trace_private: Trace methods that starts with "_". It wont trace
                           methods that starts "__" even if it is turned on.
+    :param allow_multiple_trace: If wrapped attributes have already been
+                                 traced either allow the new trace to occur
+                                 or raise a value error denoting that multiple
+                                 tracing is not allowed (by default allow).
     """
 
     def decorator(cls):
         clss = cls if inspect.isclass(cls) else cls.__class__
         mro_dicts = [c.__dict__ for c in inspect.getmro(clss)]
+        traceable_attrs = []
+        traceable_wrappers = []
         for attr_name, attr in inspect.getmembers(cls):
             if not (inspect.ismethod(attr) or inspect.isfunction(attr)):
                 continue
@@ -157,21 +193,31 @@ def trace_cls(name, info=None, hide_args=False, trace_private=False):
                 continue
             if not trace_private and attr_name.startswith("_"):
                 continue
-
             wrapped_obj = None
             for cls_dict in mro_dicts:
                 if attr_name in cls_dict:
                     wrapped_obj = cls_dict[attr_name]
                     break
-
-            wrapped_method = trace(name, info=info, hide_args=hide_args)(attr)
             if isinstance(wrapped_obj, staticmethod):
                 # FIXME(dbelova): tracing staticmethod is prone to issues,
                 # there are lots of edge cases, so let's figure that out later.
                 continue
                 # wrapped_method = staticmethod(wrapped_method)
             elif isinstance(wrapped_obj, classmethod):
-                wrapped_method = classmethod(wrapped_method)
+                wrapper = classmethod
+            else:
+                wrapper = None
+            traceable_attrs.append((attr_name, attr))
+            traceable_wrappers.append(wrapper)
+        if not allow_multiple_trace:
+            # Check before doing any other further work (so we don't
+            # halfway trace this class).
+            _ensure_no_multiple_traced(traceable_attrs)
+        for i, (attr_name, attr) in enumerate(traceable_attrs):
+            wrapped_method = trace(name, info=info, hide_args=hide_args)(attr)
+            wrapper = traceable_wrappers[i]
+            if wrapper is not None:
+                wrapped_method = wrapper(wrapped_method)
             setattr(cls, attr_name, wrapped_method)
         return cls
 
@@ -206,11 +252,13 @@ class TracedMeta(type):
 
         trace_args = dict(getattr(cls, "__trace_args__", {}))
         trace_private = trace_args.pop("trace_private", False)
+        allow_multiple_trace = trace_args.pop("allow_multiple_trace", True)
         if "name" not in trace_args:
             raise TypeError("Please specify __trace_args__ class level "
                             "dictionary attribute with mandatory 'name' key - "
                             "e.g. __trace_args__ = {'name': 'rpc'}")
 
+        traceable_attrs = []
         for attr_name, attr_value in six.iteritems(attrs):
             if not (inspect.ismethod(attr_value) or
                     inspect.isfunction(attr_value)):
@@ -219,7 +267,12 @@ class TracedMeta(type):
                 continue
             if not trace_private and attr_name.startswith("_"):
                 continue
-
+            traceable_attrs.append((attr_name, attr_value))
+        if not allow_multiple_trace:
+            # Check before doing any other further work (so we don't
+            # halfway trace this class).
+            _ensure_no_multiple_traced(traceable_attrs)
+        for attr_name, attr_value in traceable_attrs:
             setattr(cls, attr_name, trace(**trace_args)(getattr(cls,
                                                                 attr_name)))
 
