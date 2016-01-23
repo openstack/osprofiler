@@ -20,7 +20,7 @@ from osprofiler import _utils as utils
 from osprofiler import profiler
 from osprofiler import web
 
-from tests import test
+from osprofiler.tests import test
 
 
 def dummy_app(environ, response):

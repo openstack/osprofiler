@@ -22,7 +22,7 @@ import six
 
 from osprofiler.cmd import exc
 from osprofiler.cmd import shell
-from tests import test
+from osprofiler.tests import test
 
 
 class ShellTestCase(test.TestCase):
