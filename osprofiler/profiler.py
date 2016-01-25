@@ -21,6 +21,7 @@ import socket
 import threading
 import uuid
 
+from oslo_utils import reflection
 import six
 
 from osprofiler import notifier
@@ -93,13 +94,20 @@ def trace(name, info=None, hide_args=False):
                       if you have some info in args that you wont to share,
                       e.g. passwords.
     """
-    info = info or {}
+    if not info:
+        info = {}
+    else:
+        info = info.copy()
+    info["function"] = {}
 
     def decorator(f):
 
         @functools.wraps(f)
         def wrapper(*args, **kwargs):
-            info["function"] = {"name": _get_full_func_name(f)}
+            if "name" not in info["function"]:
+                # Get this once (as it should **not** be changing in
+                # subsequent calls).
+                info["function"]["name"] = reflection.get_callable_name(f)
 
             if not hide_args:
                 info["function"]["args"] = str(args)
@@ -226,17 +234,6 @@ class Trace(object):
 
     def __exit__(self, etype, value, traceback):
         stop()
-
-
-def _get_full_func_name(f):
-    if hasattr(f, "__qualname__"):
-        # NOTE(boris-42): Most proper way to get full name in py33
-        return ".".join([f.__module__, f.__qualname__])
-
-    if inspect.ismethod(f):
-        return ".".join([f.__module__, f.im_class.__name__, f.__name__])
-
-    return ".".join([f.__module__, f.__name__])
 
 
 class _Profiler(object):
