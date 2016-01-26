@@ -16,8 +16,7 @@
 import mock
 
 from osprofiler import sqlalchemy
-
-from tests import test
+from osprofiler.tests import test
 
 
 class SqlalchemyTracingTestCase(test.TestCase):

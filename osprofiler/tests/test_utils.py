@@ -20,7 +20,7 @@ import hmac
 import mock
 
 from osprofiler import _utils as utils
-from tests import test
+from osprofiler.tests import test
 
 
 class UtilsTestCase(test.TestCase):

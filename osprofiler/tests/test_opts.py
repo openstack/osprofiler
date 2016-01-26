@@ -16,7 +16,7 @@
 import mock
 from oslo_config import fixture
 from osprofiler import opts
-from tests import test
+from osprofiler.tests import test
 
 
 class ConfigTestCase(test.TestCase):

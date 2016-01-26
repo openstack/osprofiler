@@ -16,13 +16,15 @@ import re
 
 import docutils.core
 
-from tests import test
+from osprofiler.tests import test
 
 
 class TitlesTestCase(test.TestCase):
 
     specs_path = os.path.join(
-        os.path.dirname(__file__), os.pardir, os.pardir, "doc", "specs")
+        os.path.dirname(__file__),
+        os.pardir, os.pardir, os.pardir,
+        "doc", "specs")
 
     def _get_title(self, section_tree):
         section = {"subtitles": []}

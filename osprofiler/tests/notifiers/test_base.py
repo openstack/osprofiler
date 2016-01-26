@@ -16,7 +16,7 @@
 import mock
 
 from osprofiler._notifiers import base
-from tests import test
+from osprofiler.tests import test
 
 
 class NotifierBaseTestCase(test.TestCase):

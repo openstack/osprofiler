@@ -16,8 +16,7 @@
 import mock
 
 from osprofiler.parsers import ceilometer
-
-from tests import test
+from osprofiler.tests import test
 
 
 class CeilometerParserTestCase(test.TestCase):
