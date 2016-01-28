@@ -25,6 +25,12 @@ from osprofiler import profiler
 _REQUIRED_KEYS = ("base_id", "hmac_key")
 _OPTIONAL_KEYS = ("parent_id",)
 
+#: Http header that will contain the needed traces data.
+X_TRACE_INFO = "X-Trace-Info"
+
+#: Http header that will contain the traces data hmac (that will be validated).
+X_TRACE_HMAC = "X-Trace-HMAC"
+
 
 def get_trace_id_headers():
     """Adds the trace id headers (and any hmac) into provided dictionary."""
@@ -33,8 +39,8 @@ def get_trace_id_headers():
         data = {"base_id": p.get_base_id(), "parent_id": p.get_id()}
         pack = utils.signed_pack(data, p.hmac_key)
         return {
-            "X-Trace-Info": pack[0],
-            "X-Trace-HMAC": pack[1]
+            X_TRACE_INFO: pack[0],
+            X_TRACE_HMAC: pack[1]
         }
     return {}
 
@@ -101,8 +107,8 @@ class WsgiMiddleware(object):
                 _ENABLED is None and not self.enabled):
             return request.get_response(self.application)
 
-        trace_info = utils.signed_unpack(request.headers.get("X-Trace-Info"),
-                                         request.headers.get("X-Trace-HMAC"),
+        trace_info = utils.signed_unpack(request.headers.get(X_TRACE_INFO),
+                                         request.headers.get(X_TRACE_HMAC),
                                          _HMAC_KEYS or self.hmac_keys)
 
         if not self._trace_is_valid(trace_info):
