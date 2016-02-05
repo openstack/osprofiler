@@ -336,6 +336,9 @@ class TraceClsDecoratorTestCase(test.TestCase):
 
     @mock.patch("osprofiler.profiler.stop")
     @mock.patch("osprofiler.profiler.start")
+    @test.testcase.skip(
+        "Static method tracing was disabled due the bug. This test should be "
+        "skipped until we find the way to address it.")
     def test_static(self, mock_start, mock_stop):
         fake_cls = FakeTraceStatic()
 

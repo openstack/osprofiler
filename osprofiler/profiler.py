@@ -166,7 +166,10 @@ def trace_cls(name, info=None, hide_args=False, trace_private=False):
 
             wrapped_method = trace(name, info=info, hide_args=hide_args)(attr)
             if isinstance(wrapped_obj, staticmethod):
-                wrapped_method = staticmethod(wrapped_method)
+                # FIXME(dbelova): tracing staticmethod is prone to issues,
+                # there are lots of edge cases, so let's figure that out later.
+                continue
+                # wrapped_method = staticmethod(wrapped_method)
             elif isinstance(wrapped_obj, classmethod):
                 wrapped_method = classmethod(wrapped_method)
             setattr(cls, attr_name, wrapped_method)
