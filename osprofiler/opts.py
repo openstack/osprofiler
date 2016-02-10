@@ -13,9 +13,6 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
-
-import copy
-
 from oslo_config import cfg
 
 from osprofiler import web
@@ -130,4 +127,4 @@ def disable_web_trace(conf=None):
 
 
 def list_opts():
-    return [(_profiler_opt_group.name, copy.deepcopy(_PROFILER_OPTS))]
+    return [(_profiler_opt_group.name, _PROFILER_OPTS)]
