@@ -148,7 +148,7 @@ def trace_cls(name, info=None, hide_args=False, trace_private=False):
     """
 
     def decorator(cls):
-        clss = cls if type(cls) is type else cls.__class__
+        clss = cls if inspect.isclass(cls) else cls.__class__
         mro_dicts = [c.__dict__ for c in inspect.getmro(clss)]
         for attr_name, attr in inspect.getmembers(cls):
             if not (inspect.ismethod(attr) or inspect.isfunction(attr)):
