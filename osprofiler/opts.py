@@ -23,19 +23,19 @@ __all__ = [
 ]
 
 _profiler_opt_group = cfg.OptGroup(
-        "profiler",
-        title="OpenStack cross-service profiling",
-        help="""
+    "profiler",
+    title="OpenStack cross-service profiling",
+    help="""
 OSprofiler library allows to trace requests going through various OpenStack
 services and create the accumulated report of what time was spent on each
 request processing step.""")
 
 _enabled_opt = cfg.BoolOpt(
-        "enabled",
-        default=False,
-        deprecated_group="profiler",
-        deprecated_name="profiler_enabled",
-        help="""
+    "enabled",
+    default=False,
+    deprecated_group="profiler",
+    deprecated_name="profiler_enabled",
+    help="""
 Enables the profiling for all services on this node. Default value is False
 (fully disable the profiling feature).
 
@@ -48,9 +48,9 @@ will be empty.
 """)
 
 _trace_sqlalchemy_opt = cfg.BoolOpt(
-        "trace_sqlalchemy",
-        default=False,
-        help="""
+    "trace_sqlalchemy",
+    default=False,
+    help="""
 Enables SQL requests profiling in services. Default value is False (SQL
 requests won't be traced).
 
@@ -64,9 +64,9 @@ way.
 """)
 
 _hmac_keys_opt = cfg.StrOpt(
-        "hmac_keys",
-        default="SECRET_KEY",
-        help="""
+    "hmac_keys",
+    default="SECRET_KEY",
+    help="""
 Secret key(s) to use for encrypting context data for performance profiling.
 This string value should have the following format: <key1>[,<key2>,...<keyn>],
 where each key is some random string. A user who triggers the profiling via
