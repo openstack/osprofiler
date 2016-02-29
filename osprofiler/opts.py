@@ -33,7 +33,6 @@ request processing step.""")
 _enabled_opt = cfg.BoolOpt(
     "enabled",
     default=False,
-    deprecated_group="profiler",
     deprecated_name="profiler_enabled",
     help="""
 Enables the profiling for all services on this node. Default value is False
