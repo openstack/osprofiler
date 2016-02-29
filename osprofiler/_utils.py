@@ -128,7 +128,7 @@ def signed_unpack(data, hmac_data, hmac_keys):
     for hmac_key in hmac_keys:
         try:
             user_hmac_data = generate_hmac(data, hmac_key)
-        except Exception:
+        except Exception:  # nosec
             pass
         else:
             if compare_digest(hmac_data, user_hmac_data):
