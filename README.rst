@@ -339,4 +339,4 @@ There are 4 topics related to integration OSprofiler & `OpenStack`_:
 .. _OpenStack: http://openstack.org/
 .. _Ceilometer: https://wiki.openstack.org/wiki/Ceilometer
 .. _oslo.messaging: https://pypi.python.org/pypi/oslo.messaging
-.. _OSprofiler WSGI middleware: https://github.com/stackforge/osprofiler/blob/master/osprofiler/web.py
+.. _OSprofiler WSGI middleware: https://github.com/openstack/osprofiler/blob/master/osprofiler/web.py
