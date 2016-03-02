@@ -15,6 +15,7 @@ import datetime
 import os
 import subprocess
 import sys
+import time
 
 # If extensions (or modules to document with autodoc) are in another directory,
 # add these directories to sys.path here. If the directory is relative to the
@@ -139,9 +140,12 @@ html_static_path = []
 # If not '', a 'Last updated on:' timestamp is inserted at every page bottom,
 # using the given strftime format.
 git_cmd = ["git", "log", "--pretty=format:'%ad, commit %h'", "--date=local",
-    "-n1"]
-html_last_updated_fmt = subprocess.Popen(
-    git_cmd, stdout=subprocess.PIPE).communicate()[0]
+           "-n1"]
+try:
+    html_last_updated_fmt = subprocess.Popen(
+        git_cmd, stdout=subprocess.PIPE).communicate()[0]
+except Exception:
+    html_last_updated_fmt = time.ctime()
 
 # If true, SmartyPants will be used to convert quotes and dashes to
 # typographically correct entities.
