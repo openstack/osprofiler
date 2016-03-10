@@ -13,19 +13,11 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
-import os
-
-from six.moves import configparser
+import pkg_resources
 
 from osprofiler import _utils as utils
 
 
 utils.import_modules_from_package("osprofiler._notifiers")
 
-_conf = configparser.ConfigParser()
-_conf.read(os.path.join(
-    os.path.dirname(os.path.dirname(__file__)), "setup.cfg"))
-try:
-    __version__ = _conf.get("metadata", "version")
-except (configparser.NoOptionError, configparser.NoSectionError):
-    __version__ = None
+__version__ = pkg_resources.get_distribution("osprofiler").version
