@@ -39,8 +39,8 @@ Why not cProfile and etc?
     (e.g. admin should be able to "trace" on request).
 
 
-OSprofiler API version 0.3.0
-----------------------------
+OSprofiler API
+--------------
 
 There are a couple of things that you should know about API before using it.
 
