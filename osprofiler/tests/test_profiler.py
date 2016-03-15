@@ -240,11 +240,31 @@ class FakeTracePrivate(FakeTracedCls):
     pass
 
 
-@profiler.trace_cls("rpc")
-class FakeTraceStatic(FakeTracedCls):
+class FakeTraceStaticMethodBase(FakeTracedCls):
     @staticmethod
-    def method4(arg):
+    def static_method(arg):
         return arg
+
+
+@profiler.trace_cls("rpc", trace_static_methods=True)
+class FakeTraceStaticMethod(FakeTraceStaticMethodBase):
+    pass
+
+
+@profiler.trace_cls("rpc")
+class FakeTraceStaticMethodSkip(FakeTraceStaticMethodBase):
+    pass
+
+
+class FakeTraceClassMethodBase(FakeTracedCls):
+    @classmethod
+    def class_method(cls, arg):
+        return arg
+
+
+@profiler.trace_cls("rpc")
+class FakeTraceClassMethodSkip(FakeTraceClassMethodBase):
+    pass
 
 
 def py3_info(info):
@@ -353,9 +373,9 @@ class TraceClsDecoratorTestCase(test.TestCase):
         "Static method tracing was disabled due the bug. This test should be "
         "skipped until we find the way to address it.")
     def test_static(self, mock_start, mock_stop):
-        fake_cls = FakeTraceStatic()
+        fake_cls = FakeTraceStaticMethod()
 
-        self.assertEqual(25, fake_cls.method4(25))
+        self.assertEqual(25, fake_cls.static_method(25))
 
         expected_info = {
             "function": {
@@ -376,6 +396,20 @@ class TraceClsDecoratorTestCase(test.TestCase):
         self.assertIn(mock_start.call_args_list[0],
                       possible_mock_calls("rpc", expected_info))
         mock_stop.assert_called_once_with()
+
+    @mock.patch("osprofiler.profiler.stop")
+    @mock.patch("osprofiler.profiler.start")
+    def test_static_method_skip(self, mock_start, mock_stop):
+        self.assertEqual(25, FakeTraceStaticMethodSkip.static_method(25))
+        self.assertFalse(mock_start.called)
+        self.assertFalse(mock_stop.called)
+
+    @mock.patch("osprofiler.profiler.stop")
+    @mock.patch("osprofiler.profiler.start")
+    def test_class_method_skip(self, mock_start, mock_stop):
+        self.assertEqual("foo", FakeTraceClassMethodSkip.class_method("foo"))
+        self.assertFalse(mock_start.called)
+        self.assertFalse(mock_stop.called)
 
 
 @six.add_metaclass(profiler.TracedMeta)
