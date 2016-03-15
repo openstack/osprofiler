@@ -156,6 +156,18 @@ class WithTraceTestCase(test.TestCase):
             mock_stop.reset_mock()
         mock_stop.assert_called_once_with()
 
+    @mock.patch("osprofiler.profiler.stop")
+    @mock.patch("osprofiler.profiler.start")
+    def test_with_trace_etype(self, mock_start, mock_stop):
+
+        def foo():
+            with profiler.Trace("foo"):
+                raise ValueError("bar")
+
+        self.assertRaises(ValueError, foo)
+        mock_start.assert_called_once_with("foo", info=None)
+        mock_stop.assert_called_once_with(info={"etype": "ValueError"})
+
 
 @profiler.trace("function", info={"info": "some_info"})
 def tracede_func(i):
