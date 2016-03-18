@@ -13,6 +13,8 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
+import contextlib
+
 from osprofiler import profiler
 
 
@@ -40,6 +42,15 @@ def add_tracing(sqlalchemy, engine, name):
                                 _before_cursor_execute(name))
         sqlalchemy.event.listen(engine, "after_cursor_execute",
                                 _after_cursor_execute())
+
+
+@contextlib.contextmanager
+def wrap_session(sqlalchemy, sess):
+    with sess as s:
+        if not getattr(s.bind, "traced", False):
+            add_tracing(sqlalchemy, s.bind, "db")
+            s.bind.traced = True
+        yield s
 
 
 def _before_cursor_execute(name):

@@ -13,6 +13,7 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
+import contextlib
 import mock
 
 from osprofiler import sqlalchemy
@@ -52,6 +53,36 @@ class SqlalchemyTracingTestCase(test.TestCase):
             mock.call(engine, "before_cursor_execute", "before"),
             mock.call(engine, "after_cursor_execute", "after")
         ]
+        self.assertEqual(sa.event.listen.call_args_list, expected_calls)
+
+    @mock.patch("osprofiler.sqlalchemy._before_cursor_execute")
+    @mock.patch("osprofiler.sqlalchemy._after_cursor_execute")
+    def test_wrap_session(self, mock_after_exc, mock_before_exc):
+        sa = mock.MagicMock()
+
+        @contextlib.contextmanager
+        def _session():
+            session = mock.MagicMock()
+            # current engine object stored within the session
+            session.bind = mock.MagicMock()
+            session.bind.traced = None
+            yield session
+
+        mock_before_exc.return_value = "before"
+        mock_after_exc.return_value = "after"
+
+        session = sqlalchemy.wrap_session(sa, _session())
+
+        with session as sess:
+            pass
+
+        mock_before_exc.assert_called_once_with("db")
+        mock_after_exc.assert_called_once_with()
+        expected_calls = [
+            mock.call(sess.bind, "before_cursor_execute", "before"),
+            mock.call(sess.bind, "after_cursor_execute", "after")
+        ]
+
         self.assertEqual(sa.event.listen.call_args_list, expected_calls)
 
     @mock.patch("osprofiler.sqlalchemy._before_cursor_execute")
