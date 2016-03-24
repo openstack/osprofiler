@@ -16,9 +16,7 @@ wrong and to locate the bottleneck.
 To resolve this issue, we introduce a tiny but powerful library,
 **osprofiler**, that is going to be used by all OpenStack projects and their
 python clients. To be able to generate 1 trace per request, that goes through
-all involved services, and builds a tree of calls (see an
-`example <http://pavlovic.me/rally/profiler/>`_).
-
+all involved services, and builds a tree of calls.
 
 Why not cProfile and etc?
 -------------------------
