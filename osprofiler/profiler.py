@@ -152,7 +152,8 @@ def trace(name, info=None, hide_args=False, allow_multiple_trace=True):
 
 
 def trace_cls(name, info=None, hide_args=False,
-              trace_private=False, allow_multiple_trace=True):
+              trace_private=False, allow_multiple_trace=True,
+              trace_class_methods=False, trace_static_methods=False):
     """Trace decorator for instances of class .
 
     Very useful if you would like to add trace point on existing method:
@@ -175,11 +176,33 @@ def trace_cls(name, info=None, hide_args=False,
                       e.g. passwords.
     :param trace_private: Trace methods that starts with "_". It wont trace
                           methods that starts "__" even if it is turned on.
+    :param trace_static_methods: Trace staticmethods. This may be prone to
+                                 issues so careful usage is recommended (this
+                                 is also why this defaults to false).
+    :param trace_class_methods: Trace classmethods. This may be prone to
+                                issues so careful usage is recommended (this
+                                is also why this defaults to false).
     :param allow_multiple_trace: If wrapped attributes have already been
                                  traced either allow the new trace to occur
                                  or raise a value error denoting that multiple
                                  tracing is not allowed (by default allow).
     """
+
+    def trace_checker(attr_name, to_be_wrapped):
+        if attr_name.startswith("__"):
+            # Never trace really private methods.
+            return (False, None)
+        if not trace_private and attr_name.startswith("_"):
+            return (False, None)
+        if isinstance(to_be_wrapped, staticmethod):
+            if not trace_static_methods:
+                return (False, None)
+            return (True, staticmethod)
+        if isinstance(to_be_wrapped, classmethod):
+            if not trace_class_methods:
+                return (False, None)
+            return (True, classmethod)
+        return (True, None)
 
     def decorator(cls):
         clss = cls if inspect.isclass(cls) else cls.__class__
@@ -189,24 +212,14 @@ def trace_cls(name, info=None, hide_args=False,
         for attr_name, attr in inspect.getmembers(cls):
             if not (inspect.ismethod(attr) or inspect.isfunction(attr)):
                 continue
-            if attr_name.startswith("__"):
-                continue
-            if not trace_private and attr_name.startswith("_"):
-                continue
             wrapped_obj = None
             for cls_dict in mro_dicts:
                 if attr_name in cls_dict:
                     wrapped_obj = cls_dict[attr_name]
                     break
-            if isinstance(wrapped_obj, staticmethod):
-                # FIXME(dbelova): tracing staticmethod is prone to issues,
-                # there are lots of edge cases, so let's figure that out later.
+            should_wrap, wrapper = trace_checker(attr_name, wrapped_obj)
+            if not should_wrap:
                 continue
-                # wrapped_method = staticmethod(wrapped_method)
-            elif isinstance(wrapped_obj, classmethod):
-                wrapper = classmethod
-            else:
-                wrapper = None
             traceable_attrs.append((attr_name, attr))
             traceable_wrappers.append(wrapper)
         if not allow_multiple_trace:
