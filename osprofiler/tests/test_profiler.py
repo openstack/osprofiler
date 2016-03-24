@@ -171,6 +171,19 @@ class TraceDecoratorTestCase(test.TestCase):
 
     @mock.patch("osprofiler.profiler.stop")
     @mock.patch("osprofiler.profiler.start")
+    def test_duplicate_trace_disallow(self, mock_start, mock_stop):
+
+        @profiler.trace("test")
+        def trace_me():
+            pass
+
+        self.assertRaises(
+            ValueError,
+            profiler.trace("test-again", allow_multiple_trace=False),
+            trace_me)
+
+    @mock.patch("osprofiler.profiler.stop")
+    @mock.patch("osprofiler.profiler.start")
     def test_with_args(self, mock_start, mock_stop):
         self.assertEqual(1, tracede_func(1))
         expected_info = {
