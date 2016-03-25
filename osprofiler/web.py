@@ -123,5 +123,8 @@ class WsgiMiddleware(object):
                 "scheme": request.scheme
             }
         }
-        with profiler.Trace(self.name, info=info):
-            return request.get_response(self.application)
+        try:
+            with profiler.Trace(self.name, info=info):
+                return request.get_response(self.application)
+        finally:
+            profiler._clean()
