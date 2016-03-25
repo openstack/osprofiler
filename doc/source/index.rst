@@ -15,6 +15,7 @@ reasons (for example in isolating cross-project performance issues).
    background
    api
    integration
+   similar_projects
 
 Release Notes
 =============
