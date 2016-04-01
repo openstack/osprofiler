@@ -71,7 +71,8 @@ class TraceCommands(BaseCommand):
                    "There are 3 possible reasons: \n"
                    " 1) You are using not admin credentials\n"
                    " 2) You specified wrong trace id\n"
-                   " 3) You specified wrong HMAC Key in original calling"
+                   " 3) You specified wrong HMAC Key in original calling\n"
+                   " 4) Ceilometer didn't enable profiler notification topic"
                    % args.trace)
             raise exc.CommandError(msg)
 
