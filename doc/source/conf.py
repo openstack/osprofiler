@@ -15,7 +15,6 @@ import datetime
 import os
 import subprocess
 import sys
-import time
 import warnings
 
 # If extensions (or modules to document with autodoc) are in another directory,
@@ -138,9 +137,8 @@ try:
     html_last_updated_fmt = subprocess.Popen(
         git_cmd, stdout=subprocess.PIPE).communicate()[0]
 except Exception:
-    warnings.warn('Cannot get last updated time from git repository, '
-                  'using current time.')
-    html_last_updated_fmt = time.ctime()
+    warnings.warn('Cannot get last updated time from git repository. '
+                  'Not setting "html_last_updated_fmt".')
 
 # If true, SmartyPants will be used to convert quotes and dashes to
 # typographically correct entities.
