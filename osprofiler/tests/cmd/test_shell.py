@@ -52,7 +52,7 @@ class ShellTestCase(test.TestCase):
         self.ceiloclient = mock.MagicMock()
         sys.modules["ceilometerclient"] = self.ceiloclient
         self.addCleanup(sys.modules.pop, "ceilometerclient", None)
-        ceilo_modules = ["client", "exc", "shell"]
+        ceilo_modules = ["client", "shell"]
         for module in ceilo_modules:
             sys.modules["ceilometerclient.%s" % module] = getattr(
                 self.ceiloclient, module)
@@ -80,7 +80,7 @@ class ShellTestCase(test.TestCase):
             self.assertEqual(str(actual_error), expected_message)
         else:
             raise ValueError(
-                "Expected: `osprofiler.cmd.exc.CommandError` is raised with "
+                "Expected: `osprofiler.exc.CommandError` is raised with "
                 "message: '%s'." % expected_message)
 
     def test_username_is_not_presented(self):
@@ -116,14 +116,15 @@ class ShellTestCase(test.TestCase):
                "env[OS_USER_DOMAIN_ID]")
         self._test_with_command_error("trace show fake-uuid", msg)
 
-    def test_trace_show_ceilometrclient_is_missed(self):
+    def test_trace_show_ceilometerclient_is_missed(self):
         sys.modules["ceilometerclient"] = None
         sys.modules["ceilometerclient.client"] = None
-        sys.modules["ceilometerclient.exc"] = None
         sys.modules["ceilometerclient.shell"] = None
 
-        self.assertRaises(ImportError, shell.main,
-                          "trace show fake_uuid".split())
+        msg = ("To use this command, you should install "
+               "'ceilometerclient' manually. Use command:\n "
+               "'pip install python-ceilometerclient'.")
+        self._test_with_command_error("trace show fake-uuid", msg)
 
     def test_trace_show_unauthorized(self):
         class FakeHTTPUnauthorized(Exception):
@@ -139,18 +140,17 @@ class ShellTestCase(test.TestCase):
             pass
 
         self.ceiloclient.client.get_client.side_effect = FakeException
-        msg = "Something has gone wrong. See logs for more details"
+        msg = "Something has gone wrong. See ceilometer logs for more details"
         self._test_with_command_error("trace show fake_id", msg)
 
-    @mock.patch("osprofiler.parsers.ceilometer.get_notifications")
-    @mock.patch("osprofiler.parsers.ceilometer.parse_notifications")
-    def test_trace_show_no_selected_format(self, mock_notifications, mock_get):
+    @mock.patch("osprofiler.drivers.ceilometer.Ceilometer.get_report")
+    def test_trace_show_no_selected_format(self, mock_get):
         mock_get.return_value = "some_notificatios"
         msg = ("You should choose one of the following output-formats: "
                "--json or --html.")
         self._test_with_command_error("trace show fake_id", msg)
 
-    @mock.patch("osprofiler.parsers.ceilometer.get_notifications")
+    @mock.patch("osprofiler.drivers.ceilometer.Ceilometer.get_report")
     def test_trace_show_trace_id_not_found(self, mock_get):
         mock_get.return_value = None
 
@@ -165,29 +165,26 @@ class ShellTestCase(test.TestCase):
         self._test_with_command_error("trace show %s" % fake_trace_id, msg)
 
     @mock.patch("sys.stdout", six.StringIO())
-    @mock.patch("osprofiler.parsers.ceilometer.get_notifications")
-    @mock.patch("osprofiler.parsers.ceilometer.parse_notifications")
-    def test_trace_show_in_json(self, mock_notifications, mock_get):
-        mock_get.return_value = "some notification"
+    @mock.patch("osprofiler.drivers.ceilometer.Ceilometer.get_report")
+    def test_trace_show_in_json(self, mock_get):
         notifications = {
             "info": {
                 "started": 0, "finished": 0, "name": "total"}, "children": []}
-        mock_notifications.return_value = notifications
+
+        mock_get.return_value = notifications
 
         self.run_command("trace show fake_id --json")
         self.assertEqual("%s\n" % json.dumps(notifications),
                          sys.stdout.getvalue())
 
     @mock.patch("sys.stdout", six.StringIO())
-    @mock.patch("osprofiler.parsers.ceilometer.get_notifications")
-    @mock.patch("osprofiler.parsers.ceilometer.parse_notifications")
-    def test_trace_show_in_html(self, mock_notifications, mock_get):
-        mock_get.return_value = "some notification"
-
+    @mock.patch("osprofiler.drivers.ceilometer.Ceilometer.get_report")
+    def test_trace_show_in_html(self, mock_get):
         notifications = {
             "info": {
                 "started": 0, "finished": 0, "name": "total"}, "children": []}
-        mock_notifications.return_value = notifications
+
+        mock_get.return_value = notifications
 
         # NOTE(akurilin): to simplify assert statement, html-template should be
         # replaced.
@@ -202,24 +199,23 @@ class ShellTestCase(test.TestCase):
         with mock.patch("osprofiler.cmd.commands.open",
                         mock.mock_open(read_data=html_template), create=True):
             self.run_command("trace show fake_id --html")
-        self.assertEqual("A long time ago in a galaxy far, far away..."
-                         "    some_data = %s"
-                         "It is a period of civil war. Rebel"
-                         "spaceships, striking from a hidden"
-                         "base, have won their first victory"
-                         "against the evil Galactic Empire."
-                         "\n" % json.dumps(notifications, indent=2),
-                         sys.stdout.getvalue())
+            self.assertEqual("A long time ago in a galaxy far, far away..."
+                             "    some_data = %s"
+                             "It is a period of civil war. Rebel"
+                             "spaceships, striking from a hidden"
+                             "base, have won their first victory"
+                             "against the evil Galactic Empire."
+                             "\n" % json.dumps(notifications, indent=2),
+                             sys.stdout.getvalue())
 
     @mock.patch("sys.stdout", six.StringIO())
-    @mock.patch("osprofiler.parsers.ceilometer.get_notifications")
-    @mock.patch("osprofiler.parsers.ceilometer.parse_notifications")
-    def test_trace_show_write_to_file(self, mock_notifications, mock_get):
-        mock_get.return_value = "some notification"
+    @mock.patch("osprofiler.drivers.ceilometer.Ceilometer.get_report")
+    def test_trace_show_write_to_file(self, mock_get):
         notifications = {
             "info": {
                 "started": 0, "finished": 0, "name": "total"}, "children": []}
-        mock_notifications.return_value = notifications
+
+        mock_get.return_value = notifications
 
         with mock.patch("osprofiler.cmd.commands.open",
                         mock.mock_open(), create=True) as mock_open:
