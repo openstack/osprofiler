@@ -26,7 +26,7 @@ import argparse
 import osprofiler
 from osprofiler.cmd import cliutils
 from osprofiler.cmd import commands
-from osprofiler.cmd import exc
+from osprofiler import exc
 
 
 class OSProfilerShell(object):
@@ -235,7 +235,7 @@ def main(args=None):
     try:
         OSProfilerShell(args)
     except exc.CommandError as e:
-        print (e.message)
+        print(e.message)
         return 1
 
 

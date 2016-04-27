@@ -43,9 +43,9 @@ class NotifierTestCase(test.TestCase):
 
         m.assert_called_once_with(10)
 
-    @mock.patch("osprofiler.notifier.base.Notifier.factory")
+    @mock.patch("osprofiler.notifier.base.get_driver")
     def test_create(self, mock_factory):
 
         result = notifier.create("test", 10, b=20)
         mock_factory.assert_called_once_with("test", 10, b=20)
-        self.assertEqual(mock_factory.return_value, result)
+        self.assertEqual(mock_factory.return_value.notify, result)

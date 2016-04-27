@@ -20,8 +20,8 @@ import sys
 import mock
 import six
 
-from osprofiler.cmd import exc
 from osprofiler.cmd import shell
+from osprofiler import exc
 from osprofiler.tests import test
 
 
