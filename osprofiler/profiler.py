@@ -314,7 +314,11 @@ class Trace(object):
         start(self._name, info=self._info)
 
     def __exit__(self, etype, value, traceback):
-        stop()
+        if etype:
+            info = {"etype": reflection.get_class_name(etype)}
+            stop(info=info)
+        else:
+            stop()
 
 
 class _Profiler(object):
