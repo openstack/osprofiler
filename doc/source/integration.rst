@@ -20,7 +20,7 @@ What we should use as a centralized collector?
 How to setup profiler notifier?
 -------------------------------
 
-  We decided to use olso.messaging Notifier API, because:
+  We decided to use oslo.messaging Notifier API, because:
 
   * `oslo.messaging`_ is integrated in all projects
 
