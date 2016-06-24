@@ -90,7 +90,8 @@ class CeilometerParserTestCase(test.TestCase):
                 "started": 0,
                 "finished": None
             },
-            "children": []
+            "children": [],
+            "stats": {},
         }
 
         base_id = "10"
@@ -399,7 +400,10 @@ class CeilometerParserTestCase(test.TestCase):
                       "started": 88},
              "parent_id": "7253ca8c-33b3-4f84-b4f1-f5a4311ddfa4",
              "trace_id": "016c97fd-87f3-40b2-9b55-e431156b694b"}],
-            "info": {"finished": 88, "name": "total", "started": 0}}
+            "info": {"finished": 88, "name": "total", "started": 0},
+            "stats": {"db": {"count": 1, "duration": 20},
+                      "wsgi": {"count": 2, "duration": -47}},
+        }
 
         base_id = "10"
 
