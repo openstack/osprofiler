@@ -37,6 +37,7 @@ def init_from_conf(conf, context, project, service, host):
         transport=oslo_messaging.get_transport(conf),
         project=project,
         service=service,
-        host=host)
+        host=host,
+        conf=conf)
     notifier.set(_notifier)
     web.enable(conf.profiler.hmac_keys)
