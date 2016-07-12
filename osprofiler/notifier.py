@@ -13,7 +13,7 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
-from osprofiler._notifiers import base
+from osprofiler.drivers import base
 
 
 def _noop_notifier(info, context=None):
@@ -22,6 +22,7 @@ def _noop_notifier(info, context=None):
 
 # NOTE(boris-42): By default we are using noop notifier.
 __notifier = _noop_notifier
+__driver_cache = {}
 
 
 def notify(info):
@@ -48,13 +49,19 @@ def set(notifier):
     __notifier = notifier
 
 
-def create(plugin_name, *args, **kwargs):
+def create(connection_string, *args, **kwargs):
     """Create notifier based on specified plugin_name
 
-    :param plugin_name: Name of plugin that creates notifier
-    :param *args: args that will be passed to plugin init method
-    :param **kwargs: kwargs that will be passed to plugin init method
+    :param connection_string: connection string which specifies the storage
+                              driver for notifier
+    :param *args: args that will be passed to the driver's __init__ method
+    :param **kwargs: kwargs that will be passed to the driver's __init__ method
     :returns: Callable notifier method
     :raises TypeError: In case of invalid name of plugin raises TypeError
     """
-    return base.Notifier.factory(plugin_name, *args, **kwargs)
+    global __driver_cache
+    if connection_string not in __driver_cache:
+        __driver_cache[connection_string] = base.get_driver(connection_string,
+                                                            *args,
+                                                            **kwargs).notify
+    return __driver_cache[connection_string]

@@ -17,7 +17,7 @@ import json
 import os
 
 from osprofiler.cmd import cliutils
-from osprofiler.cmd import exc
+from osprofiler import exc
 from osprofiler.parsers import ceilometer as ceiloparser
 
 
@@ -91,4 +91,4 @@ class TraceCommands(BaseCommand):
             with open(args.file_name, "w+") as output_file:
                 output_file.write(output)
         else:
-            print (output)
+            print(output)

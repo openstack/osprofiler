@@ -45,7 +45,8 @@ def _ensure_no_multiple_traced(traceable_attrs):
                              % (attr_name, traced_times))
 
 
-def init(hmac_key, base_id=None, parent_id=None):
+def init(hmac_key, base_id=None, parent_id=None, connection_str=None,
+         project=None, service=None):
     """Init profiler instance for current thread.
 
     You should call profiler.init() before using osprofiler.
@@ -54,10 +55,16 @@ def init(hmac_key, base_id=None, parent_id=None):
     :param hmac_key: secret key to sign trace information.
     :param base_id: Used to bind all related traces.
     :param parent_id: Used to build tree of traces.
+    :param connection_str: Connection string to the backend to use for
+                           notifications.
+    :param project: Project name that is under profiling
+    :param service: Service name that is under profiling
     :returns: Profiler instance
     """
     __local_ctx.profiler = _Profiler(hmac_key, base_id=base_id,
-                                     parent_id=parent_id)
+                                     parent_id=parent_id,
+                                     connection_str=connection_str,
+                                     project=project, service=service)
     return __local_ctx.profiler
 
 
@@ -323,13 +330,17 @@ class Trace(object):
 
 class _Profiler(object):
 
-    def __init__(self, hmac_key, base_id=None, parent_id=None):
+    def __init__(self, hmac_key, base_id=None, parent_id=None,
+                 connection_str=None, project=None, service=None):
         self.hmac_key = hmac_key
         if not base_id:
             base_id = str(uuid.uuid4())
         self._trace_stack = collections.deque([base_id, parent_id or base_id])
         self._name = collections.deque()
         self._host = socket.gethostname()
+        self._connection_str = connection_str
+        self._project = project
+        self._service = service
 
     def get_base_id(self):
         """Return base id of a trace.
@@ -356,10 +367,6 @@ class _Profiler(object):
         parent_id - to build tree of events (not just a list)
         trace_id - current event id.
 
-        As we are writing this code special for OpenStack, and there will be
-        only one implementation of notifier based on ceilometer notifier api.
-        That already contains timestamps, so we don't measure time by hand.
-
         :param name: name of trace element (db, wsgi, rpc, etc..)
         :param info: Dictionary with any useful information related to this
                      trace element. (sql request, rpc message or url...)
@@ -367,12 +374,14 @@ class _Profiler(object):
 
         info = info or {}
         info["host"] = self._host
+        info["project"] = self._project
+        info["service"] = self._service
         self._name.append(name)
         self._trace_stack.append(str(uuid.uuid4()))
         self._notify("%s-start" % name, info)
 
     def stop(self, info=None):
-        """Finish latests event.
+        """Finish latest event.
 
         Same as a start, but instead of pushing trace_id to stack it pops it.
 
@@ -380,6 +389,8 @@ class _Profiler(object):
         """
         info = info or {}
         info["host"] = self._host
+        info["project"] = self._project
+        info["service"] = self._service
         self._notify("%s-stop" % self._name.pop(), info)
         self._trace_stack.pop()
 

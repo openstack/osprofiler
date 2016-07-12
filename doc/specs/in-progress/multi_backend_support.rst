@@ -13,16 +13,16 @@
  For help with syntax, see http://sphinx-doc.org/rest.html
  To test out your formatting, see http://www.tele3.cz/jbar/rest/rest.html
 
-======================
- Multi backend support
-======================
+=====================
+Multi backend support
+=====================
 
 Make OSProfiler more flexible and production ready.
 
 Problem description
 ===================
 
-Currently OSprofiler works only with one backend Celiometer which actually
+Currently OSprofiler works only with one backend Ceilometer which actually
 doesn't work well and adds huge overhead. More over often Ceilometer is not
 installed/used at all. To resolve this we should add support for different
 backends like: MongoDB, InfluxDB, ElasticSearch, ...
@@ -32,7 +32,7 @@ Proposed change
 ===============
 
 And new osprofiler.drivers mechanism, each driver will do 2 things:
-send notifications and parse all notification in unififed tree strcture
+send notifications and parse all notification in unified tree structure
 that can be processed by the REST lib.
 
 Deprecate osprofiler.notifiers and osprofiler.parsers
@@ -50,8 +50,9 @@ Implementation
 Assignee(s)
 -----------
 
-Primary assignee:
-  <launchpad-id or None>
+Primary assignees:
+  dbelova
+  ayelistratov
 
 
 Work Items
@@ -73,14 +74,12 @@ that are hardcoded on Ceilometer:
   in the same place.
 
   This change should be done with keeping backward compatiblity, in other words
-  we should create separated direcotory osprofier.drivers and put first
-  Ceilometer  and then start working on other backends.
+  we should create separated directory osprofier.drivers and put first
+  Ceilometer and then start working on other backends.
 
   These drivers will be chosen based on connection string
 
 - Deprecate osprofiler.notifiers and osprofier.parsers
-
-- Cut new release 0.4.2
 
 - Switch all projects to new model with connection string
 
@@ -88,4 +87,4 @@ that are hardcoded on Ceilometer:
 Dependencies
 ============
 
-- Cinder, Glance, Trove should be changed
+- Cinder, Glance, Trove, Heat should be changed

@@ -78,14 +78,29 @@ at least one key needs to be consistent between OpenStack projects. This
 ensures it can be used from client side to generate the trace, containing
 information from all possible resources.""")
 
+_connection_string_opt = cfg.StrOpt(
+    "connection_string",
+    default="messaging://",
+    help="""
+Connection string for a notifier backend. Default value is messaging:// which
+sets the notifier to oslo_messaging.
+
+Examples of possible values:
+
+* messaging://: use oslo_messaging driver for sending notifications.
+""")
+
+
 _PROFILER_OPTS = [
     _enabled_opt,
     _trace_sqlalchemy_opt,
     _hmac_keys_opt,
+    _connection_string_opt,
 ]
 
 
-def set_defaults(conf, enabled=None, trace_sqlalchemy=None, hmac_keys=None):
+def set_defaults(conf, enabled=None, trace_sqlalchemy=None, hmac_keys=None,
+                 connection_string=None):
     conf.register_opts(_PROFILER_OPTS, group=_profiler_opt_group)
 
     if enabled is not None:
@@ -96,6 +111,10 @@ def set_defaults(conf, enabled=None, trace_sqlalchemy=None, hmac_keys=None):
                          group=_profiler_opt_group.name)
     if hmac_keys is not None:
         conf.set_default("hmac_keys", hmac_keys,
+                         group=_profiler_opt_group.name)
+
+    if connection_string is not None:
+        conf.set_default("connection_string", connection_string,
                          group=_profiler_opt_group.name)
 
 
