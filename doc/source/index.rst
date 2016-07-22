@@ -1,6 +1,6 @@
-===========================================================
- OSProfiler -- Library for cross-project profiling library
-===========================================================
+==============================================
+ OSProfiler -- Cross-project profiling library
+==============================================
 
 OSProfiler provides a tiny but powerful library that is used by
 most (soon to be all) OpenStack projects and their python clients. It
