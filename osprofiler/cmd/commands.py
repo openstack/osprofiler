@@ -17,8 +17,8 @@ import json
 import os
 
 from osprofiler.cmd import cliutils
+from osprofiler.drivers import base
 from osprofiler import exc
-from osprofiler.parsers import ceilometer as ceiloparser
 
 
 class BaseCommand(object):
@@ -29,6 +29,9 @@ class TraceCommands(BaseCommand):
     group_name = "trace"
 
     @cliutils.arg("trace", help="File with trace or trace id")
+    @cliutils.arg("--connection-string", dest="conn_str",
+                  default="ceilometer://",
+                  help="storage driver's connection string")
     @cliutils.arg("--json", dest="use_json", action="store_true",
                   help="show trace in JSON")
     @cliutils.arg("--html", dest="use_html", action="store_true",
@@ -43,28 +46,11 @@ class TraceCommands(BaseCommand):
             trace = json.load(open(args.trace))
         else:
             try:
-                import ceilometerclient.client
-                import ceilometerclient.exc
-                import ceilometerclient.shell
-            except ImportError:
-                raise ImportError(
-                    "To use this command, you should install "
-                    "'ceilometerclient' manually. Use command:\n "
-                    "'pip install ceilometerclient'.")
-            try:
-                client = ceilometerclient.client.get_client(
-                    args.ceilometer_api_version, **args.__dict__)
-                notifications = ceiloparser.get_notifications(
-                    client, args.trace)
+                engine = base.get_driver(args.conn_str, **args.__dict__)
             except Exception as e:
-                if hasattr(e, "http_status") and e.http_status == 401:
-                    msg = "Invalid OpenStack Identity credentials."
-                else:
-                    msg = "Something has gone wrong. See logs for more details"
-                raise exc.CommandError(msg)
+                raise exc.CommandError(e.message)
 
-            if notifications:
-                trace = ceiloparser.parse_notifications(notifications)
+            trace = engine.get_report(args.trace)
 
         if not trace:
             msg = ("Trace with UUID %s not found. "
@@ -76,13 +62,24 @@ class TraceCommands(BaseCommand):
                    % args.trace)
             raise exc.CommandError(msg)
 
+        # NOTE(ayelistratov): Ceilometer translates datetime objects to
+        # strings, other drivers store this data in ISO Date format.
+        # Since datetime.datetime is not JSON serializable by default,
+        # this method will handle that.
+        def datetime_json_serialize(obj):
+            if hasattr(obj, "isoformat"):
+                return obj.isoformat()
+            else:
+                return obj
+
         if args.use_json:
-            output = json.dumps(trace)
+            output = json.dumps(trace, default=datetime_json_serialize)
         elif args.use_html:
             with open(os.path.join(os.path.dirname(__file__),
                                    "template.html")) as html_template:
                 output = html_template.read().replace(
-                    "$DATA", json.dumps(trace, indent=2))
+                    "$DATA", json.dumps(trace, indent=2,
+                                        default=datetime_json_serialize))
         else:
             raise exc.CommandError("You should choose one of the following "
                                    "output-formats: --json or --html.")
