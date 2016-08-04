@@ -197,6 +197,8 @@ class Driver(object):
                         1e6)
             return int(microsec / 1000.0)
 
+        stats = {}
+
         for r in self.result.values():
             # NOTE(boris-42): We are not able to guarantee that the backend
             # consumed all messages => so we should at make duration 0ms.
@@ -206,9 +208,23 @@ class Driver(object):
             if "finished" not in r["info"]:
                 r["info"]["finished"] = r["info"]["started"]
 
-            r["info"]["started"] = msec(r["info"]["started"] - self.started_at)
-            r["info"]["finished"] = msec(r["info"]["finished"] -
-                                         self.started_at)
+            op_type = r["info"]["name"]
+            op_started = msec(r["info"]["started"] - self.started_at)
+            op_finished = msec(r["info"]["finished"] -
+                               self.started_at)
+            duration = op_finished - op_started
+
+            r["info"]["started"] = op_started
+            r["info"]["finished"] = op_finished
+
+            if op_type not in stats:
+                stats[op_type] = {
+                    "count": 1,
+                    "duration": duration
+                    }
+            else:
+                stats[op_type]["count"] += 1
+                stats[op_type]["duration"] += duration
 
         return {
             "info": {
@@ -217,5 +233,6 @@ class Driver(object):
                 "finished": msec(self.finished_at -
                                  self.started_at) if self.started_at else None
             },
-            "children": self._build_tree(self.result)
+            "children": self._build_tree(self.result),
+            "stats": stats
         }
