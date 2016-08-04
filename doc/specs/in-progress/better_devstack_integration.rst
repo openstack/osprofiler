@@ -52,7 +52,7 @@ Work Items
 
 - Make DevStack plugin for OSprofiler
 
-- Configure Celiometer
+- Configure Ceilometer
 
 - Configure services that support OSprofiler
 

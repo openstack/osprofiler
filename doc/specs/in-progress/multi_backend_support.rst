@@ -73,13 +73,14 @@ that are hardcoded on Ceilometer:
   should use MongoDB parsers, so there is better solution to keep both
   in the same place.
 
-  This change should be done with keeping backward compatiblity, in other words
-  we should create separated directory osprofier.drivers and put first
+  This change should be done with keeping backward compatibility,
+  in other words
+  we should create separated directory osprofiler.drivers and put first
   Ceilometer and then start working on other backends.
 
   These drivers will be chosen based on connection string
 
-- Deprecate osprofiler.notifiers and osprofier.parsers
+- Deprecate osprofiler.notifiers and osprofiler.parsers
 
 - Switch all projects to new model with connection string
 
