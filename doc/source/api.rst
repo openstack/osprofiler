@@ -179,3 +179,9 @@ Available commands:
     .. parsed-literal::
 
         $ osprofiler trace show <trace_id> --json/--html --out /path/to/file
+
+* Using other storage drivers (e.g. MongoDB, ElasticSearch):
+
+    .. parsed-literal::
+
+       $ osprofiler trace show <trace_id> --connection-str=<URI> --json/--html
