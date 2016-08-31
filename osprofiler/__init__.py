@@ -15,9 +15,4 @@
 
 import pkg_resources
 
-from osprofiler import _utils as utils
-
-
-utils.import_modules_from_package("osprofiler._notifiers")
-
 __version__ = pkg_resources.get_distribution("osprofiler").version
