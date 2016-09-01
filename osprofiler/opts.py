@@ -117,6 +117,23 @@ Elasticsearch splits large requests in batches. This parameter defines
 maximum size of each batch (for example: es_scroll_size=10000).
 """)
 
+_socket_timeout_opt = cfg.FloatOpt(
+    "socket_timeout",
+    default=0.1,
+    help="""
+Redissentinel provides a timeout option on the connections.
+This parameter defines that timeout (for example: socket_timeout=0.1).
+""")
+
+_sentinel_service_name_opt = cfg.StrOpt(
+    "sentinel_service_name",
+    default="mymaster",
+    help="""
+Redissentinel uses a service name to identify a master redis service.
+This parameter defines the name (for example:
+sentinal_service_name=mymaster).
+""")
+
 
 _PROFILER_OPTS = [
     _enabled_opt,
@@ -125,7 +142,9 @@ _PROFILER_OPTS = [
     _connection_string_opt,
     _es_doc_type_opt,
     _es_scroll_time_opt,
-    _es_scroll_size_opt
+    _es_scroll_size_opt,
+    _socket_timeout_opt,
+    _sentinel_service_name_opt
 ]
 
 cfg.CONF.register_opts(_PROFILER_OPTS, group=_profiler_opt_group)
@@ -133,7 +152,8 @@ cfg.CONF.register_opts(_PROFILER_OPTS, group=_profiler_opt_group)
 
 def set_defaults(conf, enabled=None, trace_sqlalchemy=None, hmac_keys=None,
                  connection_string=None, es_doc_type=None,
-                 es_scroll_time=None, es_scroll_size=None):
+                 es_scroll_time=None, es_scroll_size=None,
+                 socket_timeout=None, sentinel_service_name=None):
     conf.register_opts(_PROFILER_OPTS, group=_profiler_opt_group)
 
     if enabled is not None:
@@ -160,6 +180,14 @@ def set_defaults(conf, enabled=None, trace_sqlalchemy=None, hmac_keys=None,
 
     if es_scroll_size is not None:
         conf.set_default("es_scroll_size", es_scroll_size,
+                         group=_profiler_opt_group.name)
+
+    if socket_timeout is not None:
+        conf.set_default("socket_timeout", socket_timeout,
+                         group=_profiler_opt_group.name)
+
+    if sentinel_service_name is not None:
+        conf.set_default("sentinel_service_name", sentinel_service_name,
                          group=_profiler_opt_group.name)
 
 
