@@ -180,8 +180,10 @@ Available commands:
 
         $ osprofiler trace show <trace_id> --json/--html --out /path/to/file
 
-* Using other storage drivers (e.g. MongoDB, ElasticSearch):
+* Using other storage drivers (e.g. MongoDB (URI: ``mongodb://``),
+  Messaging (URI: ``messaging://``), and
+  Ceilometer (URI: ``ceilometer://``)):
 
     .. parsed-literal::
 
-       $ osprofiler trace show <trace_id> --connection-str=<URI> --json/--html
+       $ osprofiler trace show <trace_id> --connection-string=<URI> --json/--html
