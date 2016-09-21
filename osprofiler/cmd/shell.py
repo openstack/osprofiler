@@ -23,16 +23,20 @@ import sys
 
 import argparse
 
+from oslo_config import cfg
+
 import osprofiler
 from osprofiler.cmd import cliutils
 from osprofiler.cmd import commands
 from osprofiler import exc
+from osprofiler import opts
 
 
 class OSProfilerShell(object):
 
     def __init__(self, argv):
         args = self._get_base_parser().parse_args(argv)
+        opts.set_defaults(cfg.CONF)
 
         if not (args.os_auth_token and args.ceilometer_url):
             if not args.os_username:

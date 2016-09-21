@@ -88,6 +88,33 @@ sets the notifier to oslo_messaging.
 Examples of possible values:
 
 * messaging://: use oslo_messaging driver for sending notifications.
+* mongodb://127.0.0.1:27017 : use mongodb driver for sending notifications.
+* elasticsearch://127.0.0.1:9200 : use elasticsearch driver for sending
+notifications.
+""")
+
+_es_doc_type_opt = cfg.StrOpt(
+    "es_doc_type",
+    default="notification",
+    help="""
+Document type for notification indexing in elasticsearch.
+""")
+
+_es_scroll_time_opt = cfg.StrOpt(
+    "es_scroll_time",
+    default="2m",
+    help="""
+This parameter is a time value parameter (for example: es_scroll_time=2m),
+indicating for how long the nodes that participate in the search will maintain
+relevant resources in order to continue and support it.
+""")
+
+_es_scroll_size_opt = cfg.IntOpt(
+    "es_scroll_size",
+    default=10000,
+    help="""
+Elasticsearch splits large requests in batches. This parameter defines
+maximum size of each batch (for example: es_scroll_size=10000).
 """)
 
 
@@ -96,11 +123,17 @@ _PROFILER_OPTS = [
     _trace_sqlalchemy_opt,
     _hmac_keys_opt,
     _connection_string_opt,
+    _es_doc_type_opt,
+    _es_scroll_time_opt,
+    _es_scroll_size_opt
 ]
+
+cfg.CONF.register_opts(_PROFILER_OPTS, group=_profiler_opt_group)
 
 
 def set_defaults(conf, enabled=None, trace_sqlalchemy=None, hmac_keys=None,
-                 connection_string=None):
+                 connection_string=None, es_doc_type=None,
+                 es_scroll_time=None, es_scroll_size=None):
     conf.register_opts(_PROFILER_OPTS, group=_profiler_opt_group)
 
     if enabled is not None:
@@ -115,6 +148,18 @@ def set_defaults(conf, enabled=None, trace_sqlalchemy=None, hmac_keys=None,
 
     if connection_string is not None:
         conf.set_default("connection_string", connection_string,
+                         group=_profiler_opt_group.name)
+
+    if es_doc_type is not None:
+        conf.set_default("es_doc_type", es_doc_type,
+                         group=_profiler_opt_group.name)
+
+    if es_scroll_time is not None:
+        conf.set_default("es_scroll_time", es_scroll_time,
+                         group=_profiler_opt_group.name)
+
+    if es_scroll_size is not None:
+        conf.set_default("es_scroll_size", es_scroll_size,
                          group=_profiler_opt_group.name)
 
 
