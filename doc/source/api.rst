@@ -42,7 +42,7 @@ Four ways to add a new trace point.
 How profiler works?
 -------------------
 
-* **@profiler.Trace()** and **profiler.trace()** are just syntax sugar,
+* **profiler.Trace()** and **@profiler.trace()** are just syntax sugar,
   that just calls **profiler.start()** & **profiler.stop()** methods.
 
 * Every call of **profiler.start()** & **profiler.stop()** sends to
