@@ -30,8 +30,11 @@ class TraceCommands(BaseCommand):
 
     @cliutils.arg("trace", help="File with trace or trace id")
     @cliutils.arg("--connection-string", dest="conn_str",
-                  default="ceilometer://",
-                  help="storage driver's connection string")
+                  default=(cliutils.env("OSPROFILER_CONNECTION_STRING") or
+                           "ceilometer://"),
+                  help="Storage driver's connection string. Defaults to "
+                       "env[OSPROFILER_CONNECTION_STRING] if set, else "
+                       "ceilometer://")
     @cliutils.arg("--json", dest="use_json", action="store_true",
                   help="show trace in JSON")
     @cliutils.arg("--html", dest="use_html", action="store_true",
