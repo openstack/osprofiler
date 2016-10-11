@@ -20,12 +20,9 @@ set +o xtrace
 # Defaults
 # --------
 
-OLD_STYLE_CONF_FILES=(
+CONF_FILES=(
     /etc/cinder/cinder.conf
     /etc/heat/heat.conf
-)
-
-NEW_STYLE_CONF_FILES=(
     /etc/keystone/keystone.conf
     /etc/nova/nova.conf
     /etc/neutron/neutron.conf
@@ -47,16 +44,7 @@ export CEILOMETER_NOTIFICATION_TOPICS=notifications,profiler
 # configure_osprofiler() - Nothing for now
 function configure_osprofiler() {
 
-    for conf in ${OLD_STYLE_CONF_FILES[@]}; do
-        if [ -f $conf ]
-        then
-            iniset $conf profiler profiler_enabled True
-            iniset $conf profiler trace_sqlalchemy True
-            iniset $conf profiler hmac_keys SECRET_KEY
-        fi
-    done
-
-    for conf in ${NEW_STYLE_CONF_FILES[@]}; do
+    for conf in ${CONF_FILES[@]}; do
         if [ -f $conf ]
         then
             iniset $conf profiler enabled True
