@@ -14,7 +14,7 @@ What we should use as a centralized collector?
 
   * There is an OpenStack API in Ceilometer that allows us to retrieve all
     messages related to one trace. Take a look at
-    *osprofiler.parsers.ceilometer:get_notifications*
+    *osprofiler.drivers.ceilometer.Ceilometer:get_report*
 
 
 How to setup profiler notifier?
@@ -25,7 +25,7 @@ How to setup profiler notifier?
   * `oslo.messaging`_ is integrated in all projects
 
   * It's the simplest way to send notification to Ceilometer, take a
-    look at: *osprofiler.notifiers.messaging.Messaging:notify* method
+    look at: *osprofiler.drivers.messaging.Messaging:notify* method
 
   * We don't need to add any new `CONF`_ options in projects
 
