@@ -1,10 +1,10 @@
-======
- API
-======
+===
+API
+===
 
-There are a few things that you should know about API before using it.
+There are few things that you should know about API before using it.
 
-Four ways to add a new trace point.
+Five ways to add a new trace point.
 -----------------------------------
 
 .. code-block:: python
@@ -37,6 +37,19 @@ Four ways to add a new trace point.
             pass
 
         def _traced_only_if_trace_private_true(self):
+             pass
+
+    @six.add_metaclass(profiler.TracedMeta)
+    class RpcManagerClass(object):
+        __trace_args__ = {'name': 'rpc',
+                          'info': None,
+                          'hide_args': False,
+                          'trace_private': False}
+
+         def my_method(self, some_args):
+             pass
+
+         def my_method2(self, some_arg1, some_arg2, kw=None, kw2=None)
              pass
 
 How profiler works?
@@ -106,6 +119,14 @@ The fields are defined as the following:
 Setting up the collector.
 -------------------------
 
+Using OSProfiler notifier.
+^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+.. note:: The following way of configuring OSProfiler is deprecated. The new
+          version description is located below - `Using OSProfiler initializer.`_.
+          Don't use OSproliler notifier directly! Its support will be removed soon
+          from OSProfiler.
+
 The profiler doesn't include a trace point collector. The user/developer
 should instead provide a method that sends messages to a collector. Let's
 take a look at a trivial sample, where the collector is just a file:
@@ -124,6 +145,36 @@ take a look at a trivial sample, where the collector is just a file:
 
 So now on every **profiler.start()** and **profiler.stop()** call we will
 write info about the trace point to the end of the **traces** file.
+
+Using OSProfiler initializer.
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+OSProfiler now contains various storage drivers to collect tracing data.
+Information about what driver to use and what options to pass to OSProfiler
+are now stored in OpenStack services configuration files. Example of such
+configuration can be found below:
+
+.. code-block:: bash
+
+    [profiler]
+    enabled = True
+    trace_sqlalchemy = True
+    hmac_keys = SECRET_KEY
+    connection_string = messaging://
+
+If such configuration is provided, OSProfiler setting up can be processed in
+following way:
+
+.. code-block:: python
+
+    if CONF.profiler.enabled:
+        osprofiler_initializer.init_from_conf(
+            conf=CONF,
+            context=context.get_admin_context().to_dict(),
+            project="cinder",
+            service=binary,
+            host=host
+        )
 
 Initialization of profiler.
 ---------------------------
@@ -148,7 +199,7 @@ profiler, e.g. ``stack_trace = [base_id, trace_id]``.
 OSProfiler CLI.
 ---------------
 
-To make it easier for end users to work with profiler from CLI, osprofiler
+To make it easier for end users to work with profiler from CLI, OSProfiler
 has entry point that allows them to retrieve information about traces and
 present it in human readable from.
 
@@ -180,9 +231,9 @@ Available commands:
 
         $ osprofiler trace show <trace_id> --json/--html --out /path/to/file
 
-* Using other storage drivers (e.g. MongoDB (URI: ``mongodb://``),
-  Messaging (URI: ``messaging://``), and
-  Ceilometer (URI: ``ceilometer://``)):
+* In latest versions of OSProfiler with storage drivers (e.g. MongoDB (URI:
+  ``mongodb://``), Messaging (URI: ``messaging://``), and Ceilometer
+  (URI: ``ceilometer://``)) ``--connection-string`` parameter should be set up:
 
     .. parsed-literal::
 
