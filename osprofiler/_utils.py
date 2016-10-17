@@ -19,33 +19,8 @@ import hmac
 import json
 import os
 
+from oslo_utils import secretutils
 import six
-
-try:
-    # Only in python 2.7.7+ (and python 3.3+)
-    # https://docs.python.org/2/library/hmac.html#hmac.compare_digest
-    from hmac import compare_digest  # noqa
-except (AttributeError, ImportError):
-    # Taken/slightly modified from:
-    # https://mail.python.org/pipermail/python-checkins/2012-June/114532.html
-    def compare_digest(a, b):
-        """Returns the equivalent of 'a == b'.
-
-        This method avoids content based short circuiting to reduce the
-        vulnerability to timing attacks.
-        """
-        # We assume the length of the expected digest is public knowledge,
-        # thus this early return isn't leaking anything an attacker wouldn't
-        # already know
-        if len(a) != len(b):
-            return False
-
-        # We assume that integers in the bytes range are all cached,
-        # thus timing shouldn't vary much due to integer object creation
-        result = 0
-        for x, y in zip(a, b):
-            result |= ord(x) ^ ord(y)
-        return result == 0
 
 
 def split(text, strip=True):
@@ -131,7 +106,7 @@ def signed_unpack(data, hmac_data, hmac_keys):
         except Exception:  # nosec
             pass
         else:
-            if compare_digest(hmac_data, user_hmac_data):
+            if secretutils.constant_time_compare(hmac_data, user_hmac_data):
                 try:
                     contents = json.loads(
                         binary_decode(base64.urlsafe_b64decode(data)))
