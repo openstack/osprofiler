@@ -32,6 +32,7 @@ CONF_FILES=(
     /etc/trove/trove-conductor.conf
     /etc/trove/trove-guestagent.conf
     /etc/trove/trove-taskmanager.conf
+    /etc/senlin/senlin.conf
 )
 
 # This will update CEILOMETER_NOTIFICATION_TOPICS in ceilometer.conf file
