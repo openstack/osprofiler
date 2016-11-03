@@ -40,3 +40,6 @@ cover
 .project
 .pydevproject
 .idea
+
+# reno build
+releasenotes/build
