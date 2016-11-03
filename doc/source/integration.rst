@@ -1,13 +1,13 @@
-=============
- Integration
-=============
+===========
+Integration
+===========
 
 There are 4 topics related to integration OSprofiler & `OpenStack`_:
 
 What we should use as a centralized collector?
 ----------------------------------------------
 
-  We decided to use `Ceilometer`_, because:
+We primarily decided to use `Ceilometer`_, because:
 
   * It's already integrated in OpenStack, so it's quite simple to send
     notifications to it from all projects.
@@ -16,11 +16,14 @@ What we should use as a centralized collector?
     messages related to one trace. Take a look at
     *osprofiler.drivers.ceilometer.Ceilometer:get_report*
 
+In OSProfiler starting with 1.4.0 version other options (MongoDB driver in
+1.4.0 release, Elasticsearch driver added later, etc.) are also available.
+
 
 How to setup profiler notifier?
 -------------------------------
 
-  We decided to use oslo.messaging Notifier API, because:
+We primarily decided to use oslo.messaging Notifier API, because:
 
   * `oslo.messaging`_ is integrated in all projects
 
@@ -29,6 +32,8 @@ How to setup profiler notifier?
 
   * We don't need to add any new `CONF`_ options in projects
 
+In OSProfiler starting with 1.4.0 version other options (MongoDB driver in
+1.4.0 release, Elasticsearch driver added later, etc.) are also available.
 
 How to initialize profiler, to get one trace across all services?
 -----------------------------------------------------------------
