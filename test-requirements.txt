@@ -1,6 +1,7 @@
 hacking>=0.11.0,<0.12 # Apache-2.0
 
 coverage>=3.6 # Apache-2.0
+ddt>=1.0.1  # MIT
 mock>=2.0 # BSD
 python-subunit>=0.0.18 # Apache-2.0/BSD
 testrepository>=0.0.18 # Apache-2.0/BSD
