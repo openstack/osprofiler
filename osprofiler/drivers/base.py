@@ -14,8 +14,8 @@
 #    under the License.
 
 import datetime
-import logging as log
 
+from oslo_log import log
 import six.moves.urllib.parse as urlparse
 
 from osprofiler import _utils
