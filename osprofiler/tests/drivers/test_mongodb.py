@@ -223,7 +223,8 @@ class MongoDBParserTestCase(test.TestCase):
                      "name": "db",
                      "project": "keystone",
                      "service": "main",
-                     "started": 56},
+                     "started": 56,
+                     "exception": "None"},
             "parent_id": "06320327-2c2c-45ae-923a-515de890276a",
             "trace_id": "1baf1d24-9ca9-4f4c-bd3f-01b7e0c0735a"}],
 
@@ -269,7 +270,8 @@ class MongoDBParserTestCase(test.TestCase):
                       "name": "wsgi",
                       "project": "keystone",
                       "service": "main",
-                      "started": 41},
+                      "started": 41,
+                      "exception": "None"},
              "parent_id": "7253ca8c-33b3-4f84-b4f1-f5a4311ddfa4",
              "trace_id": "839ca3f1-afcb-45be-a4a1-679124c552bf"},
 
