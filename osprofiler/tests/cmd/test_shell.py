@@ -146,8 +146,8 @@ class ShellTestCase(test.TestCase):
     @mock.patch("osprofiler.drivers.ceilometer.Ceilometer.get_report")
     def test_trace_show_no_selected_format(self, mock_get):
         mock_get.return_value = "some_notificatios"
-        msg = ("You should choose one of the following output-formats: "
-               "--json or --html.")
+        msg = ("You should choose one of the following output formats: "
+               "json, html or dot.")
         self._test_with_command_error("trace show fake_id", msg)
 
     @mock.patch("osprofiler.drivers.ceilometer.Ceilometer.get_report")

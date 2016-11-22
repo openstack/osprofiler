@@ -39,9 +39,13 @@ class TraceCommands(BaseCommand):
                   help="show trace in JSON")
     @cliutils.arg("--html", dest="use_html", action="store_true",
                   help="show trace in HTML")
+    @cliutils.arg("--dot", dest="use_dot", action="store_true",
+                  help="show trace in DOT language")
+    @cliutils.arg("--render-dot", dest="render_dot_filename",
+                  help="filename for rendering the dot graph in pdf format")
     @cliutils.arg("--out", dest="file_name", help="save output in file")
     def show(self, args):
-        """Displays trace-results by given trace id in HTML or JSON format."""
+        """Display trace results in HTML, JSON or DOT format."""
 
         trace = None
 
@@ -83,12 +87,57 @@ class TraceCommands(BaseCommand):
                 output = html_template.read().replace(
                     "$DATA", json.dumps(trace, indent=2,
                                         default=datetime_json_serialize))
+        elif args.use_dot:
+            dot_graph = self._create_dot_graph(trace)
+            output = dot_graph.source
+            if args.render_dot_filename:
+                dot_graph.render(args.render_dot_filename, cleanup=True)
         else:
             raise exc.CommandError("You should choose one of the following "
-                                   "output-formats: --json or --html.")
+                                   "output formats: json, html or dot.")
 
         if args.file_name:
             with open(args.file_name, "w+") as output_file:
                 output_file.write(output)
         else:
             print(output)
+
+    def _create_dot_graph(self, trace):
+        try:
+            import graphviz
+        except ImportError:
+            raise exc.CommandError(
+                "graphviz library is required to use this option.")
+
+        dot = graphviz.Digraph(format="pdf")
+        next_id = [0]
+
+        def _create_node(info):
+            time_taken = info["finished"] - info["started"]
+            service = info["service"] + ":" if "service" in info else ""
+            name = info["name"]
+            label = "%s%s - %d ms" % (service, name, time_taken)
+
+            if name == "wsgi":
+                req = info["meta.raw_payload.wsgi-start"]["info"]["request"]
+                label = "%s\\n%s %s.." % (label, req["method"],
+                                          req["path"][:30])
+            elif name == "rpc" or name == "driver":
+                raw = info["meta.raw_payload.%s-start" % name]
+                fn_name = raw["info"]["function"]["name"]
+                label = "%s\\n%s" % (label, fn_name.split(".")[-1])
+
+            node_id = str(next_id[0])
+            next_id[0] += 1
+            dot.node(node_id, label)
+            return node_id
+
+        def _create_sub_graph(root):
+            rid = _create_node(root["info"])
+            for child in root["children"]:
+                cid = _create_sub_graph(child)
+                dot.edge(rid, cid)
+            return rid
+
+        _create_sub_graph(trace)
+        return dot
