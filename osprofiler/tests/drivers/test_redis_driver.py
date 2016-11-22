@@ -308,7 +308,6 @@ class RedisParserTestCase(test.TestCase):
                       "wsgi": {"count": 3, "duration": 0}}}
 
         self.redisdb.db.scan_iter.return_value = list(results.keys())
-        print(results.keys())
 
         def side_effect(*args, **kwargs):
             return jsonutils.dumps(results[args[0]])
