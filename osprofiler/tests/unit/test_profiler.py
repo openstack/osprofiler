@@ -202,7 +202,7 @@ class TraceDecoratorTestCase(test.TestCase):
         expected_info = {
             "info": "some_info",
             "function": {
-                "name": "osprofiler.tests.test_profiler.tracede_func",
+                "name": "osprofiler.tests.unit.test_profiler.tracede_func",
                 "args": str((1,)),
                 "kwargs": str({})
             }
@@ -216,7 +216,8 @@ class TraceDecoratorTestCase(test.TestCase):
         self.assertEqual((1, 2), trace_hide_args_func(1, i=2))
         expected_info = {
             "function": {
-                "name": "osprofiler.tests.test_profiler.trace_hide_args_func"
+                "name": "osprofiler.tests.unit.test_profiler"
+                        ".trace_hide_args_func"
             }
         }
         mock_start.assert_called_once_with("hide_args", info=expected_info)
@@ -304,7 +305,7 @@ class TraceClsDecoratorTestCase(test.TestCase):
         expected_info = {
             "a": 10,
             "function": {
-                "name": ("osprofiler.tests.test_profiler"
+                "name": ("osprofiler.tests.unit.test_profiler"
                          ".FakeTraceClassWithInfo.method1"),
                 "args": str((fake_cls, 5, 15)),
                 "kwargs": str({})
@@ -323,7 +324,7 @@ class TraceClsDecoratorTestCase(test.TestCase):
         expected_info = {
             "a": 10,
             "function": {
-                "name": ("osprofiler.tests.test_profiler"
+                "name": ("osprofiler.tests.unit.test_profiler"
                          ".FakeTraceClassWithInfo.method3"),
                 "args": str((fake_cls,)),
                 "kwargs": str({"g": 5, "h": 10})
@@ -350,7 +351,7 @@ class TraceClsDecoratorTestCase(test.TestCase):
         expected_info = {
             "b": 20,
             "function": {
-                "name": ("osprofiler.tests.test_profiler"
+                "name": ("osprofiler.tests.unit.test_profiler"
                          ".FakeTraceClassHideArgs.method1"),
             }
         }
@@ -368,7 +369,7 @@ class TraceClsDecoratorTestCase(test.TestCase):
 
         expected_info = {
             "function": {
-                "name": ("osprofiler.tests.test_profiler"
+                "name": ("osprofiler.tests.unit.test_profiler"
                          ".FakeTracePrivate._method"),
                 "args": str((fake_cls, 5)),
                 "kwargs": str({})
@@ -398,8 +399,10 @@ class TraceClsDecoratorTestCase(test.TestCase):
                 #                  static and doesn't have reference to class
                 #                  - and FakeTraceStatic.method4 in PY3
                 "name":
-                    "osprofiler.tests.test_profiler.method4" if six.PY2 else
-                    "osprofiler.tests.test_profiler.FakeTraceStatic.method4",
+                    "osprofiler.tests.unit.test_profiler"
+                    ".method4" if six.PY2 else
+                    "osprofiler.tests.unit.test_profiler.FakeTraceStatic"
+                    ".method4",
                 "args": str((25,)),
                 "kwargs": str({})
             }
@@ -482,7 +485,7 @@ class TraceWithMetaclassTestCase(test.TestCase):
         expected_info = {
             "a": 10,
             "function": {
-                "name": ("osprofiler.tests.test_profiler"
+                "name": ("osprofiler.tests.unit.test_profiler"
                          ".FakeTraceWithMetaclassBase.method1"),
                 "args": str((fake_cls, 5, 15)),
                 "kwargs": str({})
@@ -501,7 +504,7 @@ class TraceWithMetaclassTestCase(test.TestCase):
         expected_info = {
             "a": 10,
             "function": {
-                "name": ("osprofiler.tests.test_profiler"
+                "name": ("osprofiler.tests.unit.test_profiler"
                          ".FakeTraceWithMetaclassBase.method3"),
                 "args": str((fake_cls,)),
                 "kwargs": str({"g": 5, "h": 10})
@@ -528,7 +531,7 @@ class TraceWithMetaclassTestCase(test.TestCase):
         expected_info = {
             "b": 20,
             "function": {
-                "name": ("osprofiler.tests.test_profiler"
+                "name": ("osprofiler.tests.unit.test_profiler"
                          ".FakeTraceWithMetaclassHideArgs.method5")
             }
         }
@@ -546,7 +549,7 @@ class TraceWithMetaclassTestCase(test.TestCase):
 
         expected_info = {
             "function": {
-                "name": ("osprofiler.tests.test_profiler"
+                "name": ("osprofiler.tests.unit.test_profiler"
                          ".FakeTraceWithMetaclassPrivate._new_private_method"),
                 "args": str((fake_cls, 5)),
                 "kwargs": str({})
