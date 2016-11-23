@@ -18,10 +18,9 @@
 Command-line interface to the OpenStack Profiler.
 """
 
+import argparse
 import inspect
 import sys
-
-import argparse
 
 from oslo_config import cfg
 

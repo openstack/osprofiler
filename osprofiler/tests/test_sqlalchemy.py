@@ -14,6 +14,7 @@
 #    under the License.
 
 import contextlib
+
 import mock
 
 from osprofiler import sqlalchemy
