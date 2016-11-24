@@ -26,6 +26,9 @@ from osprofiler.tests import test
 
 
 class ShellTestCase(test.TestCase):
+
+    TRACE_ID = "c598094d-bbee-40b6-b317-d76003b679d3"
+
     def setUp(self):
         super(ShellTestCase, self).setUp()
         self.old_environment = os.environ.copy()
@@ -63,6 +66,10 @@ class ShellTestCase(test.TestCase):
         super(ShellTestCase, self).tearDown()
         os.environ = self.old_environment
 
+    def _trace_show_cmd(self, format_=None):
+        cmd = "trace show %s" % self.TRACE_ID
+        return cmd if format_ is None else "%s --%s" % (cmd, format_)
+
     @mock.patch("sys.stdout", six.StringIO())
     @mock.patch("osprofiler.cmd.shell.OSProfilerShell")
     def test_shell_main(self, mock_shell):
@@ -87,19 +94,19 @@ class ShellTestCase(test.TestCase):
         os.environ.pop("OS_USERNAME")
         msg = ("You must provide a username via either --os-username or "
                "via env[OS_USERNAME]")
-        self._test_with_command_error("trace show fake-uuid", msg)
+        self._test_with_command_error(self._trace_show_cmd(), msg)
 
     def test_password_is_not_presented(self):
         os.environ.pop("OS_PASSWORD")
         msg = ("You must provide a password via either --os-password or "
                "via env[OS_PASSWORD]")
-        self._test_with_command_error("trace show fake-uuid", msg)
+        self._test_with_command_error(self._trace_show_cmd(), msg)
 
     def test_auth_url(self):
         os.environ.pop("OS_AUTH_URL")
         msg = ("You must provide an auth url via either --os-auth-url or "
                "via env[OS_AUTH_URL]")
-        self._test_with_command_error("trace show fake-uuid", msg)
+        self._test_with_command_error(self._trace_show_cmd(), msg)
 
     def test_no_project_and_domain_set(self):
         os.environ.pop("OS_PROJECT_ID")
@@ -114,7 +121,7 @@ class ShellTestCase(test.TestCase):
                "--os-user-domain-name or via env[OS_USER_DOMAIN_NAME] or a "
                "domain_id via either --os-user-domain-id or via "
                "env[OS_USER_DOMAIN_ID]")
-        self._test_with_command_error("trace show fake-uuid", msg)
+        self._test_with_command_error(self._trace_show_cmd(), msg)
 
     def test_trace_show_ceilometerclient_is_missed(self):
         sys.modules["ceilometerclient"] = None
@@ -124,7 +131,7 @@ class ShellTestCase(test.TestCase):
         msg = ("To use this command, you should install "
                "'ceilometerclient' manually. Use command:\n "
                "'pip install python-ceilometerclient'.")
-        self._test_with_command_error("trace show fake-uuid", msg)
+        self._test_with_command_error(self._trace_show_cmd(), msg)
 
     def test_trace_show_unauthorized(self):
         class FakeHTTPUnauthorized(Exception):
@@ -133,7 +140,7 @@ class ShellTestCase(test.TestCase):
         self.ceiloclient.client.get_client.side_effect = FakeHTTPUnauthorized
 
         msg = "Invalid OpenStack Identity credentials."
-        self._test_with_command_error("trace show fake_id", msg)
+        self._test_with_command_error(self._trace_show_cmd(), msg)
 
     def test_trace_show_unknown_error(self):
         class FakeException(Exception):
@@ -141,28 +148,27 @@ class ShellTestCase(test.TestCase):
 
         self.ceiloclient.client.get_client.side_effect = FakeException
         msg = "Something has gone wrong. See ceilometer logs for more details"
-        self._test_with_command_error("trace show fake_id", msg)
+        self._test_with_command_error(self._trace_show_cmd(), msg)
 
     @mock.patch("osprofiler.drivers.ceilometer.Ceilometer.get_report")
     def test_trace_show_no_selected_format(self, mock_get):
         mock_get.return_value = "some_notificatios"
         msg = ("You should choose one of the following output formats: "
                "json, html or dot.")
-        self._test_with_command_error("trace show fake_id", msg)
+        self._test_with_command_error(self._trace_show_cmd(), msg)
 
     @mock.patch("osprofiler.drivers.ceilometer.Ceilometer.get_report")
     def test_trace_show_trace_id_not_found(self, mock_get):
         mock_get.return_value = None
 
-        fake_trace_id = "fake_id"
         msg = ("Trace with UUID %s not found. There are 3 possible reasons: \n"
                " 1) You are using not admin credentials\n"
                " 2) You specified wrong trace id\n"
                " 3) You specified wrong HMAC Key in original calling\n"
                " 4) Ceilometer didn't enable profiler notification topic"
-               % fake_trace_id)
+               % self.TRACE_ID)
 
-        self._test_with_command_error("trace show %s" % fake_trace_id, msg)
+        self._test_with_command_error(self._trace_show_cmd(), msg)
 
     @mock.patch("sys.stdout", six.StringIO())
     @mock.patch("osprofiler.drivers.ceilometer.Ceilometer.get_report")
@@ -173,7 +179,7 @@ class ShellTestCase(test.TestCase):
 
         mock_get.return_value = notifications
 
-        self.run_command("trace show fake_id --json")
+        self.run_command(self._trace_show_cmd(format_="json"))
         self.assertEqual("%s\n" % json.dumps(notifications, indent=2),
                          sys.stdout.getvalue())
 
@@ -198,7 +204,7 @@ class ShellTestCase(test.TestCase):
 
         with mock.patch("osprofiler.cmd.commands.open",
                         mock.mock_open(read_data=html_template), create=True):
-            self.run_command("trace show fake_id --html")
+            self.run_command(self._trace_show_cmd(format_="html"))
             self.assertEqual("A long time ago in a galaxy far, far away..."
                              "    some_data = %s"
                              "It is a period of civil war. Rebel"
@@ -219,7 +225,8 @@ class ShellTestCase(test.TestCase):
 
         with mock.patch("osprofiler.cmd.commands.open",
                         mock.mock_open(), create=True) as mock_open:
-            self.run_command("trace show fake_id --json --out='/file'")
+            self.run_command("%s --out='/file'" %
+                             self._trace_show_cmd(format_="json"))
 
             output = mock_open.return_value.__enter__.return_value
             output.write.assert_called_once_with(json.dumps(notifications,
