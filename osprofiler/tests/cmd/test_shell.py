@@ -17,6 +17,7 @@ import json
 import os
 import sys
 
+import ddt
 import mock
 import six
 
@@ -25,6 +26,7 @@ from osprofiler import exc
 from osprofiler.tests import test
 
 
+@ddt.ddt
 class ShellTestCase(test.TestCase):
     def setUp(self):
         super(ShellTestCase, self).setUp()
@@ -145,14 +147,16 @@ class ShellTestCase(test.TestCase):
 
     @mock.patch("osprofiler.drivers.ceilometer.Ceilometer.get_report")
     def test_trace_show_no_selected_format(self, mock_get):
-        mock_get.return_value = "some_notificatios"
+        mock_get.return_value = self._create_mock_notifications()
         msg = ("You should choose one of the following output formats: "
                "json, html or dot.")
         self._test_with_command_error("trace show fake_id", msg)
 
     @mock.patch("osprofiler.drivers.ceilometer.Ceilometer.get_report")
-    def test_trace_show_trace_id_not_found(self, mock_get):
-        mock_get.return_value = None
+    @ddt.data(None, {"info": {"started": 0, "finished": 1, "name": "total"},
+                     "children": []})
+    def test_trace_show_trace_id_not_found(self, notifications, mock_get):
+        mock_get.return_value = notifications
 
         fake_trace_id = "fake_id"
         msg = ("Trace with UUID %s not found. There are 3 possible reasons: \n"
@@ -164,13 +168,28 @@ class ShellTestCase(test.TestCase):
 
         self._test_with_command_error("trace show %s" % fake_trace_id, msg)
 
+    def _create_mock_notifications(self):
+        notifications = {
+            "info": {
+                "started": 0,
+                "finished": 1,
+                "name": "total"
+            },
+            "children": [{
+                "info": {
+                    "started": 0,
+                    "finished": 1,
+                    "name": "total"
+                },
+                "children": []
+            }]
+        }
+        return notifications
+
     @mock.patch("sys.stdout", six.StringIO())
     @mock.patch("osprofiler.drivers.ceilometer.Ceilometer.get_report")
     def test_trace_show_in_json(self, mock_get):
-        notifications = {
-            "info": {
-                "started": 0, "finished": 0, "name": "total"}, "children": []}
-
+        notifications = self._create_mock_notifications()
         mock_get.return_value = notifications
 
         self.run_command("trace show fake_id --json")
@@ -180,10 +199,7 @@ class ShellTestCase(test.TestCase):
     @mock.patch("sys.stdout", six.StringIO())
     @mock.patch("osprofiler.drivers.ceilometer.Ceilometer.get_report")
     def test_trace_show_in_html(self, mock_get):
-        notifications = {
-            "info": {
-                "started": 0, "finished": 0, "name": "total"}, "children": []}
-
+        notifications = self._create_mock_notifications()
         mock_get.return_value = notifications
 
         # NOTE(akurilin): to simplify assert statement, html-template should be
@@ -211,10 +227,7 @@ class ShellTestCase(test.TestCase):
     @mock.patch("sys.stdout", six.StringIO())
     @mock.patch("osprofiler.drivers.ceilometer.Ceilometer.get_report")
     def test_trace_show_write_to_file(self, mock_get):
-        notifications = {
-            "info": {
-                "started": 0, "finished": 0, "name": "total"}, "children": []}
-
+        notifications = self._create_mock_notifications()
         mock_get.return_value = notifications
 
         with mock.patch("osprofiler.cmd.commands.open",

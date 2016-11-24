@@ -59,7 +59,7 @@ class TraceCommands(BaseCommand):
 
             trace = engine.get_report(args.trace)
 
-        if not trace:
+        if not trace or not trace.get("children"):
             msg = ("Trace with UUID %s not found. "
                    "There are 3 possible reasons: \n"
                    " 1) You are using not admin credentials\n"
