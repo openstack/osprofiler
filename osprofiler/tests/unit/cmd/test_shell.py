@@ -227,7 +227,7 @@ class ShellTestCase(test.TestCase):
                              "spaceships, striking from a hidden"
                              "base, have won their first victory"
                              "against the evil Galactic Empire."
-                             "\n" % json.dumps(notifications, indent=2),
+                             "\n" % json.dumps(notifications, indent=4),
                              sys.stdout.getvalue())
 
     @mock.patch("sys.stdout", six.StringIO())

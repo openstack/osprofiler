@@ -3,7 +3,7 @@
 
 <head>
     <script>
-        var OSProfilerData = $DATA
+        var OSProfilerData = $DATA;
     </script>
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.2.0/css/bootstrap.min.css">
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.2.0/css/bootstrap-theme.min.css">
@@ -16,14 +16,14 @@
         }
 
         .trace tr:hover {
-            background-color: #D9EDF7!important;
+            background-color: #D9EDF7 !important;
         }
 
         .trace tr td {
             width: 14%;
             white-space: nowrap;
             padding: 2px;
-            border-right: 1px solid #eee;
+            border-right: 1px solid #EEE;
         }
 
         .trace tr td.details {
@@ -48,7 +48,7 @@
             width: 25px;
             margin: 0px;
             padding: 0px;
-            background-color: #c6eff3;
+            background-color: #C6EFF3;
             border-radius: 4px;
             font-size: 10px;
         }
@@ -64,7 +64,7 @@
         <div ng-init="hide_children=false">
             <table class="trace cursor_pointer_on_hover">
                 <tr>
-                    <td class="level" style="padding-left:{{data.level * 5}}px;">
+                    <td class="level" style="padding-left: {{data.level * 5}}px;">
                         <button type="button" class="btn btn-default btn-xs" ng-disabled="data.is_leaf" ng-click="hide_children=!hide_children">
                             <span class="glyphicon glyphicon-{{(data.is_leaf) ? 'cloud' : ((hide_children) ? 'plus': 'minus')}}"></span>
                             {{data.level || 0}}
@@ -90,79 +90,83 @@
         </div>
     </script>
     <script>
-        angular.module("Application", ['ui.bootstrap']);
+        angular.module('Application', ['ui.bootstrap']);
 
         function ProfilerCtlr($scope, $modal) {
-            var convert_input = function (input, level) {
+            var convert_input = function(input, level) {
                 level = (level) ? level : 0;
                 input.level = level;
-                input.is_leaf = !input.children.length
+                input.is_leaf = !input.children.length;
 
-                for (var i = 0; i < input.children.length; i++)
+                for (var i = 0; i < input.children.length; i++) {
                     convert_input(input.children[i], level + 1);
+                }
                 return input;
-            }
+            };
 
-            $scope.get_width = function (data) {
+            $scope.get_width = function(data) {
                 var full_duration = $scope.tree[0].info.finished;
                 var duration = (data.info.finished - data.info.started) * 100.0 / full_duration;
                 return (duration >= 0.5) ? duration : 0.5;
-            }
+            };
 
-            $scope.get_started = function (data) {
+            $scope.get_started = function(data) {
                 var full_duration = $scope.tree[0].info.finished;
                 return data.info.started * 100.0 / full_duration;
-            }
+            };
 
-            $scope.is_important = function (data) {
-                return ["total", "wsgi", "rpc"].indexOf(data.info.name) != -1;
-            }
+            $scope.is_important = function(data) {
+                return ['total', 'wsgi', 'rpc'].indexOf(data.info.name) != -1;
+            };
 
-            $scope.display = function (data) {
+            $scope.display = function(data) {
                 var info = angular.copy(data.info);
 
                 var metadata = {};
-                angular.forEach(info, function (value, key) {
-                    var parts = key.split(".");
-                    if (parts[0] == "meta") {
+                angular.forEach(info, function(value, key) {
+                    var parts = key.split('.');
+                    if (parts[0] == 'meta') {
                         if (parts.length == 2) {
                             this[parts[1]] = value;
                         } else {
                             var group_name = parts[1];
-                            if (!(group_name in this))
+                            if (!(group_name in this)) {
                                 this[group_name] = {};
+                            }
 
                             this[group_name][parts[2]] = value;
                         }
                     };
                 }, metadata);
 
-                info["duration"] = info["finished"] - info["started"]
-                info["metadata"] = "<pre>" + JSON.stringify(metadata, "", 4) + "</pre>"
+                info.duration = info.finished - info.started;
+                info.metadata = '<pre>' + JSON.stringify(metadata, '', 4) + '</pre>';
 
-                var trace_data = "<div class='row'>"
-                columns = [
-                    "name", "project", "service", "host", "started",
-                    "finished", "duration", "exception", "metadata"
+                var trace_data = '<div class="row">';
+                var columns = [
+                    'name', 'project', 'service', 'host', 'started',
+                    'finished', 'duration', 'exception', 'metadata'
                 ];
 
                 for (var i = 0; i < columns.length; i++) {
-                    trace_data += "<div class='col-md-2 text-right text-capitalize'><strong>" + columns[i] + " </strong></div>";
-                    trace_data += "<div class='col-md-10 text-left'>" + info[columns[i]] + "</div>";
+                    trace_data += '<div class="col-md-2 text-right text-capitalize"><strong>' +
+                        columns[i] + '</strong></div>';
+                    trace_data += '<div class="col-md-10 text-left">' +
+                        info[columns[i]] + '</div>';
                 }
-                trace_data += "</div>";
+                trace_data += '</div>';
 
-                var output = (
-                    '<div class="modal-header"> Trace Point Details </div>' +
+                var output = '<div class="modal-header text-center">' +
+                    '<h3>Trace Point Details</h3></div>' +
                     '<div class="modal-body">' + trace_data + '</div>' +
-                    '<div class="modal-footer"> <span class="glyphicon glyphicon-cloud </div>'
-                );
+                    '<div class="modal-footer"><span class="glyphicon glyphicon-cloud">' +
+                    '</span></div>';
 
                 var modal_instance = $modal.open({
-                    "template": output,
-                    "size": "lg"
+                    'template': output,
+                    'size': 'lg'
                 });
-            }
+            };
 
             $scope.tree = [convert_input(OSProfilerData)];
         }
@@ -172,7 +176,7 @@
 <body>
     <div ng-controller="ProfilerCtlr">
         <table class="trace">
-            <tr class="bold text-left" style="border-bottom: solid 1px gray">
+            <tr class="bold text-left" style="border-bottom: solid 1px gray;">
                 <td class="level">Levels</td>
                 <td>Duration</td>
                 <td class="text-right">Type</td>

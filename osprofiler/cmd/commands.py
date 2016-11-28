@@ -88,7 +88,7 @@ class TraceCommands(BaseCommand):
             with open(os.path.join(os.path.dirname(__file__),
                                    "template.html")) as html_template:
                 output = html_template.read().replace(
-                    "$DATA", json.dumps(trace, indent=2,
+                    "$DATA", json.dumps(trace, indent=4,
                                         default=datetime_json_serialize))
         elif args.use_dot:
             dot_graph = self._create_dot_graph(trace)
