@@ -174,7 +174,7 @@ class ShellTestCase(test.TestCase):
         mock_get.return_value = notifications
 
         self.run_command("trace show fake_id --json")
-        self.assertEqual("%s\n" % json.dumps(notifications),
+        self.assertEqual("%s\n" % json.dumps(notifications, indent=2),
                          sys.stdout.getvalue())
 
     @mock.patch("sys.stdout", six.StringIO())
@@ -222,4 +222,5 @@ class ShellTestCase(test.TestCase):
             self.run_command("trace show fake_id --json --out='/file'")
 
             output = mock_open.return_value.__enter__.return_value
-            output.write.assert_called_once_with(json.dumps(notifications))
+            output.write.assert_called_once_with(json.dumps(notifications,
+                                                            indent=2))

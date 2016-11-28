@@ -76,7 +76,8 @@ class TraceCommands(BaseCommand):
                 return obj
 
         if args.use_json:
-            output = json.dumps(trace, default=datetime_json_serialize)
+            output = json.dumps(trace, default=datetime_json_serialize,
+                                indent=2)
         elif args.use_html:
             with open(os.path.join(os.path.dirname(__file__),
                                    "template.html")) as html_template:
