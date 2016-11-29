@@ -1,14 +1,13 @@
 <!doctype html>
-<html ng-app="Application">
+<html ng-app="app">
 
 <head>
-    <script>
-        var OSProfilerData = $DATA;
-    </script>
-    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.2.0/css/bootstrap.min.css">
-    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.2.0/css/bootstrap-theme.min.css">
-    <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.2.10/angular.min.js"></script>
-    <script src="https://angular-ui.github.io/bootstrap/ui-bootstrap-tpls-0.11.0.js"></script>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.8.0/styles/github.min.css">
+    <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.6.0/angular.min.js"></script>
+    <script src="https://angular-ui.github.io/bootstrap/ui-bootstrap-tpls-2.3.1.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.8.0/highlight.min.js"></script>
+    <script src="https://pc035860.github.io/angular-highlightjs/angular-highlightjs.min.js"></script>
     <style>
         .trace {
             min-width: 900px;
@@ -59,7 +58,148 @@
             text-align: center;
         }
 
+        dl {
+            margin: 5px 0px;
+        }
+
+        .hljs {
+            white-space: pre;
+            word-wrap: normal;
+        }
+
+        .hljs.wrapped {
+            white-space: pre-wrap;
+        }
+
+        .toggle-button {
+            margin-top: -7px;
+        }
+
     </style>
+    <script>
+        (function(angular) {
+            'use strict';
+
+            var OSProfilerData = $DATA;
+
+            angular
+                .module('app', ['ui.bootstrap', 'hljs'])
+                .config(['hljsServiceProvider', function (hljsServiceProvider) {
+                    hljsServiceProvider.setOptions({
+                        // replace tab with 4 spaces
+                        tabReplace: '    '
+                    });
+                }])
+                .controller('ProfilerController', ProfilerController)
+                .controller('ModalInstanceController', ModalInstanceController);
+
+            // Inject services
+            ProfilerController.$inject = ['$uibModal'];
+            ModalInstanceController.$inject = ['$uibModalInstance', 'info'];
+
+            function ProfilerController($uibModal) {
+                // NOTE(tovin07): Bind this to vm. This is controller as and vm syntax.
+                // This style is mainstream now. It replaces $scope style.
+                // Ref: https://johnpapa.net/angularjss-controller-as-and-the-vm-variable/
+                var vm = this;
+
+                var converInput = function(input, level) {
+                    level = (level) ? level : 0;
+                    input.level = level;
+                    input.is_leaf = !input.children.length;
+
+                    for (var i = 0; i < input.children.length; i++) {
+                        converInput(input.children[i], level + 1);
+                    }
+                    return input;
+                };
+
+                vm.getWidth = function(data) {
+                    var fullDuration = vm.tree[0].info.finished;
+                    var duration = (data.info.finished - data.info.started) * 100.0 / fullDuration;
+                    return (duration >= 0.5) ? duration : 0.5;
+                };
+
+                vm.getStarted = function(data) {
+                    var fullDuration = vm.tree[0].info.finished;
+                    return data.info.started * 100.0 / fullDuration;
+                };
+
+                vm.isImportance = function(data) {
+                    return ['total', 'wsgi', 'rpc'].indexOf(data.info.name) != -1;
+                };
+
+                vm.display = function(data) {
+                    $uibModal.open({
+                        animation: true,
+                        templateUrl: 'modal_renderer.html',
+                        controller: 'ModalInstanceController',
+                        controllerAs: 'modal',
+                        size: 'lg',
+                        resolve: {
+                            info: function() {
+                                return angular.copy(data.info);
+                            }
+                        }
+                    });
+                };
+
+                vm.tree = [converInput(OSProfilerData)];
+            }
+
+            function ModalInstanceController($uibModalInstance, info){
+                var modal = this;
+                var metadata = {};
+                angular.forEach(info, function(value, key) {
+                    var parts = key.split('.');
+                    if (parts[0] == 'meta') {
+                        if (parts.length == 2) {
+                            this[parts[1]] = value;
+                        } else {
+                            var groupName = parts[1];
+                            if (!(groupName in this)) {
+                                this[groupName] = {};
+                            }
+
+                            this[groupName][parts[2]] = value;
+                        }
+                    };
+                }, metadata);
+
+                info.duration = info.finished - info.started;
+                // Escape single-quotes to prevent angular parse lexerr
+                info.metadata = JSON.stringify(metadata, null, 4).replace(/'/g, "\\'");
+
+                // Bind to view model
+                modal.info = info;
+
+                modal.columns = [
+                    ['name', 'project', 'service', 'host'],
+                    ['started', 'finished', 'duration', 'exception']
+                ];
+
+                modal.toggleWrap = function() {
+                    var element = angular.element(document.querySelector('code.hljs'));
+
+                    var wrappedClass = 'wrapped';
+                    var isWrapped = element.hasClass(wrappedClass);
+                    if (isWrapped) {
+                        element.removeClass(wrappedClass);
+                    } else {
+                        element.addClass(wrappedClass);
+                    }
+                };
+
+                modal.close = function() {
+                    $uibModalInstance.dismiss('close');
+                };
+            }
+        })(window.angular);
+    </script>
+</head>
+
+<body>
+    <!--Tree item template-->
     <script type="text/ng-template" id="tree_item_renderer.html">
         <div ng-init="hide_children=false">
             <table class="trace cursor_pointer_on_hover">
@@ -70,17 +210,17 @@
                             {{data.level || 0}}
                         </button>
                     </td>
-                    <td ng-click="display(data)" class="text-center">
-                        <div class="duration" style="width: {{get_width(data)}}%; margin-left: {{get_started(data)}}%;">
+                    <td ng-click="vm.display(data)" class="text-center">
+                        <div class="duration" style="width: {{vm.getWidth(data)}}%; margin-left: {{vm.getStarted(data)}}%;">
                             <div>{{data.info.finished - data.info.started}} ms</div>
                         </div>
                     </td>
-                    <td ng-click="display(data)" class="{{is_important(data) ? 'bold' : ''}} text-right">{{data.info.name}}</td>
-                    <td ng-click="display(data)">{{data.info.project || "n/a"}}</td>
-                    <td ng-click="display(data)">{{data.info.service || "n/a"}}</td>
-                    <td ng-click="display(data)">{{data.info.host || "n/a"}}</td>
+                    <td ng-click="vm.display(data)" class="{{vm.isImportance(data) ? 'bold' : ''}} text-right">{{data.info.name}}</td>
+                    <td ng-click="vm.display(data)">{{data.info.project || "n/a"}}</td>
+                    <td ng-click="vm.display(data)">{{data.info.service || "n/a"}}</td>
+                    <td ng-click="vm.display(data)">{{data.info.host || "n/a"}}</td>
                     <td class="details">
-                        <a href="#" ng-click="display(data)">Details</a>
+                        <a href="#" ng-click="vm.display(data)">Details</a>
                     </td>
                 </tr>
             </table>
@@ -89,92 +229,37 @@
             </div>
         </div>
     </script>
-    <script>
-        angular.module('Application', ['ui.bootstrap']);
-
-        function ProfilerCtlr($scope, $modal) {
-            var convert_input = function(input, level) {
-                level = (level) ? level : 0;
-                input.level = level;
-                input.is_leaf = !input.children.length;
-
-                for (var i = 0; i < input.children.length; i++) {
-                    convert_input(input.children[i], level + 1);
-                }
-                return input;
-            };
-
-            $scope.get_width = function(data) {
-                var full_duration = $scope.tree[0].info.finished;
-                var duration = (data.info.finished - data.info.started) * 100.0 / full_duration;
-                return (duration >= 0.5) ? duration : 0.5;
-            };
-
-            $scope.get_started = function(data) {
-                var full_duration = $scope.tree[0].info.finished;
-                return data.info.started * 100.0 / full_duration;
-            };
-
-            $scope.is_important = function(data) {
-                return ['total', 'wsgi', 'rpc'].indexOf(data.info.name) != -1;
-            };
-
-            $scope.display = function(data) {
-                var info = angular.copy(data.info);
-
-                var metadata = {};
-                angular.forEach(info, function(value, key) {
-                    var parts = key.split('.');
-                    if (parts[0] == 'meta') {
-                        if (parts.length == 2) {
-                            this[parts[1]] = value;
-                        } else {
-                            var group_name = parts[1];
-                            if (!(group_name in this)) {
-                                this[group_name] = {};
-                            }
-
-                            this[group_name][parts[2]] = value;
-                        }
-                    };
-                }, metadata);
-
-                info.duration = info.finished - info.started;
-                info.metadata = '<pre>' + JSON.stringify(metadata, '', 4) + '</pre>';
-
-                var trace_data = '<div class="row">';
-                var columns = [
-                    'name', 'project', 'service', 'host', 'started',
-                    'finished', 'duration', 'exception', 'metadata'
-                ];
-
-                for (var i = 0; i < columns.length; i++) {
-                    trace_data += '<div class="col-md-2 text-right text-capitalize"><strong>' +
-                        columns[i] + '</strong></div>';
-                    trace_data += '<div class="col-md-10 text-left">' +
-                        info[columns[i]] + '</div>';
-                }
-                trace_data += '</div>';
-
-                var output = '<div class="modal-header text-center">' +
-                    '<h3>Trace Point Details</h3></div>' +
-                    '<div class="modal-body">' + trace_data + '</div>' +
-                    '<div class="modal-footer"><span class="glyphicon glyphicon-cloud">' +
-                    '</span></div>';
-
-                var modal_instance = $modal.open({
-                    'template': output,
-                    'size': 'lg'
-                });
-            };
-
-            $scope.tree = [convert_input(OSProfilerData)];
-        }
+    <!--Modal template-->
+    <script type="text/ng-template" id="modal_renderer.html">
+        <div class="modal-header">
+            <h3 class="text-center">
+                <strong>Trace Point Details</strong>
+                <span class="btn btn-default pull-right toggle-button" ng-click="modal.toggleWrap()">Toggle wrap-text</span>
+            </h3>
+        </div>
+        <div class="modal-body">
+            <div class="row">
+                <div class="col-md-6" ng-repeat="cols in modal.columns">
+                    <dl class="dl-horizontal" ng-repeat="column in cols">
+                        <dt class="text-capitalize">{{column}}</dt>
+                        <dd>{{modal.info[column]}}</dd>
+                    </dl>
+                </div>
+                <div class="col-md-12">
+                    <!--For metadata only-->
+                    <dl class="dl-horizontal">
+                        <dt class="text-capitalize">metadata</dt>
+                        <dd hljs hljs-language="json" hljs-source="'{{modal.info.metadata}}'"></dd>
+                    </dl>
+                </div>
+            </div>
+        </div>
+        <div class="modal-footer">
+            <span class="btn btn-default" ng-click="modal.close()">Close</span>
+        </div>
     </script>
-</head>
-
-<body>
-    <div ng-controller="ProfilerCtlr">
+    <!--Body-->
+    <div ng-controller="ProfilerController as vm">
         <table class="trace">
             <tr class="bold text-left" style="border-bottom: solid 1px gray;">
                 <td class="level">Levels</td>
@@ -186,7 +271,7 @@
                 <td class="details">Details</td>
             </tr>
         </table>
-        <div ng-repeat="data in tree" ng-include="'tree_item_renderer.html'"></div>
+        <div ng-repeat="data in vm.tree" ng-include="'tree_item_renderer.html'"></div>
     </div>
 </body>
 
