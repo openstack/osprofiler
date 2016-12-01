@@ -16,9 +16,9 @@
 import collections
 import copy
 import datetime
-import mock
 import re
 
+import mock
 import six
 
 from osprofiler import profiler

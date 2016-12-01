@@ -15,6 +15,7 @@
 
 import mock
 from oslo_config import fixture
+
 from osprofiler import opts
 from osprofiler.tests import test
 
