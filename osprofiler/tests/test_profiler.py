@@ -66,32 +66,33 @@ class ProfilerTestCase(test.TestCase):
         prof = profiler._Profiler("secret", base_id="1", parent_id="2")
         self.assertEqual(prof.get_base_id(), "1")
 
-    @mock.patch("osprofiler.profiler.uuid.uuid4")
-    def test_profiler_get_parent_id(self, mock_uuid4):
-        mock_uuid4.return_value = "42"
+    @mock.patch("osprofiler.profiler.uuidutils.generate_uuid")
+    def test_profiler_get_parent_id(self, mock_generate_uuid):
+        mock_generate_uuid.return_value = "42"
         prof = profiler._Profiler("secret", base_id="1", parent_id="2")
         prof.start("test")
         self.assertEqual(prof.get_parent_id(), "2")
 
-    @mock.patch("osprofiler.profiler.uuid.uuid4")
-    def test_profiler_get_base_id_unset_case(self, mock_uuid4):
-        mock_uuid4.return_value = "42"
+    @mock.patch("osprofiler.profiler.uuidutils.generate_uuid")
+    def test_profiler_get_base_id_unset_case(self, mock_generate_uuid):
+        mock_generate_uuid.return_value = "42"
         prof = profiler._Profiler("secret")
         self.assertEqual(prof.get_base_id(), "42")
         self.assertEqual(prof.get_parent_id(), "42")
 
-    @mock.patch("osprofiler.profiler.uuid.uuid4")
-    def test_profiler_get_id(self, mock_uuid4):
-        mock_uuid4.return_value = "43"
+    @mock.patch("osprofiler.profiler.uuidutils.generate_uuid")
+    def test_profiler_get_id(self, mock_generate_uuid):
+        mock_generate_uuid.return_value = "43"
         prof = profiler._Profiler("secret")
         prof.start("test")
         self.assertEqual(prof.get_id(), "43")
 
     @mock.patch("osprofiler.profiler.datetime")
-    @mock.patch("osprofiler.profiler.uuid.uuid4")
+    @mock.patch("osprofiler.profiler.uuidutils.generate_uuid")
     @mock.patch("osprofiler.profiler.notifier.notify")
-    def test_profiler_start(self, mock_notify, mock_uuid4, mock_datetime):
-        mock_uuid4.return_value = "44"
+    def test_profiler_start(self, mock_notify, mock_generate_uuid,
+                            mock_datetime):
+        mock_generate_uuid.return_value = "44"
         now = datetime.datetime.utcnow()
         mock_datetime.datetime.utcnow.return_value = now
 

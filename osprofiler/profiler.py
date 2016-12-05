@@ -19,9 +19,9 @@ import functools
 import inspect
 import socket
 import threading
-import uuid
 
 from oslo_utils import reflection
+from oslo_utils import uuidutils
 
 from osprofiler import notifier
 
@@ -333,7 +333,7 @@ class _Profiler(object):
                  connection_str=None, project=None, service=None):
         self.hmac_key = hmac_key
         if not base_id:
-            base_id = str(uuid.uuid4())
+            base_id = str(uuidutils.generate_uuid())
         self._trace_stack = collections.deque([base_id, parent_id or base_id])
         self._name = collections.deque()
         self._host = socket.gethostname()
@@ -376,7 +376,7 @@ class _Profiler(object):
         info["project"] = self._project
         info["service"] = self._service
         self._name.append(name)
-        self._trace_stack.append(str(uuid.uuid4()))
+        self._trace_stack.append(str(uuidutils.generate_uuid()))
         self._notify("%s-start" % name, info)
 
     def stop(self, info=None):
