@@ -22,7 +22,6 @@ import threading
 import uuid
 
 from oslo_utils import reflection
-import six
 
 from osprofiler import notifier
 
@@ -279,7 +278,7 @@ class TracedMeta(type):
                             "e.g. __trace_args__ = {'name': 'rpc'}")
 
         traceable_attrs = []
-        for attr_name, attr_value in six.iteritems(attrs):
+        for attr_name, attr_value in attrs.items():
             if not (inspect.ismethod(attr_value) or
                     inspect.isfunction(attr_value)):
                 continue
