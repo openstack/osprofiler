@@ -16,6 +16,8 @@
 import json
 import os
 
+from oslo_utils import uuidutils
+
 from osprofiler.cmd import cliutils
 from osprofiler.drivers import base
 from osprofiler import exc
@@ -49,7 +51,7 @@ class TraceCommands(BaseCommand):
 
         trace = None
 
-        if os.path.exists(args.trace):
+        if not uuidutils.is_uuid_like(args.trace):
             trace = json.load(open(args.trace))
         else:
             try:
