@@ -175,6 +175,10 @@ class Driver(object):
 
         if name.endswith("stop"):
             self.result[trace_id]["info"]["finished"] = timestamp
+            self.result[trace_id]["info"]["exception"] = "None"
+            if raw_payload and "info" in raw_payload:
+                exc = raw_payload["info"].get("etype", "None")
+                self.result[trace_id]["info"]["exception"] = exc
         else:
             self.result[trace_id]["info"]["started"] = timestamp
 
