@@ -30,14 +30,17 @@ def init_from_conf(conf, context, project, service, host):
                  running on.
     """
     connection_str = conf.profiler.connection_string
+    kwargs = {}
+    if connection_str.startswith("messaging"):
+        kwargs = {"messaging": oslo_messaging,
+                  "transport": oslo_messaging.get_transport(conf)}
     _notifier = notifier.create(
         connection_str,
-        messaging=oslo_messaging,
         context=context,
-        transport=oslo_messaging.get_transport(conf),
         project=project,
         service=service,
         host=host,
-        conf=conf)
+        conf=conf,
+        **kwargs)
     notifier.set(_notifier)
     web.enable(conf.profiler.hmac_keys)
