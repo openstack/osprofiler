@@ -152,7 +152,8 @@
                 var metadata = {};
                 angular.forEach(info, function(value, key) {
                     var parts = key.split('.');
-                    if (parts[0] == 'meta') {
+                    var metaText = 'meta';
+                    if (parts[0] == metaText) {
                         if (parts.length == 2) {
                             this[parts[1]] = value;
                         } else {
@@ -160,8 +161,9 @@
                             if (!(groupName in this)) {
                                 this[groupName] = {};
                             }
-
-                            this[groupName][parts[2]] = value;
+                            // Plus 2 for 2 dots such as: meta.raw_payload.heat.wsgi-start
+                            var index = metaText.length + parts[1].length + 2;
+                            this[groupName][key.slice(index)] = value;
                         }
                     };
                 }, metadata);
