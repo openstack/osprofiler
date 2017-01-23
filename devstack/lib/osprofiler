@@ -50,7 +50,7 @@ function configure_osprofiler() {
         then
             iniset $conf profiler enabled True
             iniset $conf profiler trace_sqlalchemy True
-            iniset $conf profiler hmac_keys SECRET_KEY
+            iniset $conf profiler hmac_keys $OSPROFILER_HMAC_KEYS
         fi
     done
     CEILOMETER_CONF=/etc/ceilometer/ceilometer.conf

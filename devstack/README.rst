@@ -14,6 +14,13 @@ To configure DevStack to enable OSProfiler edit
 
 to the ``[[local|localrc]]`` section.
 
+One can also configure a set of HMAC secrets, that are used for triggering of
+profiling in OpenStack services: only the requests that specify one of these
+keys in HTTP headers will be profiled. E.g. multiple secrets are specified as
+a comma-separated list of string values::
+
+    OSPROFILER_HMAC_KEYS=swordfish,foxtrot,charlie
+
 .. note:: The order of enabling plugins matter.
 
 Run DevStack as normal::
