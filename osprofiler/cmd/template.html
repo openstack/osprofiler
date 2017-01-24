@@ -206,10 +206,10 @@
         <div ng-init="hide_children=false">
             <table class="trace cursor_pointer_on_hover">
                 <tr>
-                    <td class="level" style="padding-left: {{data.level * 5}}px;">
+                    <td class="level" style="padding-left: {{::data.level * 5}}px;">
                         <button type="button" class="btn btn-default btn-xs" ng-disabled="data.is_leaf" ng-click="hide_children=!hide_children">
                             <span class="glyphicon glyphicon-{{(data.is_leaf) ? 'cloud' : ((hide_children) ? 'plus': 'minus')}}"></span>
-                            {{data.level || 0}}
+                            {{::data.level || 0}}
                         </button>
                     </td>
                     <td ng-click="vm.display(data)" class="text-center">
@@ -217,10 +217,10 @@
                             <div>{{data.info.finished - data.info.started}} ms</div>
                         </div>
                     </td>
-                    <td ng-click="vm.display(data)" class="{{vm.isImportance(data) ? 'bold' : ''}} text-right">{{data.info.name}}</td>
-                    <td ng-click="vm.display(data)">{{data.info.project || "n/a"}}</td>
-                    <td ng-click="vm.display(data)">{{data.info.service || "n/a"}}</td>
-                    <td ng-click="vm.display(data)">{{data.info.host || "n/a"}}</td>
+                    <td ng-click="vm.display(data)" class="{{vm.isImportance(data) ? 'bold' : ''}} text-right">{{::data.info.name}}</td>
+                    <td ng-click="vm.display(data)">{{::data.info.project || "n/a"}}</td>
+                    <td ng-click="vm.display(data)">{{::data.info.service || "n/a"}}</td>
+                    <td ng-click="vm.display(data)">{{::data.info.host || "n/a"}}</td>
                     <td class="details">
                         <a href="#" ng-click="vm.display(data)">Details</a>
                     </td>
@@ -243,15 +243,15 @@
             <div class="row">
                 <div class="col-md-6" ng-repeat="cols in modal.columns">
                     <dl class="dl-horizontal" ng-repeat="column in cols">
-                        <dt class="text-capitalize">{{column}}</dt>
-                        <dd>{{modal.info[column]}}</dd>
+                        <dt class="text-capitalize">{{::column}}</dt>
+                        <dd>{{::modal.info[column]}}</dd>
                     </dl>
                 </div>
                 <div class="col-md-12">
                     <!--For metadata only-->
                     <dl class="dl-horizontal">
                         <dt class="text-capitalize">metadata</dt>
-                        <dd hljs hljs-language="json" hljs-source="'{{modal.info.metadata}}'"></dd>
+                        <dd hljs hljs-language="json" hljs-source="'{{::modal.info.metadata}}'"></dd>
                     </dl>
                 </div>
             </div>
