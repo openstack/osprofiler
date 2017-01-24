@@ -199,7 +199,8 @@ class ShellTestCase(test.TestCase):
         mock_get.return_value = notifications
 
         self.run_command(self._trace_show_cmd(format_="json"))
-        self.assertEqual("%s\n" % json.dumps(notifications, indent=2),
+        self.assertEqual("%s\n" % json.dumps(notifications, indent=2,
+                                             separators=(",", ": "),),
                          sys.stdout.getvalue())
 
     @mock.patch("sys.stdout", six.StringIO())
@@ -227,7 +228,8 @@ class ShellTestCase(test.TestCase):
                              "spaceships, striking from a hidden"
                              "base, have won their first victory"
                              "against the evil Galactic Empire."
-                             "\n" % json.dumps(notifications, indent=4),
+                             "\n" % json.dumps(notifications, indent=4,
+                                               separators=(",", ": ")),
                              sys.stdout.getvalue())
 
     @mock.patch("sys.stdout", six.StringIO())
@@ -242,5 +244,5 @@ class ShellTestCase(test.TestCase):
                              self._trace_show_cmd(format_="json"))
 
             output = mock_open.return_value.__enter__.return_value
-            output.write.assert_called_once_with(json.dumps(notifications,
-                                                            indent=2))
+            output.write.assert_called_once_with(
+                json.dumps(notifications, indent=2, separators=(",", ": ")))
