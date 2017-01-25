@@ -83,12 +83,14 @@ class TraceCommands(BaseCommand):
 
         if args.use_json:
             output = json.dumps(trace, default=datetime_json_serialize,
+                                separators=(",", ": "),
                                 indent=2)
         elif args.use_html:
             with open(os.path.join(os.path.dirname(__file__),
                                    "template.html")) as html_template:
                 output = html_template.read().replace(
                     "$DATA", json.dumps(trace, indent=4,
+                                        separators=(",", ": "),
                                         default=datetime_json_serialize))
         elif args.use_dot:
             dot_graph = self._create_dot_graph(trace)
