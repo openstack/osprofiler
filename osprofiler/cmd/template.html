@@ -84,6 +84,9 @@
 
             angular
                 .module('app', ['ui.bootstrap', 'hljs'])
+                .config(['$rootScopeProvider', function ($rootScopeProvider) {
+                    $rootScopeProvider.digestTtl(50);
+                }])
                 .config(['hljsServiceProvider', function (hljsServiceProvider) {
                     hljsServiceProvider.setOptions({
                         // replace tab with 4 spaces
