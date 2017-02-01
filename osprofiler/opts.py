@@ -218,4 +218,4 @@ def disable_web_trace(conf=None):
 
 
 def list_opts():
-    return {_profiler_opt_group: _PROFILER_OPTS}
+    return [(_profiler_opt_group.name, _PROFILER_OPTS)]
