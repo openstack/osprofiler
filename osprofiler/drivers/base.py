@@ -61,6 +61,8 @@ class Driver(object):
         self.result = {}
         self.started_at = None
         self.finished_at = None
+        # Last trace started time
+        self.last_started_at = None
 
     def notify(self, info, **kwargs):
         """This method will be called on each notifier.notify() call.
@@ -181,6 +183,8 @@ class Driver(object):
                 self.result[trace_id]["info"]["exception"] = exc
         else:
             self.result[trace_id]["info"]["started"] = timestamp
+            if not self.last_started_at or self.last_started_at < timestamp:
+                self.last_started_at = timestamp
 
         if not self.started_at or self.started_at > timestamp:
             self.started_at = timestamp
@@ -235,7 +239,10 @@ class Driver(object):
                 "name": "total",
                 "started": 0,
                 "finished": msec(self.finished_at -
-                                 self.started_at) if self.started_at else None
+                                 self.started_at) if self.started_at else None,
+                "last_trace_started": msec(
+                    self.last_started_at - self.started_at
+                ) if self.started_at else None
             },
             "children": self._build_tree(self.result),
             "stats": stats

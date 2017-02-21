@@ -117,6 +117,13 @@
                     return input;
                 };
 
+                vm.isLastTrace = function(started) {
+                    if (started >=0 && started == vm.tree[0].info.last_trace_started) {
+                        return true;
+                    }
+                    return false;
+                };
+
                 vm.getWidth = function(data) {
                     var fullDuration = vm.tree[0].info.finished;
                     var duration = (data.info.finished - data.info.started) * 100.0 / fullDuration;
@@ -208,7 +215,7 @@
     <script type="text/ng-template" id="tree_item_renderer.html">
         <div ng-init="hide_children=false">
             <table class="trace cursor_pointer_on_hover">
-                <tr>
+                <tr ng-class="{'bg-success': vm.isLastTrace(data.info.started)}">
                     <td class="level" style="padding-left: {{::data.level * 5}}px;">
                         <button type="button" class="btn btn-default btn-xs" ng-disabled="data.is_leaf" ng-click="hide_children=!hide_children">
                             <span class="glyphicon glyphicon-{{(data.is_leaf) ? 'cloud' : ((hide_children) ? 'plus': 'minus')}}"></span>
