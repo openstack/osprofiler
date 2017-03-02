@@ -11,7 +11,7 @@ that are similar (in idea and ideal to OSprofiler).
 * `HTrace`_
 * `OpenTracing`_
 
-.. _Zipkin: https://twitter.github.io/zipkin/
+.. _Zipkin: http://zipkin.io/
 .. _Dapper: http://research.google.com/pubs/pub36356.html
 .. _Tomograph: https://github.com/stackforge/tomograph
 .. _HTrace: https://htrace.incubator.apache.org/
