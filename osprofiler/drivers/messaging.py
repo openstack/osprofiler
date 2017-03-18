@@ -30,7 +30,7 @@ class Messaging(base.Driver):
 
         self.client = messaging.Notifier(
             transport, publisher_id=self.host, driver="messaging",
-            topic="profiler", retry=0)
+            topics=["profiler"], retry=0)
 
     @classmethod
     def get_name(cls):
