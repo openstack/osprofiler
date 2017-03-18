@@ -34,6 +34,7 @@ CONF_FILES=(
     /etc/trove/trove-taskmanager.conf
     /etc/senlin/senlin.conf
     /etc/magnum/magnum.conf
+    /etc/zun/zun.conf
 )
 
 # This will update CEILOMETER_NOTIFICATION_TOPICS in ceilometer.conf file
