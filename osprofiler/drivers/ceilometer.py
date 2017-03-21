@@ -23,7 +23,6 @@ class Ceilometer(base.Driver):
         super(Ceilometer, self).__init__(connection_str)
         try:
             import ceilometerclient.client
-            import ceilometerclient.shell
         except ImportError:
             raise exc.CommandError(
                 "To use this command, you should install "
