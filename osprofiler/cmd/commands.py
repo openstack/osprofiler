@@ -62,13 +62,8 @@ class TraceCommands(BaseCommand):
             trace = engine.get_report(args.trace)
 
         if not trace or not trace.get("children"):
-            msg = ("Trace with UUID %s not found. "
-                   "There are 3 possible reasons: \n"
-                   " 1) You are using not admin credentials\n"
-                   " 2) You specified wrong trace id\n"
-                   " 3) You specified wrong HMAC Key in original calling\n"
-                   " 4) Ceilometer didn't enable profiler notification topic"
-                   % args.trace)
+            msg = ("Trace with UUID %s not found. Please check the HMAC key "
+                   "used in the command." % args.trace)
             raise exc.CommandError(msg)
 
         # NOTE(ayelistratov): Ceilometer translates datetime objects to
