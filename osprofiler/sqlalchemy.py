@@ -34,14 +34,16 @@ def enable():
     _DISABLED = False
 
 
-def add_tracing(sqlalchemy, engine, name):
+def add_tracing(sqlalchemy, engine, name, hide_result=True):
     """Add tracing to all sqlalchemy calls."""
 
     if not _DISABLED:
         sqlalchemy.event.listen(engine, "before_cursor_execute",
                                 _before_cursor_execute(name))
-        sqlalchemy.event.listen(engine, "after_cursor_execute",
-                                _after_cursor_execute())
+        sqlalchemy.event.listen(
+            engine, "after_cursor_execute",
+            _after_cursor_execute(hide_result=hide_result)
+        )
 
 
 @contextlib.contextmanager
@@ -66,10 +68,24 @@ def _before_cursor_execute(name):
     return handler
 
 
-def _after_cursor_execute():
-    """Add listener that will send trace info after query is executed."""
+def _after_cursor_execute(hide_result=True):
+    """Add listener that will send trace info after query is executed.
+
+    :param hide_result: Boolean value to hide or show SQL result in trace.
+                        True - hide SQL result (default).
+                        False - show SQL result in trace.
+    """
 
     def handler(conn, cursor, statement, params, context, executemany):
-        profiler.stop()
+        if not hide_result:
+            # Add SQL result to trace info in *-stop phase
+            info = {
+                "db": {
+                    "result": str(cursor._rows)
+                }
+            }
+            profiler.stop(info=info)
+        else:
+            profiler.stop()
 
     return handler

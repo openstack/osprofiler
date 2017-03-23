@@ -87,7 +87,8 @@ def stop(info=None):
         profiler.stop(info=info)
 
 
-def trace(name, info=None, hide_args=False, allow_multiple_trace=True):
+def trace(name, info=None, hide_args=False, hide_result=True,
+          allow_multiple_trace=True):
     """Trace decorator for functions.
 
     Very useful if you would like to add trace point on existing function:
@@ -102,6 +103,9 @@ def trace(name, info=None, hide_args=False, allow_multiple_trace=True):
     :param hide_args: Don't push to trace info args and kwargs. Quite useful
                       if you have some info in args that you wont to share,
                       e.g. passwords.
+    :param hide_result: Boolean value to hide/show function result in trace.
+                        True - hide function result (default).
+                        False - show function result in trace.
     :param allow_multiple_trace: If the wrapped function has already been
                                  traced either allow the new trace to occur
                                  or raise a value error denoting that multiple
@@ -133,24 +137,43 @@ def trace(name, info=None, hide_args=False, allow_multiple_trace=True):
 
         @functools.wraps(f)
         def wrapper(*args, **kwargs):
-            if "name" not in info["function"]:
+            # NOTE(tovin07): Workaround for this issue
+            # F823 local variable 'info'
+            # (defined in enclosing scope on line xxx)
+            # referenced before assignment
+            info_ = info
+            if "name" not in info_["function"]:
                 # Get this once (as it should **not** be changing in
                 # subsequent calls).
-                info["function"]["name"] = reflection.get_callable_name(f)
+                info_["function"]["name"] = reflection.get_callable_name(f)
 
             if not hide_args:
-                info["function"]["args"] = str(args)
-                info["function"]["kwargs"] = str(kwargs)
+                info_["function"]["args"] = str(args)
+                info_["function"]["kwargs"] = str(kwargs)
 
-            with Trace(name, info=info):
-                return f(*args, **kwargs)
+            stop_info = None
+            try:
+                start(name, info=info_)
+                result = f(*args, **kwargs)
+            except Exception as ex:
+                stop_info = {"etype": reflection.get_class_name(ex)}
+                raise
+            else:
+                if not hide_result:
+                    stop_info = {"function": {"result": repr(result)}}
+                return result
+            finally:
+                if stop_info:
+                    stop(info=stop_info)
+                else:
+                    stop()
 
         return wrapper
 
     return decorator
 
 
-def trace_cls(name, info=None, hide_args=False,
+def trace_cls(name, info=None, hide_args=False, hide_result=True,
               trace_private=False, allow_multiple_trace=True,
               trace_class_methods=False, trace_static_methods=False):
     """Trace decorator for instances of class .
@@ -173,6 +196,9 @@ def trace_cls(name, info=None, hide_args=False,
     :param hide_args: Don't push to trace info args and kwargs. Quite useful
                       if you have some info in args that you wont to share,
                       e.g. passwords.
+    :param hide_result: Boolean value to hide/show function result in trace.
+                        True - hide function result (default).
+                        False - show function result in trace.
     :param trace_private: Trace methods that starts with "_". It wont trace
                           methods that starts "__" even if it is turned on.
     :param trace_static_methods: Trace staticmethods. This may be prone to
@@ -226,7 +252,8 @@ def trace_cls(name, info=None, hide_args=False,
             # halfway trace this class).
             _ensure_no_multiple_traced(traceable_attrs)
         for i, (attr_name, attr) in enumerate(traceable_attrs):
-            wrapped_method = trace(name, info=info, hide_args=hide_args)(attr)
+            wrapped_method = trace(name, info=info, hide_args=hide_args,
+                                   hide_result=hide_result)(attr)
             wrapper = traceable_wrappers[i]
             if wrapper is not None:
                 wrapped_method = wrapper(wrapped_method)
@@ -246,6 +273,7 @@ class TracedMeta(type):
     >>>      __trace_args__ = {'name': 'rpc',
     >>>                        'info': None,
     >>>                        'hide_args': False,
+    >>>                        'hide_result': True,
     >>>                        'trace_private': False}
     >>>
     >>>      def my_method(self, some_args):

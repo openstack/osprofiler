@@ -185,6 +185,11 @@ def test_fn_exc():
     raise ValueError()
 
 
+@profiler.trace("hide_result", hide_result=False)
+def trace_with_result_func(a, i=10):
+    return (a, i)
+
+
 class TraceDecoratorTestCase(test.TestCase):
 
     @mock.patch("osprofiler.profiler.stop")
@@ -241,6 +246,27 @@ class TraceDecoratorTestCase(test.TestCase):
         expected_stop_info = {"etype": "ValueError"}
         mock_start.assert_called_once_with("foo", info=expected_info)
         mock_stop.assert_called_once_with(info=expected_stop_info)
+
+    @mock.patch("osprofiler.profiler.stop")
+    @mock.patch("osprofiler.profiler.start")
+    def test_with_result(self, mock_start, mock_stop):
+        self.assertEqual((1, 2), trace_with_result_func(1, i=2))
+        start_info = {
+            "function": {
+                "name": "osprofiler.tests.unit.test_profiler"
+                        ".trace_with_result_func",
+                "args": str((1,)),
+                "kwargs": str({"i": 2})
+            }
+        }
+
+        stop_info = {
+            "function": {
+                "result": str((1, 2))
+            }
+        }
+        mock_start.assert_called_once_with("hide_result", info=start_info)
+        mock_stop.assert_called_once_with(info=stop_info)
 
 
 class FakeTracedCls(object):
