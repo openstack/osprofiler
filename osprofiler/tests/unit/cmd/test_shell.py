@@ -165,12 +165,8 @@ class ShellTestCase(test.TestCase):
     def test_trace_show_trace_id_not_found(self, notifications, mock_get):
         mock_get.return_value = notifications
 
-        msg = ("Trace with UUID %s not found. There are 3 possible reasons: \n"
-               " 1) You are using not admin credentials\n"
-               " 2) You specified wrong trace id\n"
-               " 3) You specified wrong HMAC Key in original calling\n"
-               " 4) Ceilometer didn't enable profiler notification topic"
-               % self.TRACE_ID)
+        msg = ("Trace with UUID %s not found. Please check the HMAC key "
+               "used in the command." % self.TRACE_ID)
 
         self._test_with_command_error(self._trace_show_cmd(), msg)
 
