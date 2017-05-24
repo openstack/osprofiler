@@ -36,8 +36,7 @@ class Ceilometer(base.Driver):
             if hasattr(e, "http_status") and e.http_status == 401:
                 msg = "Invalid OpenStack Identity credentials."
             else:
-                msg = ("Something has gone wrong. See ceilometer logs "
-                       "for more details")
+                msg = "Error occurred while connecting to Ceilometer: %s." % e
             raise exc.CommandError(msg)
 
     @classmethod
