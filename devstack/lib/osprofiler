@@ -21,20 +21,20 @@ set +o xtrace
 # --------
 
 CONF_FILES=(
-    /etc/cinder/cinder.conf
-    /etc/heat/heat.conf
-    /etc/keystone/keystone.conf
-    /etc/nova/nova.conf
-    /etc/neutron/neutron.conf
-    /etc/glance/glance-api.conf
-    /etc/glance/glance-registry.conf
-    /etc/trove/trove.conf
-    /etc/trove/trove-conductor.conf
-    /etc/trove/trove-guestagent.conf
-    /etc/trove/trove-taskmanager.conf
-    /etc/senlin/senlin.conf
-    /etc/magnum/magnum.conf
-    /etc/zun/zun.conf
+    $CINDER_CONF
+    $HEAT_CONF
+    $KEYSTONE_CONF
+    $NOVA_CONF
+    $NEUTRON_CONF
+    $GLANCE_API_CONF
+    $GLANCE_REGISTRY_CONF
+    $TROVE_CONF
+    $TROVE_CONDUCTOR_CONF
+    $TROVE_GUESTAGENT_CONF
+    $TROVE_TASKMANAGER_CONF
+    $SENLIN_CONF
+    $MAGNUM_CONF
+    $ZUN_CONF
 )
 
 # This will update CEILOMETER_NOTIFICATION_TOPICS in ceilometer.conf file
@@ -55,8 +55,10 @@ function configure_osprofiler() {
             iniset $conf profiler hmac_keys $OSPROFILER_HMAC_KEYS
         fi
     done
-    CEILOMETER_CONF=/etc/ceilometer/ceilometer.conf
-    iniset $CEILOMETER_CONF event store_raw info
+    if [ -f $CEILOMETER_CONF ]
+    then
+        iniset $CEILOMETER_CONF event store_raw info
+    fi
 }
 
 
