@@ -33,7 +33,7 @@ def init_from_conf(conf, context, project, service, host):
     kwargs = {}
     if connection_str.startswith("messaging"):
         kwargs = {"messaging": oslo_messaging,
-                  "transport": oslo_messaging.get_transport(conf)}
+                  "transport": oslo_messaging.get_notification_transport(conf)}
     _notifier = notifier.create(
         connection_str,
         context=context,
