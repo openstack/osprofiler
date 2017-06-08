@@ -1,5 +1,5 @@
-# lib/rally
-# Functions to control the configuration and operation of the **Rally**
+# lib/osprofiler
+# Functions to control the configuration and operation of the **osprofiler**
 
 # Dependencies:
 #
@@ -61,12 +61,6 @@ function configure_osprofiler() {
     fi
 }
 
-
-# init_rally() - Initialize databases, etc.
-function init_osprofiler() {
-
-    echo "Do nothing here for now"
-}
 
 # Restore xtrace
 $XTRACE
