@@ -53,6 +53,7 @@ function configure_osprofiler() {
             iniset $conf profiler enabled True
             iniset $conf profiler trace_sqlalchemy True
             iniset $conf profiler hmac_keys $OSPROFILER_HMAC_KEYS
+            iniset $conf profiler connection_string $OSPROFILER_CONNECTION_STRING
         fi
     done
     if [ -f $CEILOMETER_CONF ]

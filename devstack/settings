@@ -4,5 +4,6 @@
 # of profiling in OpenStack services: profiling is only performed for
 # requests that specify one of these keys in HTTP headers.
 OSPROFILER_HMAC_KEYS=${OSPROFILER_HMAC_KEYS:-"SECRET_KEY"}
+OSPROFILER_CONNECTION_STRING=${OSPROFILER_CONNECTION_STRING:-"messaging://"}
 
 enable_service osprofiler
