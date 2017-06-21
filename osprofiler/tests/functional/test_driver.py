@@ -61,10 +61,7 @@ class DriverTestCase(test.TestCase):
                     "project": self.PROJECT}
         self._assert_dict(child["info"], **exp_info)
 
-        exp_raw_info = {"project": self.PROJECT,
-                        "service": self.SERVICE}
         raw_start = child["info"]["meta.raw_payload.%s-start" % name]
-        self._assert_dict(raw_start["info"], **exp_raw_info)
         self.assertEqual(fn_name, raw_start["info"]["function"]["name"])
         exp_raw = {"name": "%s-start" % name,
                    "service": self.SERVICE,
@@ -74,14 +71,13 @@ class DriverTestCase(test.TestCase):
         self._assert_dict(raw_start, **exp_raw)
 
         raw_stop = child["info"]["meta.raw_payload.%s-stop" % name]
-        self._assert_dict(raw_stop["info"], **exp_raw_info)
         exp_raw["name"] = "%s-stop" % name
         self._assert_dict(raw_stop, **exp_raw)
 
     def test_get_report(self):
         initializer.init_from_conf(
             CONF, None, self.PROJECT, self.SERVICE, "host")
-        profiler.init("SECRET_KEY", project=self.PROJECT, service=self.SERVICE)
+        profiler.init("SECRET_KEY")
 
         foo = DriverTestCase.Foo()
         foo.bar(1)
