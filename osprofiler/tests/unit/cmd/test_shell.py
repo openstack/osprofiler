@@ -145,11 +145,8 @@ class ShellTestCase(test.TestCase):
         self._test_with_command_error(self._trace_show_cmd(), msg)
 
     def test_trace_show_unknown_error(self):
-        class FakeException(Exception):
-            pass
-
-        self.ceiloclient.client.get_client.side_effect = FakeException
-        msg = "Something has gone wrong. See ceilometer logs for more details"
+        self.ceiloclient.client.get_client.side_effect = Exception("test")
+        msg = "Error occurred while connecting to Ceilometer: test."
         self._test_with_command_error(self._trace_show_cmd(), msg)
 
     @mock.patch("osprofiler.drivers.ceilometer.Ceilometer.get_report")
