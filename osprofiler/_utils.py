@@ -18,8 +18,10 @@ import hashlib
 import hmac
 import json
 import os
+import uuid
 
 from oslo_utils import secretutils
+from oslo_utils import uuidutils
 import six
 
 
@@ -147,3 +149,13 @@ def import_modules_from_package(package):
             new_package = ".".join(root.split(os.sep)).split("....")[1]
             module_name = "%s.%s" % (new_package, filename[:-3])
             __import__(module_name)
+
+
+def shorten_id(span_id):
+    """Convert from uuid4 to 64 bit id for OpenTracing"""
+    try:
+        short_id = uuid.UUID(span_id).int & (1 << 64) - 1
+    except ValueError:
+        # Return a new short id for this
+        short_id = shorten_id(uuidutils.generate_uuid())
+    return short_id

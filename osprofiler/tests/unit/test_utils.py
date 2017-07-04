@@ -16,6 +16,7 @@
 import base64
 import hashlib
 import hmac
+import uuid
 
 import mock
 
@@ -110,6 +111,29 @@ class UtilsTestCase(test.TestCase):
         hmac_data = utils.generate_hmac(data, hmac)
 
         self.assertIsNone(utils.signed_unpack(data, hmac_data, hmac))
+
+    def test_shorten_id_with_valid_uuid(self):
+        valid_id = "4e3e0ec6-2938-40b1-8504-09eb1d4b0dee"
+
+        uuid_obj = uuid.UUID(valid_id)
+
+        with mock.patch("uuid.UUID") as mock_uuid:
+            mock_uuid.return_value = uuid_obj
+
+            result = utils.shorten_id(valid_id)
+            expected = 9584796812364680686
+
+            self.assertEqual(expected, result)
+
+    @mock.patch("oslo_utils.uuidutils.generate_uuid")
+    def test_shorten_id_with_invalid_uuid(self, mock_gen_uuid):
+        invalid_id = "invalid"
+        mock_gen_uuid.return_value = "1c089ea8-28fe-4f3d-8c00-f6daa2bc32f1"
+
+        result = utils.shorten_id(invalid_id)
+        expected = 10088334584203457265
+
+        self.assertEqual(expected, result)
 
     def test_itersubclasses(self):
 
