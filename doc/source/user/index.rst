@@ -1,6 +1,6 @@
-=============================================
-OSProfiler -- Cross-project profiling library
-=============================================
+================
+Using OSProfiler
+================
 
 OSProfiler provides a tiny but powerful library that is used by
 most (soon to be all) OpenStack projects and their python clients. It
@@ -12,11 +12,16 @@ reasons (for example in isolating cross-project performance issues).
 .. toctree::
    :maxdepth: 2
 
-   user/index
+   background
+   api
+   integration
+   collectors
+   similar_projects
 
-.. rubric:: Indices and tables
+Release Notes
+=============
 
-* :ref:`genindex`
-* :ref:`modindex`
-* :ref:`search`
+.. toctree::
+   :maxdepth: 1
 
+   history
