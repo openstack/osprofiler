@@ -64,17 +64,17 @@ How profiler works?
 
 * Nested trace points are supported. The sample below produces 2 trace points:
 
-    .. code-block:: python
+  .. code-block:: python
 
         profiler.start("parent_point")
         profiler.start("child_point")
         profiler.stop()
         profiler.stop()
 
-    The implementation is quite simple. Profiler has one stack that contains
-    ids of all trace points. E.g.:
+  The implementation is quite simple. Profiler has one stack that contains
+  ids of all trace points. E.g.:
 
-    .. code-block:: python
+  .. code-block:: python
 
         profiler.start("parent_point") # trace_stack.push(<new_uuid>)
                                        # send to collector -> trace_stack[-2:]
@@ -87,8 +87,8 @@ How profiler works?
         profiler.stop()                # send to collector -> trace_stack[-2:]
                                        # trace_stack.pop()
 
-    It's simple to build a tree of nested trace points, having
-    **(parent_id, point_id)** of all trace points.
+  It's simple to build a tree of nested trace points, having
+  **(parent_id, point_id)** of all trace points.
 
 Process of sending to collector.
 --------------------------------
@@ -207,34 +207,34 @@ Available commands:
 
 * Help message with all available commands and their arguments:
 
-    .. parsed-literal::
+  .. parsed-literal::
 
-        $ osprofiler -h/--help
+     $ osprofiler -h/--help
 
 * OSProfiler version:
 
-    .. parsed-literal::
+  .. parsed-literal::
 
-        $ osprofiler -v/--version
+     $ osprofiler -v/--version
 
 * Results of profiling can be obtained in JSON (option: ``--json``) and HTML
   (option: ``--html``) formats:
 
-    .. parsed-literal::
+  .. parsed-literal::
 
-        $ osprofiler trace show <trace_id> --json/--html
+     $ osprofiler trace show <trace_id> --json/--html
 
-    hint: option ``--out`` will redirect result of ``osprofiler trace show``
-    in specified file:
+  hint: option ``--out`` will redirect result of ``osprofiler trace show``
+  in specified file:
 
-    .. parsed-literal::
+  .. parsed-literal::
 
-        $ osprofiler trace show <trace_id> --json/--html --out /path/to/file
+     $ osprofiler trace show <trace_id> --json/--html --out /path/to/file
 
 * In latest versions of OSProfiler with storage drivers (e.g. MongoDB (URI:
   ``mongodb://``), Messaging (URI: ``messaging://``), and Ceilometer
   (URI: ``ceilometer://``)) ``--connection-string`` parameter should be set up:
 
-    .. parsed-literal::
+  .. parsed-literal::
 
-       $ osprofiler trace show <trace_id> --connection-string=<URI> --json/--html
+     $ osprofiler trace show <trace_id> --connection-string=<URI> --json/--html
