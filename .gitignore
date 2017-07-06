@@ -6,8 +6,7 @@ ChangeLog
 *.so
 
 # Packages
-*.egg
-*.egg-info
+*.egg*
 dist
 build
 _build
