@@ -27,6 +27,6 @@ to build a tree of calls which can be quite handy for a variety of
 reasons (for example in isolating cross-project performance issues).
 
 * Free software: Apache license
-* Documentation: http://docs.openstack.org/developer/osprofiler
-* Source: http://git.openstack.org/cgit/openstack/osprofiler
-* Bugs: http://bugs.launchpad.net/osprofiler
+* Documentation: https://docs.openstack.org/osprofiler/latest/
+* Source: https://git.openstack.org/cgit/openstack/osprofiler
+* Bugs: https://bugs.launchpad.net/osprofiler
