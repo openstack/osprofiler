@@ -2,12 +2,6 @@
 <html ng-app="app">
 
 <head>
-    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.8.0/styles/github.min.css">
-    <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.6.0/angular.min.js"></script>
-    <script src="https://angular-ui.github.io/bootstrap/ui-bootstrap-tpls-2.3.1.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.8.0/highlight.min.js"></script>
-    <script src="https://pc035860.github.io/angular-highlightjs/angular-highlightjs.min.js"></script>
     <style>
         .trace {
             min-width: 900px;
@@ -76,6 +70,28 @@
         }
 
     </style>
+    <script>
+        var static_files = $LOCAL;
+        if (static_files){
+            document.write('<link rel="stylesheet" href="/libs/bootstrap.min.css">');
+            document.write('<link rel="stylesheet" href="/libs/github.min.css">');
+            document.write('<script type="text/javascript" src="/libs/angular.min.js"><\/script>');
+            document.write('<script type="text/javascript" src="/libs/ui-bootstrap-tpls-2.3.1.min.js"><\/script>');
+            document.write('<script type="text/javascript" src="/libs/highlight.min.js"><\/script>');
+            document.write('<script type="text/javascript" src="/libs/angular-highlightjs.min.js"><\/script>');
+        }
+        else{
+            document.write('<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">');
+            document.write('<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.8.0/styles/github.min.css">');
+            document.write('<script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/angularjs/1.6.0/angular.min.js"><\/script>');
+            document.write('<script type="text/javascript" src="https://angular-ui.github.io/bootstrap/ui-bootstrap-tpls-2.3.1.min.js"><\/script>');
+            document.write('<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.8.0/highlight.min.js"><\/script>');
+            document.write('<script type="text/javascript" src="https://pc035860.github.io/angular-highlightjs/angular-highlightjs.min.js"><\/script>');
+        }
+    </script>
+</head>
+
+<body>
     <script>
         (function(angular) {
             'use strict';
@@ -208,9 +224,6 @@
             }
         })(window.angular);
     </script>
-</head>
-
-<body>
     <!--Tree item template-->
     <script type="text/ng-template" id="tree_item_renderer.html">
         <div ng-init="hide_children=false">
