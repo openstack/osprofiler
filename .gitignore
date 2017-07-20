@@ -39,6 +39,7 @@ cover
 .project
 .pydevproject
 .idea
+.ropeproject/
 
 # reno build
 releasenotes/build
