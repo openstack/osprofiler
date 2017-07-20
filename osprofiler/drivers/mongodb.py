@@ -43,13 +43,17 @@ class MongoDB(base.Driver):
         """Send notifications to MongoDB.
 
         :param info:  Contains information about trace element.
-                      In payload dict there are always 3 ids:
+                      In payload dict there are always 5 ids:
                       "base_id" - uuid that is common for all notifications
                                   related to one trace. Used to simplify
                                   retrieving of all trace elements from
                                   MongoDB.
                       "parent_id" - uuid of parent element in trace
                       "trace_id" - uuid of current element in trace
+                      "tracepoint_id" - uuid of the event-style current element
+                                        in trace
+                      "parent_tracepoint_id" - uuid of the event-style parent
+                                               element in trace
 
                       With parent_id and trace_id it's quite simple to build
                       tree of trace elements, which simplify analyze of trace.
@@ -80,13 +84,16 @@ class MongoDB(base.Driver):
         for n in self.db.profiler.find({"base_id": base_id}, {"_id": 0}):
             trace_id = n["trace_id"]
             parent_id = n["parent_id"]
+            tracepoint_id = n["tracepoint_id"]
+            parent_tracepoint_id = n["parent_tracepoint_id"]
             name = n["name"]
             project = n["project"]
             service = n["service"]
             host = n["info"]["host"]
             timestamp = n["timestamp"]
 
-            self._append_results(trace_id, parent_id, name, project, service,
+            self._append_results(trace_id, parent_id, tracepoint_id,
+                                 parent_tracepoint_id, name, project, service,
                                  host, timestamp, n)
 
         return self._parse_results()
