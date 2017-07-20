@@ -103,6 +103,8 @@ sent to a collector:
       "base_id": <uuid>,
       "parent_id": <uuid>,
       "trace_id": <uuid>,
+      "tracepoint_id": <uuid>
+      "parent_tracepoint_id": <uuid>
       "info": <dict>
   }
 
@@ -113,6 +115,8 @@ The fields are defined as the following:
   all trace points related to one trace from collector
 * parent_id - ``<uuid>`` of parent trace point
 * trace_id - ``<uuid>`` of current trace point
+* tracepoint_id - ``<uuid>`` of the trace point id
+* parent_tracepoint_id - ``<uuid>`` of the parent trace point id
 * info - the dictionary that contains user information passed when calling
   profiler **start()** & **stop()** methods.
 
