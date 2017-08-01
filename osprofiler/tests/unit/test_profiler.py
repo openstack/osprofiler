@@ -171,13 +171,18 @@ class WithTraceTestCase(test.TestCase):
 
 
 @profiler.trace("function", info={"info": "some_info"})
-def tracede_func(i):
+def traced_func(i):
     return i
 
 
 @profiler.trace("hide_args", hide_args=True)
 def trace_hide_args_func(a, i=10):
     return (a, i)
+
+
+@profiler.trace("foo", hide_args=True)
+def test_fn_exc():
+    raise ValueError()
 
 
 class TraceDecoratorTestCase(test.TestCase):
@@ -198,11 +203,11 @@ class TraceDecoratorTestCase(test.TestCase):
     @mock.patch("osprofiler.profiler.stop")
     @mock.patch("osprofiler.profiler.start")
     def test_with_args(self, mock_start, mock_stop):
-        self.assertEqual(1, tracede_func(1))
+        self.assertEqual(1, traced_func(1))
         expected_info = {
             "info": "some_info",
             "function": {
-                "name": "osprofiler.tests.unit.test_profiler.tracede_func",
+                "name": "osprofiler.tests.unit.test_profiler.traced_func",
                 "args": str((1,)),
                 "kwargs": str({})
             }
@@ -222,6 +227,20 @@ class TraceDecoratorTestCase(test.TestCase):
         }
         mock_start.assert_called_once_with("hide_args", info=expected_info)
         mock_stop.assert_called_once_with()
+
+    @mock.patch("osprofiler.profiler.stop")
+    @mock.patch("osprofiler.profiler.start")
+    def test_with_exception(self, mock_start, mock_stop):
+
+        self.assertRaises(ValueError, test_fn_exc)
+        expected_info = {
+            "function": {
+                "name": "osprofiler.tests.unit.test_profiler.test_fn_exc"
+            }
+        }
+        expected_stop_info = {"etype": "ValueError"}
+        mock_start.assert_called_once_with("foo", info=expected_info)
+        mock_stop.assert_called_once_with(info=expected_stop_info)
 
 
 class FakeTracedCls(object):
