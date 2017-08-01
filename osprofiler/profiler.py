@@ -44,8 +44,7 @@ def _ensure_no_multiple_traced(traceable_attrs):
                              % (attr_name, traced_times))
 
 
-def init(hmac_key, base_id=None, parent_id=None, connection_str=None,
-         project=None, service=None):
+def init(hmac_key, base_id=None, parent_id=None):
     """Init profiler instance for current thread.
 
     You should call profiler.init() before using osprofiler.
@@ -54,16 +53,10 @@ def init(hmac_key, base_id=None, parent_id=None, connection_str=None,
     :param hmac_key: secret key to sign trace information.
     :param base_id: Used to bind all related traces.
     :param parent_id: Used to build tree of traces.
-    :param connection_str: Connection string to the backend to use for
-                           notifications.
-    :param project: Project name that is under profiling
-    :param service: Service name that is under profiling
     :returns: Profiler instance
     """
     __local_ctx.profiler = _Profiler(hmac_key, base_id=base_id,
-                                     parent_id=parent_id,
-                                     connection_str=connection_str,
-                                     project=project, service=service)
+                                     parent_id=parent_id)
     return __local_ctx.profiler
 
 
@@ -329,17 +322,13 @@ class Trace(object):
 
 class _Profiler(object):
 
-    def __init__(self, hmac_key, base_id=None, parent_id=None,
-                 connection_str=None, project=None, service=None):
+    def __init__(self, hmac_key, base_id=None, parent_id=None):
         self.hmac_key = hmac_key
         if not base_id:
             base_id = str(uuidutils.generate_uuid())
         self._trace_stack = collections.deque([base_id, parent_id or base_id])
         self._name = collections.deque()
         self._host = socket.gethostname()
-        self._connection_str = connection_str
-        self._project = project
-        self._service = service
 
     def get_base_id(self):
         """Return base id of a trace.
@@ -373,8 +362,6 @@ class _Profiler(object):
 
         info = info or {}
         info["host"] = self._host
-        info["project"] = self._project
-        info["service"] = self._service
         self._name.append(name)
         self._trace_stack.append(str(uuidutils.generate_uuid()))
         self._notify("%s-start" % name, info)
@@ -388,8 +375,6 @@ class _Profiler(object):
         """
         info = info or {}
         info["host"] = self._host
-        info["project"] = self._project
-        info["service"] = self._service
         self._notify("%s-stop" % self._name.pop(), info)
         self._trace_stack.pop()
 
