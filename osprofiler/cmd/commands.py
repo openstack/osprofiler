@@ -41,6 +41,8 @@ class TraceCommands(BaseCommand):
                   help="show trace in JSON")
     @cliutils.arg("--html", dest="use_html", action="store_true",
                   help="show trace in HTML")
+    @cliutils.arg("--local-libs", dest="local_libs", action="store_true",
+                  help="use local static files of html in /libs/")
     @cliutils.arg("--dot", dest="use_dot", action="store_true",
                   help="show trace in DOT language")
     @cliutils.arg("--render-dot", dest="render_dot_filename",
@@ -87,6 +89,10 @@ class TraceCommands(BaseCommand):
                     "$DATA", json.dumps(trace, indent=4,
                                         separators=(",", ": "),
                                         default=datetime_json_serialize))
+                if args.local_libs:
+                    output = output.replace("$LOCAL", "true")
+                else:
+                    output = output.replace("$LOCAL", "false")
         elif args.use_dot:
             dot_graph = self._create_dot_graph(trace)
             output = dot_graph.source
