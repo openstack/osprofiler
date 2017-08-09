@@ -13,8 +13,6 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
-import oslo_messaging
-
 from osprofiler import notifier
 from osprofiler import web
 
@@ -30,17 +28,12 @@ def init_from_conf(conf, context, project, service, host):
                  running on.
     """
     connection_str = conf.profiler.connection_string
-    kwargs = {}
-    if connection_str.startswith("messaging"):
-        kwargs = {"messaging": oslo_messaging,
-                  "transport": oslo_messaging.get_notification_transport(conf)}
     _notifier = notifier.create(
         connection_str,
         context=context,
         project=project,
         service=service,
         host=host,
-        conf=conf,
-        **kwargs)
+        conf=conf)
     notifier.set(_notifier)
     web.enable(conf.profiler.hmac_keys)
