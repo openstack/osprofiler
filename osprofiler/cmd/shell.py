@@ -37,31 +37,6 @@ class OSProfilerShell(object):
         args = self._get_base_parser().parse_args(argv)
         opts.set_defaults(cfg.CONF)
 
-        if not (args.os_auth_token and args.ceilometer_url):
-            if not args.os_username:
-                raise exc.CommandError(
-                    "You must provide a username via either --os-username or "
-                    "via env[OS_USERNAME]")
-
-            if not args.os_password:
-                raise exc.CommandError(
-                    "You must provide a password via either --os-password or "
-                    "via env[OS_PASSWORD]")
-
-            if self._no_project_and_domain_set(args):
-                # steer users towards Keystone V3 API
-                raise exc.CommandError(
-                    "You must provide a project_id via either --os-project-id "
-                    "or via env[OS_PROJECT_ID] and a domain_name via either "
-                    "--os-user-domain-name or via env[OS_USER_DOMAIN_NAME] or "
-                    "a domain_id via either --os-user-domain-id or via "
-                    "env[OS_USER_DOMAIN_ID]")
-
-            if not args.os_auth_url:
-                raise exc.CommandError(
-                    "You must provide an auth url via either --os-auth-url or "
-                    "via env[OS_AUTH_URL]")
-
         args.func(args)
 
     def _get_base_parser(self):

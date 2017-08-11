@@ -92,39 +92,6 @@ class ShellTestCase(test.TestCase):
                 "Expected: `osprofiler.exc.CommandError` is raised with "
                 "message: '%s'." % expected_message)
 
-    def test_username_is_not_presented(self):
-        os.environ.pop("OS_USERNAME")
-        msg = ("You must provide a username via either --os-username or "
-               "via env[OS_USERNAME]")
-        self._test_with_command_error(self._trace_show_cmd(), msg)
-
-    def test_password_is_not_presented(self):
-        os.environ.pop("OS_PASSWORD")
-        msg = ("You must provide a password via either --os-password or "
-               "via env[OS_PASSWORD]")
-        self._test_with_command_error(self._trace_show_cmd(), msg)
-
-    def test_auth_url(self):
-        os.environ.pop("OS_AUTH_URL")
-        msg = ("You must provide an auth url via either --os-auth-url or "
-               "via env[OS_AUTH_URL]")
-        self._test_with_command_error(self._trace_show_cmd(), msg)
-
-    def test_no_project_and_domain_set(self):
-        os.environ.pop("OS_PROJECT_ID")
-        os.environ.pop("OS_PROJECT_NAME")
-        os.environ.pop("OS_TENANT_ID")
-        os.environ.pop("OS_TENANT_NAME")
-        os.environ.pop("OS_USER_DOMAIN_ID")
-        os.environ.pop("OS_USER_DOMAIN_NAME")
-
-        msg = ("You must provide a project_id via either --os-project-id or "
-               "via env[OS_PROJECT_ID] and a domain_name via either "
-               "--os-user-domain-name or via env[OS_USER_DOMAIN_NAME] or a "
-               "domain_id via either --os-user-domain-id or via "
-               "env[OS_USER_DOMAIN_ID]")
-        self._test_with_command_error(self._trace_show_cmd(), msg)
-
     def test_trace_show_ceilometerclient_is_missed(self):
         sys.modules["ceilometerclient"] = None
         sys.modules["ceilometerclient.client"] = None
