@@ -79,6 +79,8 @@
             document.write('<script type="text/javascript" src="/libs/ui-bootstrap-tpls-2.3.1.min.js"><\/script>');
             document.write('<script type="text/javascript" src="/libs/highlight.min.js"><\/script>');
             document.write('<script type="text/javascript" src="/libs/angular-highlightjs.min.js"><\/script>');
+            document.write('<script type="text/javascript" src="/libs/angular-ui-tree.min.js"><\/script>');
+            document.write('<script type="text/javascript" src="/libs/angular-ui-tree-filter.js"><\/script>');
         }
         else{
             document.write('<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">');
@@ -87,6 +89,8 @@
             document.write('<script type="text/javascript" src="https://angular-ui.github.io/bootstrap/ui-bootstrap-tpls-2.3.1.min.js"><\/script>');
             document.write('<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.8.0/highlight.min.js"><\/script>');
             document.write('<script type="text/javascript" src="https://pc035860.github.io/angular-highlightjs/angular-highlightjs.min.js"><\/script>');
+            document.write('<script type="text/javascript" src="https://cdn.rawgit.com/angular-ui-tree/angular-ui-tree/master/dist/angular-ui-tree.min.js"><\/script>');
+            document.write('<script type="text/javascript" src="https://cdn.rawgit.com/EE/angular-ui-tree-filter/master/dist/angular-ui-tree-filter.js"><\/script>');
         }
     </script>
 </head>
@@ -99,7 +103,7 @@
             var OSProfilerData = $DATA;
 
             angular
-                .module('app', ['ui.bootstrap', 'hljs'])
+                .module('app', ['ui.bootstrap', 'hljs', 'ui.tree', 'ui.tree-filter'])
                 .config(['$rootScopeProvider', function ($rootScopeProvider) {
                     $rootScopeProvider.digestTtl(50);
                 }])
@@ -109,18 +113,29 @@
                         tabReplace: '    '
                     });
                 }])
+                .config(['uiTreeFilterSettingsProvider', function (uiTreeFilterSettingsProvider) {
+                    uiTreeFilterSettingsProvider.addresses = [
+                        'info.name',
+                        'info.project',
+                        'info.service',
+                        'info.host'
+                    ];
+                    uiTreeFilterSettingsProvider.descendantCollection = 'children';
+                }])
                 .controller('ProfilerController', ProfilerController)
                 .controller('ModalInstanceController', ModalInstanceController);
 
             // Inject services
-            ProfilerController.$inject = ['$uibModal'];
+            ProfilerController.$inject = ['$filter', '$uibModal'];
             ModalInstanceController.$inject = ['$uibModalInstance', 'info'];
 
-            function ProfilerController($uibModal) {
+            function ProfilerController($filter, $uibModal) {
                 // NOTE(tovin07): Bind this to vm. This is controller as and vm syntax.
                 // This style is mainstream now. It replaces $scope style.
                 // Ref: https://johnpapa.net/angularjss-controller-as-and-the-vm-variable/
                 var vm = this;
+
+                vm.filter = $filter('uiTreeFilter');
 
                 var converInput = function(input, level) {
                     level = (level) ? level : 0;
@@ -249,8 +264,8 @@
                     </td>
                 </tr>
             </table>
-            <div ng-hide="hide_children">
-                <div ng-repeat="data in data.children" ng-include="'tree_item_renderer.html'"></div>
+            <div ui-tree-nodes ng-model="data.children" ng-hide="hide_children">
+                <div ui-tree-node ng-repeat="data in data.children" ng-include="'tree_item_renderer.html'" ng-hide="!vm.filter(data, vm.filterPattern)"></div>
             </div>
         </div>
     </script>
@@ -285,6 +300,16 @@
     </script>
     <!--Body-->
     <div ng-controller="ProfilerController as vm">
+        <form class="form-horizontal">
+            <div class="form-group">
+                <label for="filterPattern" class="col-md-4 control-label">Span filtering:</label>
+                <div class="col-md-6">
+                    <input type="text" class="form-control" id="filterPattern"
+                        placeholder="Input your regular expression pattern here"
+                        ng-model="vm.filterPattern">
+                </div>
+            </div>
+        </form>
         <table class="trace">
             <tr class="bold text-left" style="border-bottom: solid 1px gray;">
                 <td class="level">Levels</td>
@@ -296,7 +321,11 @@
                 <td class="details">Details</td>
             </tr>
         </table>
-        <div ng-repeat="data in vm.tree" ng-include="'tree_item_renderer.html'"></div>
+        <div ui-tree>
+            <div ui-tree-nodes ng-model="vm.tree">
+                <div ui-tree-node ng-repeat="data in vm.tree" ng-include="'tree_item_renderer.html'" ng-hide="!vm.filter(data, vm.filterPattern)"></div>
+            </div>
+        </div>
     </div>
 </body>
 
