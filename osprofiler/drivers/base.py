@@ -14,13 +14,13 @@
 #    under the License.
 
 import datetime
+import logging
 
-from oslo_log import log
 import six.moves.urllib.parse as urlparse
 
 from osprofiler import _utils
 
-LOG = log.getLogger(__name__)
+LOG = logging.getLogger(__name__)
 
 
 def get_driver(connection_string, *args, **kwargs):
