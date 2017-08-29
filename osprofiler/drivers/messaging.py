@@ -13,22 +13,28 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
+from oslo_utils import importutils
+
 from osprofiler.drivers import base
 
 
 class Messaging(base.Driver):
-    def __init__(self, connection_str, messaging=None, context=None,
-                 transport=None, project=None, service=None,
-                 host=None, **kwargs):
+    def __init__(self, connection_str, project=None, service=None, host=None,
+                 context=None, conf=None, **kwargs):
         """Driver sending notifications via message queues."""
+
+        oslo_messaging = importutils.try_import("oslo_messaging")
+        if not oslo_messaging:
+            raise ValueError("Oslo.messaging library is required for "
+                             "messaging driver")
 
         super(Messaging, self).__init__(connection_str, project=project,
                                         service=service, host=host)
 
-        self.messaging = messaging
         self.context = context
 
-        self.client = messaging.Notifier(
+        transport = oslo_messaging.get_notification_transport(conf)
+        self.client = oslo_messaging.Notifier(
             transport, publisher_id=self.host, driver="messaging",
             topics=["profiler"], retry=0)
 

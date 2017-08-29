@@ -13,8 +13,6 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
-import mock
-
 from osprofiler.drivers import base
 from osprofiler.tests import test
 
@@ -54,10 +52,6 @@ class NotifierBaseTestCase(test.TestCase):
         self.assertRaises(ValueError, base.get_driver,
                           "Driver not found for connection string: "
                           "nonexisting://")
-
-    def test_plugins_are_imported(self):
-        base.get_driver("messaging://", mock.MagicMock(), "context",
-                        "transport", "host")
 
     def test_build_empty_tree(self):
         class C(base.Driver):

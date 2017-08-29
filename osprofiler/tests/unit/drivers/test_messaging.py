@@ -21,20 +21,37 @@ from osprofiler.tests import test
 
 class MessagingTestCase(test.TestCase):
 
-    def test_init_and_notify(self):
+    @mock.patch("oslo_utils.importutils.try_import")
+    def test_init_no_oslo_messaging(self, try_import_mock):
+        try_import_mock.return_value = None
 
-        messaging = mock.MagicMock()
+        self.assertRaises(
+            ValueError, base.get_driver,
+            "messaging://", project="project", service="service",
+            host="host", context={})
+
+    @mock.patch("oslo_utils.importutils.try_import")
+    def test_init_and_notify(self, try_import_mock):
         context = "context"
         transport = "transport"
         project = "project"
         service = "service"
         host = "host"
 
-        notify_func = base.get_driver(
-            "messaging://", messaging, context, transport,
-            project, service, host).notify
+        # emulate dynamic load of oslo.messaging library
+        oslo_messaging_mock = mock.Mock()
+        try_import_mock.return_value = oslo_messaging_mock
 
-        messaging.Notifier.assert_called_once_with(
+        # mock oslo.messaging APIs
+        notifier_mock = mock.Mock()
+        oslo_messaging_mock.Notifier.return_value = notifier_mock
+        oslo_messaging_mock.get_notification_transport.return_value = transport
+
+        notify_func = base.get_driver(
+            "messaging://", project=project, service=service,
+            context=context, host=host).notify
+
+        oslo_messaging_mock.Notifier.assert_called_once_with(
             transport, publisher_id=host, driver="messaging",
             topics=["profiler"], retry=0)
 
@@ -46,10 +63,10 @@ class MessagingTestCase(test.TestCase):
         }
         notify_func(info)
 
-        messaging.Notifier().info.assert_called_once_with(
+        notifier_mock.info.assert_called_once_with(
             context, "profiler.service", info)
 
-        messaging.reset_mock()
+        notifier_mock.reset_mock()
         notify_func(info, context="my_context")
-        messaging.Notifier().info.assert_called_once_with(
+        notifier_mock.info.assert_called_once_with(
             "my_context", "profiler.service", info)
