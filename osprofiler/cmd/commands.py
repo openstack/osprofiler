@@ -37,6 +37,12 @@ class TraceCommands(BaseCommand):
                   help="Storage driver's connection string. Defaults to "
                        "env[OSPROFILER_CONNECTION_STRING] if set, else "
                        "ceilometer://")
+    @cliutils.arg("--transport-url", dest="transport_url",
+                  help="Oslo.messaging transport URL (for messaging:// driver "
+                       "only), e.g. rabbit://user:password@host:5672/")
+    @cliutils.arg("--idle-timeout", dest="idle_timeout", type=int, default=1,
+                  help="How long to wait for the trace to finish, in seconds "
+                       "(for messaging:// driver only)")
     @cliutils.arg("--json", dest="use_json", action="store_true",
                   help="show trace in JSON")
     @cliutils.arg("--html", dest="use_html", action="store_true",
