@@ -13,6 +13,7 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
+import logging
 import os
 
 from oslo_config import cfg
@@ -25,9 +26,19 @@ from osprofiler.tests import test
 
 
 CONF = cfg.CONF
+LOG = logging.getLogger(__name__)
 
 
-class DriverTestCase(test.TestCase):
+@profiler.trace_cls("rpc", hide_args=True)
+class Foo(object):
+    def bar(self, x):
+        return self.baz(x, x)
+
+    def baz(self, x, y):
+        return x * y
+
+
+class DriverTestCase(test.FunctionalTestCase):
 
     SERVICE = "service"
     PROJECT = "project"
@@ -39,15 +50,6 @@ class DriverTestCase(test.TestCase):
                           enabled=True,
                           trace_sqlalchemy=False,
                           hmac_keys="SECRET_KEY")
-
-    @profiler.trace_cls("rpc", hide_args=True)
-    class Foo(object):
-
-        def bar(self, x):
-            return self.baz(x, x)
-
-        def baz(self, x, y):
-            return x * y
 
     def _assert_dict(self, info, **kwargs):
         for key in kwargs:
@@ -75,26 +77,35 @@ class DriverTestCase(test.TestCase):
         self._assert_dict(raw_stop, **exp_raw)
 
     def test_get_report(self):
+        # initialize profiler notifier (the same way as in services)
         initializer.init_from_conf(
-            CONF, None, self.PROJECT, self.SERVICE, "host")
+            CONF, {}, self.PROJECT, self.SERVICE, "host")
         profiler.init("SECRET_KEY")
 
-        foo = DriverTestCase.Foo()
+        # grab base_id
+        base_id = profiler.get().get_base_id()
+
+        # execute profiled code
+        foo = Foo()
         foo.bar(1)
 
+        # instantiate report engine (the same way as in osprofiler CLI)
         engine = base.get_driver(CONF.profiler.connection_string,
                                  project=self.PROJECT,
                                  service=self.SERVICE,
                                  host="host",
                                  conf=CONF)
-        base_id = profiler.get().get_base_id()
-        res = engine.get_report(base_id)
 
-        self.assertEqual("total", res["info"]["name"])
-        self.assertEqual(2, res["stats"]["rpc"]["count"])
-        self.assertEqual(1, len(res["children"]))
+        # generate the report
+        report = engine.get_report(base_id)
+        LOG.debug("OSProfiler report: %s", report)
 
-        cbar = res["children"][0]
+        # verify the report
+        self.assertEqual("total", report["info"]["name"])
+        self.assertEqual(2, report["stats"]["rpc"]["count"])
+        self.assertEqual(1, len(report["children"]))
+
+        cbar = report["children"][0]
         self._assert_child_dict(
             cbar, base_id, base_id, "rpc",
             "osprofiler.tests.functional.test_driver.Foo.bar")
