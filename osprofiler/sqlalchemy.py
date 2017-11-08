@@ -14,9 +14,13 @@
 #    under the License.
 
 import contextlib
+import logging as log
+
+from oslo_utils import reflection
 
 from osprofiler import profiler
 
+LOG = log.getLogger(__name__)
 
 _DISABLED = False
 
@@ -44,6 +48,7 @@ def add_tracing(sqlalchemy, engine, name, hide_result=True):
             engine, "after_cursor_execute",
             _after_cursor_execute(hide_result=hide_result)
         )
+        sqlalchemy.event.listen(engine, "handle_error", handle_error)
 
 
 @contextlib.contextmanager
@@ -89,3 +94,22 @@ def _after_cursor_execute(hide_result=True):
             profiler.stop()
 
     return handler
+
+
+def handle_error(exception_context):
+    """Handle SQLAlchemy errors"""
+    exception_class_name = reflection.get_class_name(
+        exception_context.original_exception)
+    original_exception = str(exception_context.original_exception)
+    chained_exception = str(exception_context.chained_exception)
+
+    info = {
+        "etype": exception_class_name,
+        "db": {
+            "original_exception": original_exception,
+            "chained_exception": chained_exception
+        }
+    }
+    profiler.stop(info=info)
+    LOG.debug("OSProfiler has handled SQLAlchemy error: %s",
+              original_exception)
