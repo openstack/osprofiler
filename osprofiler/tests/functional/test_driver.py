@@ -115,3 +115,14 @@ class DriverTestCase(test.FunctionalTestCase):
         self._assert_child_dict(
             cbaz, base_id, cbar["trace_id"], "rpc",
             "osprofiler.tests.functional.test_driver.Foo.baz")
+
+
+class RedisDriverTestCase(DriverTestCase):
+    def setUp(self):
+        super(DriverTestCase, self).setUp()
+        CONF([])
+        opts.set_defaults(CONF,
+                          connection_string="redis://localhost:6379",
+                          enabled=True,
+                          trace_sqlalchemy=False,
+                          hmac_keys="SECRET_KEY")
