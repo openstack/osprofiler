@@ -1,16 +1,7 @@
+#!/bin/bash
+
 # lib/osprofiler
-# Functions to control the configuration and operation of the **osprofiler**
-
-# Dependencies:
-#
-# - ``functions`` file
-# - ``DEST``, ``DATA_DIR``, ``STACK_USER`` must be defined
-
-# ``stack.sh`` calls the entry points in this order:
-#
-# - install_osprofiler
-# - configure_osprofiler
-# - init_osprofiler
+# Functions to control the configuration and operation of the **OSProfiler**
 
 # Save trace setting
 XTRACE=$(set +o | grep xtrace)
@@ -44,7 +35,31 @@ export CEILOMETER_NOTIFICATION_TOPICS=notifications,profiler
 # Functions
 # ---------
 
-# configure_osprofiler() - Nothing for now
+function install_redis() {
+    if is_fedora; then
+        install_package redis python-redis
+    elif is_ubuntu; then
+        install_package redis-server python-redis
+    elif is_suse; then
+        install_package redis python-redis
+    else
+        exit_distro_not_supported "redis installation"
+    fi
+
+    start_service redis
+}
+
+function install_osprofiler_collector() {
+    if [ -z "$OSPROFILER_COLLECTOR" ]; then
+        OSPROFILER_CONNECTION_STRING=${OSPROFILER_CONNECTION_STRING:-"messaging://"}
+    elif [ "$OSPROFILER_COLLECTOR" == "redis" ]; then
+        install_redis
+        OSPROFILER_CONNECTION_STRING=${OSPROFILER_CONNECTION_STRING:-"redis://localhost:6379"}
+    else
+        die $LINENO "OSProfiler collector $OSPROFILER_COLLECTOR is not supported"
+    fi
+}
+
 function configure_osprofiler() {
 
     for conf in ${CONF_FILES[@]}; do
@@ -56,6 +71,14 @@ function configure_osprofiler() {
             iniset $conf profiler connection_string $OSPROFILER_CONNECTION_STRING
         fi
     done
+
+    # Insert osprofiler filter into Neutron paste configuration
+    if [ -f $Q_API_PASTE_FILE ]; then
+        VAL=$(iniget $Q_API_PASTE_FILE composite:neutronapi_v2_0 keystone)
+        VAL=${VAL/catch_errors/catch_errors osprofiler}
+        iniset $Q_API_PASTE_FILE composite:neutronapi_v2_0 keystone "$VAL"
+    fi
+
     if [ -f $CEILOMETER_CONF ]
     then
         iniset $CEILOMETER_CONF event store_raw info
@@ -65,8 +88,3 @@ function configure_osprofiler() {
 
 # Restore xtrace
 $XTRACE
-
-# Tell emacs to use shell-script-mode
-## Local variables:
-## mode: shell-script
-## End:
