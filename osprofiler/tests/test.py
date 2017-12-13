@@ -13,6 +13,8 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
+import logging
+import sys
 
 from testtools import testcase
 
@@ -20,3 +22,12 @@ from testtools import testcase
 class TestCase(testcase.TestCase):
     """Test case base class for all osprofiler unit tests."""
     pass
+
+
+class FunctionalTestCase(TestCase):
+    """Base for functional tests"""
+
+    def setUp(self):
+        super(FunctionalTestCase, self).setUp()
+
+        logging.basicConfig(stream=sys.stderr, level=logging.DEBUG)
