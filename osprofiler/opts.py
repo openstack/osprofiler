@@ -134,6 +134,18 @@ This parameter defines the name (for example:
 sentinal_service_name=mymaster).
 """)
 
+_filter_error_trace = cfg.BoolOpt(
+    "filter_error_trace",
+    default=False,
+    help="""
+Enable filter traces that contain error/exception to a separated place.
+Default value is set to False.
+
+Possible values:
+
+* True: Enable filter traces that contain error/exception.
+* False: Disable the filter.
+""")
 
 _PROFILER_OPTS = [
     _enabled_opt,
@@ -144,7 +156,8 @@ _PROFILER_OPTS = [
     _es_scroll_time_opt,
     _es_scroll_size_opt,
     _socket_timeout_opt,
-    _sentinel_service_name_opt
+    _sentinel_service_name_opt,
+    _filter_error_trace
 ]
 
 cfg.CONF.register_opts(_PROFILER_OPTS, group=_profiler_opt_group)

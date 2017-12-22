@@ -24,11 +24,12 @@ from osprofiler import exc
 
 class Redis(base.Driver):
     def __init__(self, connection_str, db=0, project=None,
-                 service=None, host=None, **kwargs):
+                 service=None, host=None, conf=cfg.CONF, **kwargs):
         """Redis driver for OSProfiler."""
 
         super(Redis, self).__init__(connection_str, project=project,
-                                    service=service, host=host)
+                                    service=service, host=host,
+                                    conf=conf, **kwargs)
         try:
             from redis import StrictRedis
         except ImportError:
@@ -42,6 +43,7 @@ class Redis(base.Driver):
                               port=parsed_url.port,
                               db=db)
         self.namespace = "osprofiler:"
+        self.namespace_error = "osprofiler_error:"
 
     @classmethod
     def get_name(cls):
@@ -70,6 +72,19 @@ class Redis(base.Driver):
             data["timestamp"]
         self.db.set(key, jsonutils.dumps(data))
 
+        if (self.filter_error_trace
+                and data.get("info", {}).get("etype") is not None):
+            self.notify_error_trace(data)
+
+    def notify_error_trace(self, data):
+        """Store base_id and timestamp of error trace to a separate key."""
+        key = self.namespace_error + data["base_id"]
+        value = jsonutils.dumps({
+            "base_id": data["base_id"],
+            "timestamp": data["timestamp"]
+        })
+        self.db.set(key, value)
+
     def list_traces(self, fields=None):
         """Query all traces from the storage.
 
@@ -93,6 +108,20 @@ class Redis(base.Driver):
                 seen_ids.add(trace["base_id"])
                 result.append({key: value for key, value in trace.items()
                                if key in fields})
+        return result
+
+    def list_error_traces(self):
+        """Returns all traces that have error/exception."""
+        ids = self.db.scan_iter(match=self.namespace_error + "*")
+        traces = [jsonutils.loads(self.db.get(i)) for i in ids]
+        traces.sort(key=lambda x: x["timestamp"])
+        seen_ids = set()
+        result = []
+        for trace in traces:
+            if trace["base_id"] not in seen_ids:
+                seen_ids.add(trace["base_id"])
+                result.append(trace)
+
         return result
 
     def get_report(self, base_id):
@@ -123,7 +152,8 @@ class RedisSentinel(Redis, base.Driver):
         """Redis driver for OSProfiler."""
 
         super(RedisSentinel, self).__init__(connection_str, project=project,
-                                            service=service, host=host)
+                                            service=service, host=host,
+                                            conf=conf, **kwargs)
         try:
             from redis.sentinel import Sentinel
         except ImportError:

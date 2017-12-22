@@ -28,7 +28,10 @@ class ElasticsearchDriver(base.Driver):
 
         super(ElasticsearchDriver, self).__init__(connection_str,
                                                   project=project,
-                                                  service=service, host=host)
+                                                  service=service,
+                                                  host=host,
+                                                  conf=conf,
+                                                  **kwargs)
         try:
             from elasticsearch import Elasticsearch
         except ImportError:
@@ -42,6 +45,7 @@ class ElasticsearchDriver(base.Driver):
         self.conf = conf
         self.client = Elasticsearch(client_url)
         self.index_name = index_name
+        self.index_name_error = "osprofiler-notifications-error"
 
     @classmethod
     def get_name(cls):
@@ -70,6 +74,18 @@ class ElasticsearchDriver(base.Driver):
         self.client.index(index=self.index_name,
                           doc_type=self.conf.profiler.es_doc_type, body=info)
 
+        if (self.filter_error_trace
+                and info.get("info", {}).get("etype") is not None):
+            self.notify_error_trace(info)
+
+    def notify_error_trace(self, info):
+        """Store base_id and timestamp of error trace to a separate index."""
+        self.client.index(
+            index=self.index_name_error,
+            doc_type=self.conf.profiler.es_doc_type,
+            body={"base_id": info["base_id"], "timestamp": info["timestamp"]}
+        )
+
     def _hits(self, response):
         """Returns all hits of search query using scrolling
 
@@ -91,10 +107,12 @@ class ElasticsearchDriver(base.Driver):
         return result
 
     def list_traces(self, fields=None):
-        """Returns array of all base_id fields that match the given criteria
+        """Query all traces from the storage.
 
-        :param query: dict that specifies the query criteria
-        :param fields: iterable of strings that specifies the output fields
+        :param fields: Set of trace fields to return. Defaults to 'base_id'
+               and 'timestamp'
+        :return List of traces, where each trace is a dictionary containing
+                at least `base_id` and `timestamp`.
         """
         query = {"match_all": {}}
         fields = set(fields or self.default_trace_fields)
@@ -105,6 +123,22 @@ class ElasticsearchDriver(base.Driver):
                                       scroll=self.conf.profiler.es_scroll_time,
                                       body={"_source": fields, "query": query,
                                             "sort": [{"timestamp": "asc"}]})
+
+        return self._hits(response)
+
+    def list_error_traces(self):
+        """Returns all traces that have error/exception."""
+        response = self.client.search(
+            index=self.index_name_error,
+            doc_type=self.conf.profiler.es_doc_type,
+            size=self.conf.profiler.es_scroll_size,
+            scroll=self.conf.profiler.es_scroll_time,
+            body={
+                "_source": self.default_trace_fields,
+                "query": {"match_all": {}},
+                "sort": [{"timestamp": "asc"}]
+            }
+        )
 
         return self._hits(response)
 

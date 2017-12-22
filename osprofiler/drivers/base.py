@@ -55,7 +55,8 @@ class Driver(object):
 
     default_trace_fields = {"base_id", "timestamp"}
 
-    def __init__(self, connection_str, project=None, service=None, host=None):
+    def __init__(self, connection_str, project=None, service=None, host=None,
+                 **kwargs):
         self.connection_str = connection_str
         self.project = project
         self.service = service
@@ -65,6 +66,12 @@ class Driver(object):
         self.finished_at = None
         # Last trace started time
         self.last_started_at = None
+
+        profiler_config = kwargs.get("conf", {}).get("profiler", {})
+        if hasattr(profiler_config, "filter_error_trace"):
+            self.filter_error_trace = profiler_config.filter_error_trace
+        else:
+            self.filter_error_trace = False
 
     def notify(self, info, **kwargs):
         """This method will be called on each notifier.notify() call.
@@ -110,6 +117,16 @@ class Driver(object):
                and 'timestamp'
         :return List of traces, where each trace is a dictionary containing
                 at least `base_id` and `timestamp`.
+        """
+        raise NotImplementedError("{0}: This method is either not supported "
+                                  "or has to be overridden".format(
+                                      self.get_name()))
+
+    def list_error_traces(self):
+        """Query all error traces from the storage.
+
+        :return List of traces, where each trace is a dictionary containing
+                `base_id` and `timestamp`.
         """
         raise NotImplementedError("{0}: This method is either not supported "
                                   "or has to be overridden".format(

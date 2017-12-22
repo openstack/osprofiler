@@ -155,11 +155,15 @@ class TraceCommands(BaseCommand):
         return dot
 
     @cliutils.arg("--connection-string", dest="conn_str",
-                  default=(cliutils.env("OSPROFILER_CONNECTION_STRING")),
+                  default=cliutils.env("OSPROFILER_CONNECTION_STRING"),
                   required=True,
                   help="Storage driver's connection string. Defaults to "
                        "env[OSPROFILER_CONNECTION_STRING] if set")
+    @cliutils.arg("--error-trace", dest="error_trace",
+                  type=bool, default=False,
+                  help="List all traces that contain error.")
     def list(self, args):
+        """List all traces"""
         try:
             engine = base.get_driver(args.conn_str, **args.__dict__)
         except Exception as e:
@@ -168,7 +172,10 @@ class TraceCommands(BaseCommand):
         fields = ("base_id", "timestamp")
         pretty_table = prettytable.PrettyTable(fields)
         pretty_table.align = "l"
-        traces = engine.list_traces(fields)
+        if not args.error_trace:
+            traces = engine.list_traces(fields)
+        else:
+            traces = engine.list_error_traces()
         for trace in traces:
             row = [trace[field] for field in fields]
             pretty_table.add_row(row)

@@ -23,7 +23,7 @@ class MongoDB(base.Driver):
         """MongoDB driver for OSProfiler."""
 
         super(MongoDB, self).__init__(connection_str, project=project,
-                                      service=service, host=host)
+                                      service=service, host=host, **kwargs)
         try:
             from pymongo import MongoClient
         except ImportError:
@@ -60,6 +60,18 @@ class MongoDB(base.Driver):
         data["service"] = self.service
         self.db.profiler.insert_one(data)
 
+        if (self.filter_error_trace
+                and data.get("info", {}).get("etype") is not None):
+            self.notify_error_trace(data)
+
+    def notify_error_trace(self, data):
+        """Store base_id and timestamp of error trace to a separate db."""
+        self.db.profiler_error.update(
+            {"base_id": data["base_id"]},
+            {"base_id": data["base_id"], "timestamp": data["timestamp"]},
+            upsert=True
+        )
+
     def list_traces(self, fields=None):
         """Query all traces from the storage.
 
@@ -74,6 +86,11 @@ class MongoDB(base.Driver):
         out_format.update({i: 1 for i in fields})
         return [self.db.profiler.find(
                 {"base_id": i}, out_format).sort("timestamp")[0] for i in ids]
+
+    def list_error_traces(self):
+        """Returns all traces that have error/exception."""
+        out_format = {"base_id": 1, "timestamp": 1, "_id": 0}
+        return self.db.profiler_error.find({}, out_format)
 
     def get_report(self, base_id):
         """Retrieves and parses notification from MongoDB.
