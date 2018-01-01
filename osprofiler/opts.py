@@ -134,6 +134,14 @@ This parameter defines the name (for example:
 sentinal_service_name=mymaster).
 """)
 
+_framework_opt = cfg.StrOpt(
+    "framework",
+    default="openstack",
+    help="""
+Setting framework to bu-tracing means that the tracing infrastructure
+implementation will be event-based instead of the original Osprofiler version.
+""")
+
 
 _PROFILER_OPTS = [
     _enabled_opt,
@@ -144,7 +152,8 @@ _PROFILER_OPTS = [
     _es_scroll_time_opt,
     _es_scroll_size_opt,
     _socket_timeout_opt,
-    _sentinel_service_name_opt
+    _sentinel_service_name_opt,
+    _framework_opt
 ]
 
 cfg.CONF.register_opts(_PROFILER_OPTS, group=_profiler_opt_group)
@@ -153,7 +162,8 @@ cfg.CONF.register_opts(_PROFILER_OPTS, group=_profiler_opt_group)
 def set_defaults(conf, enabled=None, trace_sqlalchemy=None, hmac_keys=None,
                  connection_string=None, es_doc_type=None,
                  es_scroll_time=None, es_scroll_size=None,
-                 socket_timeout=None, sentinel_service_name=None):
+                 socket_timeout=None, sentinel_service_name=None,
+                 framework=None):
     conf.register_opts(_PROFILER_OPTS, group=_profiler_opt_group)
 
     if enabled is not None:
@@ -188,6 +198,10 @@ def set_defaults(conf, enabled=None, trace_sqlalchemy=None, hmac_keys=None,
 
     if sentinel_service_name is not None:
         conf.set_default("sentinel_service_name", sentinel_service_name,
+                         group=_profiler_opt_group.name)
+
+    if framework is not None:
+        conf.set_default("framework", framework,
                          group=_profiler_opt_group.name)
 
 

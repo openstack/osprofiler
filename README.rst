@@ -1,3 +1,16 @@
+==================================
+OSProfiler -- BU framework version
+==================================
+
+This is the OSProfiler adapted BU tracing framework.
+
+This branch is a direct fork of ``stable/pike``. Major changes include:
+
+* Move from span-based model (tree graph style) to event/path-based model (DAG style).
+
+
+.. Change things from this point on
+
 ========================
 Team and repository tags
 ========================

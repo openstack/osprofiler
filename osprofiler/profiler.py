@@ -1,4 +1,6 @@
+# Copyright 2017-2018 Massachusetts Open Cloud.
 # Copyright 2014 Mirantis Inc.
+#
 # All Rights Reserved.
 #
 #    Licensed under the Apache License, Version 2.0 (the "License"); you may
@@ -13,6 +15,20 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
+# In the implementation of osprofiler, trace instances are initialized once for
+# both start and stop trace points.
+# TODO: to implement path-based model, we have two ways to go:
+#   1. we can just start two span, one for start and one for stop,
+#   2. or modify the behavior of current profiler to capture and substitute
+# tracepoint id.
+#
+# BU framework change list(shwsun):
+#   * the way that tracepoint_id and parent_tracepoint_id are generated and
+#   populated in trace_stack
+#   * FIXME enforce the parent when start func stop? Func start shouldn't need
+#   any more changes.
+
+
 import collections
 import datetime
 import functools
@@ -20,11 +36,8 @@ import inspect
 import socket
 import threading
 
-from oslo_utils import reflection
-from oslo_utils import uuidutils
-
+from oslo_utils import reflection, uuidutils
 from osprofiler import notifier
-
 
 # NOTE(boris-42): Thread safe storage for profiler instances.
 __local_ctx = threading.local()
@@ -328,12 +341,17 @@ class Trace(object):
 
 
 class _Profiler(object):
+    """Private Profiler class.
+    """
 
     def __init__(self, hmac_key, base_id=None, parent_id=None,
                  connection_str=None, project=None, service=None):
         self.hmac_key = hmac_key
         if not base_id:
+            # occasionally provide base_id
             base_id = str(uuidutils.generate_uuid())
+
+        # empty the trace_stack
         self._trace_stack = collections.deque([base_id, parent_id or base_id])
         self._name = collections.deque()
         self._host = socket.gethostname()
@@ -346,6 +364,9 @@ class _Profiler(object):
 
         Base id is the same for all elements in one trace. It's main goal is
         to be able to retrieve by one request all trace elements from storage.
+
+        This function is invoked in instrumentation to get the base_id (id for
+        the full trace).
         """
         return self._trace_stack[0]
 
@@ -354,7 +375,23 @@ class _Profiler(object):
         return self._trace_stack[-2]
 
     def get_id(self):
-        """Returns current trace element id."""
+        """Returns current trace element id.
+
+        This function is invoked in instrumentation to pass in the current
+        trace_id (span id) as the parent_id.
+        """
+        return self._trace_stack[-1]
+
+    # PoC, only here to represent the right function to capture the
+    # parent_tracepoint_id. 
+    def get_parent_tracepoint_id(self):
+        """Returns parent trace point id."""
+        return self._trace_stack[-2]
+
+    # PoC, only here to represent the right function to capture the
+    # tracepoint_id. 
+    def get_tracepoint_id(self):
+        """Returns current trace point id."""
         return self._trace_stack[-1]
 
     def start(self, name, info=None):
@@ -366,6 +403,32 @@ class _Profiler(object):
         parent_id - to build tree of events (not just a list)
         trace_id - current event id.
 
+        @param name: name of trace element (db, wsgi, rpc, etc..)
+        @param info: Dictionary with any useful information related to this
+                     trace element. (sql request, rpc message or url...)
+        """
+
+        info = info or {}
+        info["host"] = self._host
+        info["project"] = self._project
+        info["service"] = self._service
+        self._name.append(name)
+
+        # NOTE(shwsun): Base_id is setup by default. Parent_tracepoint id is
+        # setup to be the previous tracepoint_id. Now generate current
+        # tracepoint_id and push to the trace stack.
+
+        # implicitly generate tracepoint_id instead of trace_id
+        self._trace_stack.append(str(uuidutils.generate_uuid()))
+        self._notify("%s-start (BU framework enabled)" % name, info)
+
+    def start_original(self, name, info=None):
+        """Start new event.
+        Adds new trace_id to trace stack and sends notification
+        to collector (may be ceilometer). With "info" and 3 ids:
+        base_id - to be able to retrieve all trace elements by one query
+        parent_id - to build tree of events (not just a list)
+        trace_id - current event id.
         :param name: name of trace element (db, wsgi, rpc, etc..)
         :param info: Dictionary with any useful information related to this
                      trace element. (sql request, rpc message or url...)
@@ -384,6 +447,35 @@ class _Profiler(object):
 
         Same as a start, but instead of pushing trace_id to stack it pops it.
 
+        @param info: Dict with useful info. It will be send in notification.
+        """
+        info = info or {}
+        info["host"] = self._host
+        info["project"] = self._project
+        info["service"] = self._service
+
+        # NOTE(shwsun): Originally func stop will keep based_id and parent_id,
+        # and pop trace_id. In this way all the sub-requests will share the same
+        # base_id and parent_id but have individual trace_id.
+        #
+        # In our framework we break the span into two events (i.e. start and
+        # stop are treated as two distinct events). Thus the base_id will still
+        # remain untouched, but the parent_id (parent_tracepoint_id in our
+        # syntax) will be the last element in the trace_stack.
+
+        # Current parent_tracepoint_id will be substituted by current
+        # tracepoint_id.
+        current_tp_id = self._trace_stack.pop()
+        self._trace_stack.pop()  # we don't care about parent_tracepoint_id
+        self._trace_stack.append(current_tp_id)
+        # Then we generate a new trace point id for func stop. 
+        self._trace_stack.append(str(uuidutils.generate_uuid()))
+        # Now we can do the notification
+        self._notify("%s-stop (BU framework enabled)" % self._name.pop(), info)
+
+    def stop_original(self, info=None):
+        """Finish latest event.
+        Same as a start, but instead of pushing trace_id to stack it pops it.
         :param info: Dict with useful info. It will be send in notification.
         """
         info = info or {}
@@ -399,6 +491,8 @@ class _Profiler(object):
             "base_id": self.get_base_id(),
             "trace_id": self.get_id(),
             "parent_id": self.get_parent_id(),
+            "tracepoint_id": self.get_tracepoint_id(),
+            "parent_tracepoint_id": self.get_parent_tracepoint_id(),
             "timestamp": datetime.datetime.utcnow().strftime(
                 "%Y-%m-%dT%H:%M:%S.%f"),
         }
