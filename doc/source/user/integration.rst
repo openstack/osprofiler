@@ -126,9 +126,9 @@ I think that for all projects we should include by default 5 kinds of points:
 * ALL SQL requests (turned off by default, because it produce a lot of
   traffic)
 
-.. _CONF: http://docs.openstack.org/developer/oslo.config/
-.. _HMAC: http://en.wikipedia.org/wiki/Hash-based_message_authentication_code
-.. _OpenStack: http://openstack.org/
+.. _CONF: https://docs.openstack.org/oslo.config/latest/
+.. _HMAC: https://en.wikipedia.org/wiki/Hash-based_message_authentication_code
+.. _OpenStack: https://www.openstack.org/
 .. _Ceilometer: https://wiki.openstack.org/wiki/Ceilometer
 .. _oslo.messaging: https://pypi.python.org/pypi/oslo.messaging
 .. _OSprofiler WSGI middleware: https://github.com/openstack/osprofiler/blob/master/osprofiler/web.py
