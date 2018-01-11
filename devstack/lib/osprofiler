@@ -36,9 +36,6 @@ for i in $(seq 1 ${NOVA_NUM_CELLS}); do
     CONF_FILES+=(${conf})
 done
 
-# This will update CEILOMETER_NOTIFICATION_TOPICS in ceilometer.conf file
-export CEILOMETER_NOTIFICATION_TOPICS=notifications,profiler
-
 
 # Functions
 # ---------
@@ -85,11 +82,6 @@ function configure_osprofiler() {
         VAL=$(iniget $Q_API_PASTE_FILE composite:neutronapi_v2_0 keystone)
         VAL=${VAL/catch_errors/catch_errors osprofiler}
         iniset $Q_API_PASTE_FILE composite:neutronapi_v2_0 keystone "$VAL"
-    fi
-
-    if [ -f $CEILOMETER_CONF ]
-    then
-        iniset $CEILOMETER_CONF event store_raw info
     fi
 }
 

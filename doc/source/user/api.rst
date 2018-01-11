@@ -232,8 +232,8 @@ Available commands:
      $ osprofiler trace show <trace_id> --json/--html --out /path/to/file
 
 * In latest versions of OSProfiler with storage drivers (e.g. MongoDB (URI:
-  ``mongodb://``), Messaging (URI: ``messaging://``), and Ceilometer
-  (URI: ``ceilometer://``)) ``--connection-string`` parameter should be set up:
+  ``mongodb://``), Messaging (URI: ``messaging://``))
+  ``--connection-string`` parameter should be set up:
 
   .. parsed-literal::
 

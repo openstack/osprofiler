@@ -378,7 +378,7 @@ class _Profiler(object):
         """Start new event.
 
         Adds new trace_id to trace stack and sends notification
-        to collector (may be ceilometer). With "info" and 3 ids:
+        to collector. With "info" and 3 ids:
         base_id - to be able to retrieve all trace elements by one query
         parent_id - to build tree of events (not just a list)
         trace_id - current event id.

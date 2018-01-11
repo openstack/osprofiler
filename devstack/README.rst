@@ -10,11 +10,11 @@ that control this:
 
 * ``OSPROFILER_COLLECTOR`` specifies which collector to install in DevStack.
   By default OSProfiler plugin does not install anything, thus default
-  messaging driver with Ceilometer storage will be used.
+  messaging driver will be used.
 
   Possible values:
 
-  * ``<empty>`` - default messaging driver with Ceilometer is used
+  * ``<empty>`` - default messaging driver is used
   * ``redis`` - Redis is installed
 
   The default value of ``OSPROFILER_CONNECTION_STRING`` is set automatically
@@ -50,13 +50,6 @@ file and add the following to ``[[local|localrc]]`` section:
   ``OSPROFILER_CONNECTION_STRING`` variable (refer to the next section for
   details)
 
-* to use default Ceilometer driver::
-
-      enable_plugin panko https://git.openstack.org/openstack/panko master
-      enable_plugin ceilometer https://git.openstack.org/openstack/ceilometer master
-      enable_plugin osprofiler https://git.openstack.org/openstack/osprofiler master
-
-  Note: the order of enabling plugins matters.
 
 Run DevStack as normal::
 
@@ -74,7 +67,7 @@ a comma-separated list of string values::
     OSPROFILER_HMAC_KEYS=swordfish,foxtrot,charlie
 
 **OSPROFILER_CONNECTION_STRING** - connection string to identify the driver.
-Default value is ``messaging://`` refers to Ceilometer driver. For a full
+Default value is ``messaging://`` refers to messaging driver. For a full
 list of drivers please refer to
 ``http://git.openstack.org/cgit/openstack/osprofiler/tree/osprofiler/drivers``.
 Example: enable ElasticSearch driver with the server running on localhost::
@@ -83,7 +76,7 @@ Example: enable ElasticSearch driver with the server running on localhost::
 
 **OSPROFILER_COLLECTOR** - controls which collector to install into DevStack.
 The driver is then chosen automatically based on the collector. Empty value assumes
-that the default messaging driver with Ceilometer is used.
+that the default messaging driver is used.
 Example: enable Redis collector::
 
     OSPROFILER_COLLECTOR=redis

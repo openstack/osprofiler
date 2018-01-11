@@ -32,11 +32,10 @@ class TraceCommands(BaseCommand):
 
     @cliutils.arg("trace", help="File with trace or trace id")
     @cliutils.arg("--connection-string", dest="conn_str",
-                  default=(cliutils.env("OSPROFILER_CONNECTION_STRING") or
-                           "ceilometer://"),
+                  default=(cliutils.env("OSPROFILER_CONNECTION_STRING")),
+                  required=True,
                   help="Storage driver's connection string. Defaults to "
-                       "env[OSPROFILER_CONNECTION_STRING] if set, else "
-                       "ceilometer://")
+                       "env[OSPROFILER_CONNECTION_STRING] if set")
     @cliutils.arg("--transport-url", dest="transport_url",
                   help="Oslo.messaging transport URL (for messaging:// driver "
                        "only), e.g. rabbit://user:password@host:5672/")
@@ -74,8 +73,6 @@ class TraceCommands(BaseCommand):
                    "used in the command." % args.trace)
             raise exc.CommandError(msg)
 
-        # NOTE(ayelistratov): Ceilometer translates datetime objects to
-        # strings, other drivers store this data in ISO Date format.
         # Since datetime.datetime is not JSON serializable by default,
         # this method will handle that.
         def datetime_json_serialize(obj):

@@ -34,42 +34,13 @@ class ShellTestCase(test.TestCase):
     def setUp(self):
         super(ShellTestCase, self).setUp()
         self.old_environment = os.environ.copy()
-        os.environ = {
-            "OS_USERNAME": "username",
-            "OS_USER_ID": "user_id",
-            "OS_PASSWORD": "password",
-            "OS_USER_DOMAIN_ID": "user_domain_id",
-            "OS_USER_DOMAIN_NAME": "user_domain_name",
-            "OS_PROJECT_DOMAIN_ID": "project_domain_id",
-            "OS_PROJECT_DOMAIN_NAME": "project_domain_name",
-            "OS_PROJECT_ID": "project_id",
-            "OS_PROJECT_NAME": "project_name",
-            "OS_TENANT_ID": "tenant_id",
-            "OS_TENANT_NAME": "tenant_name",
-            "OS_AUTH_URL": "http://127.0.0.1:5000/v3/",
-            "OS_AUTH_TOKEN": "pass",
-            "OS_CACERT": "/path/to/cacert",
-            "OS_SERVICE_TYPE": "service_type",
-            "OS_ENDPOINT_TYPE": "public",
-            "OS_REGION_NAME": "test"
-        }
-
-        self.ceiloclient = mock.MagicMock()
-        sys.modules["ceilometerclient"] = self.ceiloclient
-        self.addCleanup(sys.modules.pop, "ceilometerclient", None)
-        ceilo_modules = ["client", "shell"]
-        for module in ceilo_modules:
-            sys.modules["ceilometerclient.%s" % module] = getattr(
-                self.ceiloclient, module)
-            self.addCleanup(
-                sys.modules.pop, "ceilometerclient.%s" % module, None)
 
     def tearDown(self):
         super(ShellTestCase, self).tearDown()
         os.environ = self.old_environment
 
     def _trace_show_cmd(self, format_=None):
-        cmd = "trace show %s" % self.TRACE_ID
+        cmd = "trace show --connection-string redis:// %s" % self.TRACE_ID
         return cmd if format_ is None else "%s --%s" % (cmd, format_)
 
     @mock.patch("sys.stdout", six.StringIO())
@@ -92,38 +63,14 @@ class ShellTestCase(test.TestCase):
                 "Expected: `osprofiler.exc.CommandError` is raised with "
                 "message: '%s'." % expected_message)
 
-    def test_trace_show_ceilometerclient_is_missed(self):
-        sys.modules["ceilometerclient"] = None
-        sys.modules["ceilometerclient.client"] = None
-        sys.modules["ceilometerclient.shell"] = None
-
-        msg = ("To use this command, you should install "
-               "'ceilometerclient' manually. Use command:\n "
-               "'pip install python-ceilometerclient'.")
-        self._test_with_command_error(self._trace_show_cmd(), msg)
-
-    def test_trace_show_unauthorized(self):
-        class FakeHTTPUnauthorized(Exception):
-            http_status = 401
-
-        self.ceiloclient.client.get_client.side_effect = FakeHTTPUnauthorized
-
-        msg = "Invalid OpenStack Identity credentials."
-        self._test_with_command_error(self._trace_show_cmd(), msg)
-
-    def test_trace_show_unknown_error(self):
-        self.ceiloclient.client.get_client.side_effect = Exception("test")
-        msg = "Error occurred while connecting to Ceilometer: test."
-        self._test_with_command_error(self._trace_show_cmd(), msg)
-
-    @mock.patch("osprofiler.drivers.ceilometer.Ceilometer.get_report")
+    @mock.patch("osprofiler.drivers.redis_driver.Redis.get_report")
     def test_trace_show_no_selected_format(self, mock_get):
         mock_get.return_value = self._create_mock_notifications()
         msg = ("You should choose one of the following output formats: "
                "json, html or dot.")
         self._test_with_command_error(self._trace_show_cmd(), msg)
 
-    @mock.patch("osprofiler.drivers.ceilometer.Ceilometer.get_report")
+    @mock.patch("osprofiler.drivers.redis_driver.Redis.get_report")
     @ddt.data(None, {"info": {"started": 0, "finished": 1, "name": "total"},
                      "children": []})
     def test_trace_show_trace_id_not_found(self, notifications, mock_get):
@@ -153,7 +100,7 @@ class ShellTestCase(test.TestCase):
         return notifications
 
     @mock.patch("sys.stdout", six.StringIO())
-    @mock.patch("osprofiler.drivers.ceilometer.Ceilometer.get_report")
+    @mock.patch("osprofiler.drivers.redis_driver.Redis.get_report")
     def test_trace_show_in_json(self, mock_get):
         notifications = self._create_mock_notifications()
         mock_get.return_value = notifications
@@ -164,7 +111,7 @@ class ShellTestCase(test.TestCase):
                          sys.stdout.getvalue())
 
     @mock.patch("sys.stdout", six.StringIO())
-    @mock.patch("osprofiler.drivers.ceilometer.Ceilometer.get_report")
+    @mock.patch("osprofiler.drivers.redis_driver.Redis.get_report")
     def test_trace_show_in_html(self, mock_get):
         notifications = self._create_mock_notifications()
         mock_get.return_value = notifications
@@ -193,7 +140,7 @@ class ShellTestCase(test.TestCase):
                              sys.stdout.getvalue())
 
     @mock.patch("sys.stdout", six.StringIO())
-    @mock.patch("osprofiler.drivers.ceilometer.Ceilometer.get_report")
+    @mock.patch("osprofiler.drivers.redis_driver.Redis.get_report")
     def test_trace_show_write_to_file(self, mock_get):
         notifications = self._create_mock_notifications()
         mock_get.return_value = notifications

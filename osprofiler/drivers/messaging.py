@@ -83,9 +83,7 @@ class Messaging(base.Driver):
         :param info:  Contains information about trace element.
                       In payload dict there are always 3 ids:
                       "base_id" - uuid that is common for all notifications
-                                  related to one trace. Used to simplify
-                                  retrieving of all trace elements from
-                                  Ceilometer.
+                                  related to one trace.
                       "parent_id" - uuid of parent element in trace
                       "trace_id" - uuid of current element in trace
 
