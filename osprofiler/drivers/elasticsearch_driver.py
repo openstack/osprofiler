@@ -90,15 +90,14 @@ class ElasticsearchDriver(base.Driver):
 
         return result
 
-    def list_traces(self, query={"match_all": {}}, fields=[]):
+    def list_traces(self, fields=None):
         """Returns array of all base_id fields that match the given criteria
 
         :param query: dict that specifies the query criteria
         :param fields: iterable of strings that specifies the output fields
         """
-        for base_field in ["base_id", "timestamp"]:
-            if base_field not in fields:
-                fields.append(base_field)
+        query = {"match_all": {}}
+        fields = set(fields or self.default_trace_fields)
 
         response = self.client.search(index=self.index_name,
                                       doc_type=self.conf.profiler.es_doc_type,

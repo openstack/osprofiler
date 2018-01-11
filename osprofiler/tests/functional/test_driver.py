@@ -126,3 +126,30 @@ class RedisDriverTestCase(DriverTestCase):
                           enabled=True,
                           trace_sqlalchemy=False,
                           hmac_keys="SECRET_KEY")
+
+    def test_list_traces(self):
+        # initialize profiler notifier (the same way as in services)
+        initializer.init_from_conf(
+            CONF, {}, self.PROJECT, self.SERVICE, "host")
+        profiler.init("SECRET_KEY")
+
+        # grab base_id
+        base_id = profiler.get().get_base_id()
+
+        # execute profiled code
+        foo = Foo()
+        foo.bar(1)
+
+        # instantiate report engine (the same way as in osprofiler CLI)
+        engine = base.get_driver(CONF.profiler.connection_string,
+                                 project=self.PROJECT,
+                                 service=self.SERVICE,
+                                 host="host",
+                                 conf=CONF)
+
+        # generate the report
+        traces = engine.list_traces()
+        LOG.debug("Collected traces: %s", traces)
+
+        # ensure trace with base_id is in the list of traces
+        self.assertIn(base_id, [t["base_id"] for t in traces])

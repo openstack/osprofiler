@@ -168,7 +168,7 @@ class TraceCommands(BaseCommand):
         fields = ("base_id", "timestamp")
         pretty_table = prettytable.PrettyTable(fields)
         pretty_table.align = "l"
-        traces = engine.list_traces({}, fields)
+        traces = engine.list_traces(fields)
         for trace in traces:
             row = [trace[field] for field in fields]
             pretty_table.add_row(row)
