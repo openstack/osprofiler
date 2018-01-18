@@ -55,8 +55,9 @@ def init(hmac_key, base_id=None, parent_id=None):
     :param parent_id: Used to build tree of traces.
     :returns: Profiler instance
     """
-    __local_ctx.profiler = _Profiler(hmac_key, base_id=base_id,
-                                     parent_id=parent_id)
+    if get() is None:
+        __local_ctx.profiler = _Profiler(hmac_key, base_id=base_id,
+                                         parent_id=parent_id)
     return __local_ctx.profiler
 
 
