@@ -28,6 +28,14 @@ CONF_FILES=(
     $ZUN_CONF
 )
 
+# Add config files of Nova Cells
+NOVA_NUM_CELLS=${NOVA_NUM_CELLS:-1}
+for i in $(seq 1 ${NOVA_NUM_CELLS}); do
+    # call function `conductor_conf` defined in lib/nova to get file name
+    conf=$(conductor_conf $i)
+    CONF_FILES+=(${conf})
+done
+
 # This will update CEILOMETER_NOTIFICATION_TOPICS in ceilometer.conf file
 export CEILOMETER_NOTIFICATION_TOPICS=notifications,profiler
 
