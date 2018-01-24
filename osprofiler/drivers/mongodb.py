@@ -60,13 +60,16 @@ class MongoDB(base.Driver):
         data["service"] = self.service
         self.db.profiler.insert_one(data)
 
-    def list_traces(self, query, fields=[]):
-        """Returns array of all base_id fields that match the given criteria
+    def list_traces(self, fields=None):
+        """Query all traces from the storage.
 
-        :param query: dict that specifies the query criteria
-        :param fields: iterable of strings that specifies the output fields
+        :param fields: Set of trace fields to return. Defaults to 'base_id'
+               and 'timestamp'
+        :return List of traces, where each trace is a dictionary containing
+                at least `base_id` and `timestamp`.
         """
-        ids = self.db.profiler.find(query).distinct("base_id")
+        fields = set(fields or self.default_trace_fields)
+        ids = self.db.profiler.find("*").distinct("base_id")
         out_format = {"base_id": 1, "timestamp": 1, "_id": 0}
         out_format.update({i: 1 for i in fields})
         return [self.db.profiler.find(

@@ -53,6 +53,8 @@ class Driver(object):
     and implemented by any class derived from this class.
     """
 
+    default_trace_fields = {"base_id", "timestamp"}
+
     def __init__(self, connection_str, project=None, service=None, host=None):
         self.connection_str = connection_str
         self.project = project
@@ -101,11 +103,13 @@ class Driver(object):
         """Returns backend specific name for the driver."""
         return cls.__name__
 
-    def list_traces(self, query, fields):
-        """Returns array of all base_id fields that match the given criteria
+    def list_traces(self, fields=None):
+        """Query all traces from the storage.
 
-        :param query: dict that specifies the query criteria
-        :param fields: iterable of strings that specifies the output fields
+        :param fields: Set of trace fields to return. Defaults to 'base_id'
+               and 'timestamp'
+        :return List of traces, where each trace is a dictionary containing
+                at least `base_id` and `timestamp`.
         """
         raise NotImplementedError("{0}: This method is either not supported "
                                   "or has to be overridden".format(

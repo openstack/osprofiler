@@ -70,21 +70,29 @@ class Redis(base.Driver):
             data["timestamp"]
         self.db.set(key, jsonutils.dumps(data))
 
-    def list_traces(self, query="*", fields=[]):
-        """Returns array of all base_id fields that match the given criteria
+    def list_traces(self, fields=None):
+        """Query all traces from the storage.
 
-        :param query: string that specifies the query criteria
-        :param fields: iterable of strings that specifies the output fields
+        :param fields: Set of trace fields to return. Defaults to 'base_id'
+               and 'timestamp'
+        :return List of traces, where each trace is a dictionary containing
+                at least `base_id` and `timestamp`.
         """
-        for base_field in ["base_id", "timestamp"]:
-            if base_field not in fields:
-                fields.append(base_field)
-        ids = self.db.scan_iter(match=self.namespace + query)
+        fields = set(fields or self.default_trace_fields)
+
+        # With current schema every event is stored under its own unique key
+        # To query all traces we first need to get all keys, then
+        # get all events, sort them and pick up only the first one
+        ids = self.db.scan_iter(match=self.namespace + "*")
         traces = [jsonutils.loads(self.db.get(i)) for i in ids]
+        traces.sort(key=lambda x: x["timestamp"])
+        seen_ids = set()
         result = []
         for trace in traces:
-            result.append({key: value for key, value in trace.iteritems()
-                           if key in fields})
+            if trace["base_id"] not in seen_ids:
+                seen_ids.add(trace["base_id"])
+                result.append({key: value for key, value in trace.items()
+                               if key in fields})
         return result
 
     def get_report(self, base_id):
