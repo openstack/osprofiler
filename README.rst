@@ -12,11 +12,11 @@ Team and repository tags
 ===========================================================
 
 .. image:: https://img.shields.io/pypi/v/osprofiler.svg
-    :target: https://pypi.python.org/pypi/osprofiler/
+    :target: https://pypi.org/project/osprofiler/
     :alt: Latest Version
 
 .. image:: https://img.shields.io/pypi/dm/osprofiler.svg
-    :target: https://pypi.python.org/pypi/osprofiler/
+    :target: https://pypi.org/project/osprofiler/
     :alt: Downloads
 
 OSProfiler provides a tiny but powerful library that is used by

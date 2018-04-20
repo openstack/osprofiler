@@ -130,5 +130,5 @@ I think that for all projects we should include by default 5 kinds of points:
 .. _HMAC: https://en.wikipedia.org/wiki/Hash-based_message_authentication_code
 .. _OpenStack: https://www.openstack.org/
 .. _Ceilometer: https://wiki.openstack.org/wiki/Ceilometer
-.. _oslo.messaging: https://pypi.python.org/pypi/oslo.messaging
+.. _oslo.messaging: https://pypi.org/project/oslo.messaging
 .. _OSprofiler WSGI middleware: https://github.com/openstack/osprofiler/blob/master/osprofiler/web.py
