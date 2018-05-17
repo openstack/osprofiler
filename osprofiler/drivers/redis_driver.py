@@ -23,7 +23,7 @@ from osprofiler import exc
 
 
 class Redis(base.Driver):
-    def __init__(self, connection_str, db=0, project=None,
+    def __init__(self, connection_str, project=None,
                  service=None, host=None, conf=cfg.CONF, **kwargs):
         """Redis driver for OSProfiler."""
 
@@ -38,10 +38,9 @@ class Redis(base.Driver):
                 "'redis' manually. Use command:\n "
                 "'pip install redis'.")
 
-        parsed_url = parser.urlparse(self.connection_str)
-        self.db = StrictRedis(host=parsed_url.hostname,
-                              port=parsed_url.port,
-                              db=db)
+        # only connection over network is supported with schema
+        # redis://[:password]@host[:port][/db]
+        self.db = StrictRedis.from_url(self.connection_str)
         self.namespace = "osprofiler:"
         self.namespace_error = "osprofiler_error:"
 
@@ -147,7 +146,7 @@ class Redis(base.Driver):
 
 
 class RedisSentinel(Redis, base.Driver):
-    def __init__(self, connection_str, db=0, project=None,
+    def __init__(self, connection_str, project=None,
                  service=None, host=None, conf=cfg.CONF, **kwargs):
         """Redis driver for OSProfiler."""
 
