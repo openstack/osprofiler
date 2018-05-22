@@ -201,7 +201,7 @@ OSProfiler CLI.
 
 To make it easier for end users to work with profiler from CLI, OSProfiler
 has entry point that allows them to retrieve information about traces and
-present it in human readable from.
+present it in human readable form.
 
 Available commands:
 
