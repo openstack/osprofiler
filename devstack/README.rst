@@ -25,7 +25,7 @@ that control this:
   Possible values:
 
   * ``messaging://`` - use messaging as trace collector (with the transport configured by oslo.messaging)
-  * ``redis://host:port`` - use Redis as trace storage
+  * ``redis://[:password]@host[:port][/db]`` - use Redis as trace storage
   * ``elasticsearch://host:port`` - use Elasticsearch as trace storage
   * ``mongodb://host:port`` - use MongoDB as trace storage
   * ``loginsight://username:password@host`` - use LogInsight as trace collector/storage

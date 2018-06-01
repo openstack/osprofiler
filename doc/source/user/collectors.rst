@@ -26,8 +26,9 @@ Redis
 * Usage
 
   The driver is used by OSProfiler when using a connection-string URL
-  of the form redis://<hostname>:<port>. To use the Sentinel version
-  use a connection-string of the form redissentinel://<hostname>:<port>
+  of the form redis://[:password]@host[:port][/db]. To use the Sentinel version
+  use a connection-string of the form
+  redissentinel://[:password]@host[:port][/db]
 
 * Configuration
 
