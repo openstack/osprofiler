@@ -87,10 +87,11 @@ sets the notifier to oslo_messaging.
 
 Examples of possible values:
 
-* messaging://: use oslo_messaging driver for sending notifications.
-* mongodb://127.0.0.1:27017 : use mongodb driver for sending notifications.
-* elasticsearch://127.0.0.1:9200 : use elasticsearch driver for sending
-notifications.
+* messaging:// - use oslo_messaging driver for sending spans.
+* redis://127.0.0.1:6379 - use redis driver for sending spans.
+* mongodb://127.0.0.1:27017 - use mongodb driver for sending spans.
+* elasticsearch://127.0.0.1:9200 - use elasticsearch driver for sending spans.
+* jaeger://127.0.0.1:6831 - use jaeger tracing as driver for sending spans.
 """)
 
 _es_doc_type_opt = cfg.StrOpt(

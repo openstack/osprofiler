@@ -22,3 +22,7 @@ redis # MIT
 
 # Build release notes
 reno # Apache-2.0
+
+# For Jaeger Tracing
+jaeger-client # Apache-2.0
+futures;python_version=='2.7' or python_version=='2.6' # PSF
