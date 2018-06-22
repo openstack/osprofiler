@@ -28,38 +28,40 @@ _profiler_opt_group = cfg.OptGroup(
     help="""
 OSprofiler library allows to trace requests going through various OpenStack
 services and create the accumulated report of what time was spent on each
-request processing step.""")
+request processing step.
+""")
 
 _enabled_opt = cfg.BoolOpt(
     "enabled",
     default=False,
     deprecated_name="profiler_enabled",
     help="""
-Enables the profiling for all services on this node. Default value is False
-(fully disable the profiling feature).
+Enable the profiling for all services on this node.
+
+Default value is False (fully disable the profiling feature).
 
 Possible values:
 
 * True: Enables the feature
 * False: Disables the feature. The profiling cannot be started via this project
-operations. If the profiling is triggered by another project, this project part
-will be empty.
+  operations. If the profiling is triggered by another project, this project
+  part will be empty.
 """)
 
 _trace_sqlalchemy_opt = cfg.BoolOpt(
     "trace_sqlalchemy",
     default=False,
     help="""
-Enables SQL requests profiling in services. Default value is False (SQL
-requests won't be traced).
+Enable SQL requests profiling in services.
+
+Default value is False (SQL requests won't be traced).
 
 Possible values:
 
 * True: Enables SQL requests profiling. Each SQL query will be part of the
-trace and can the be analyzed by how much time was spent for that.
+  trace and can the be analyzed by how much time was spent for that.
 * False: Disables SQL requests profiling. The spent time is only shown on a
-higher level of operations. Single SQL queries cannot be analyzed this
-way.
+  higher level of operations. Single SQL queries cannot be analyzed this way.
 """)
 
 _hmac_keys_opt = cfg.StrOpt(
@@ -67,6 +69,7 @@ _hmac_keys_opt = cfg.StrOpt(
     default="SECRET_KEY",
     help="""
 Secret key(s) to use for encrypting context data for performance profiling.
+
 This string value should have the following format: <key1>[,<key2>,...<keyn>],
 where each key is some random string. A user who triggers the profiling via
 the REST API has to set one of these keys in the headers of the REST API call
@@ -76,22 +79,25 @@ Both "enabled" flag and "hmac_keys" config options should be set to enable
 profiling. Also, to generate correct profiling information across all services
 at least one key needs to be consistent between OpenStack projects. This
 ensures it can be used from client side to generate the trace, containing
-information from all possible resources.""")
+information from all possible resources.
+""")
 
 _connection_string_opt = cfg.StrOpt(
     "connection_string",
     default="messaging://",
     help="""
-Connection string for a notifier backend. Default value is messaging:// which
-sets the notifier to oslo_messaging.
+Connection string for a notifier backend.
+
+Default value is ``messaging://`` which sets the notifier to oslo_messaging.
 
 Examples of possible values:
 
-* messaging:// - use oslo_messaging driver for sending spans.
-* redis://127.0.0.1:6379 - use redis driver for sending spans.
-* mongodb://127.0.0.1:27017 - use mongodb driver for sending spans.
-* elasticsearch://127.0.0.1:9200 - use elasticsearch driver for sending spans.
-* jaeger://127.0.0.1:6831 - use jaeger tracing as driver for sending spans.
+* ``messaging://`` - use oslo_messaging driver for sending spans.
+* ``redis://127.0.0.1:6379`` - use redis driver for sending spans.
+* ``mongodb://127.0.0.1:27017`` - use mongodb driver for sending spans.
+* ``elasticsearch://127.0.0.1:9200`` - use elasticsearch driver for sending
+  spans.
+* ``jaeger://127.0.0.1:6831`` - use jaeger tracing as driver for sending spans.
 """)
 
 _es_doc_type_opt = cfg.StrOpt(
@@ -132,7 +138,7 @@ _sentinel_service_name_opt = cfg.StrOpt(
     help="""
 Redissentinel uses a service name to identify a master redis service.
 This parameter defines the name (for example:
-sentinal_service_name=mymaster).
+``sentinal_service_name=mymaster``).
 """)
 
 _filter_error_trace = cfg.BoolOpt(
@@ -140,6 +146,7 @@ _filter_error_trace = cfg.BoolOpt(
     default=False,
     help="""
 Enable filter traces that contain error/exception to a separated place.
+
 Default value is set to False.
 
 Possible values:
