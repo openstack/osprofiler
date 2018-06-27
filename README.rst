@@ -30,3 +30,4 @@ reasons (for example in isolating cross-project performance issues).
 * Documentation: https://docs.openstack.org/osprofiler/latest/
 * Source: https://git.openstack.org/cgit/openstack/osprofiler
 * Bugs: https://bugs.launchpad.net/osprofiler
+* Release notes: https://docs.openstack.org/releasenotes/osprofiler
