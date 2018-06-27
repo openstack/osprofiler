@@ -28,7 +28,7 @@ from osprofiler.tests import test
 class ProfilerGlobMethodsTestCase(test.TestCase):
 
     def test_get_profiler_not_inited(self):
-        profiler._clean()
+        profiler.clean()
         self.assertIsNone(profiler.get())
 
     def test_get_profiler_and_init(self):
@@ -40,7 +40,7 @@ class ProfilerGlobMethodsTestCase(test.TestCase):
         self.assertEqual(p.get_id(), "2")
 
     def test_start_not_inited(self):
-        profiler._clean()
+        profiler.clean()
         profiler.start("name")
 
     def test_start(self):
@@ -50,7 +50,7 @@ class ProfilerGlobMethodsTestCase(test.TestCase):
         p.start.assert_called_once_with("name", info="info")
 
     def test_stop_not_inited(self):
-        profiler._clean()
+        profiler.clean()
         profiler.stop()
 
     def test_stop(self):
