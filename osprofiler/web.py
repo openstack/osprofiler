@@ -131,4 +131,4 @@ class WsgiMiddleware(object):
             with profiler.Trace(self.name, info=info):
                 return request.get_response(self.application)
         finally:
-            profiler._clean()
+            profiler.clean()

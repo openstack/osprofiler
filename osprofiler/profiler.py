@@ -31,7 +31,7 @@ from osprofiler import notifier
 __local_ctx = threading.local()
 
 
-def _clean():
+def clean():
     __local_ctx.profiler = None
 
 

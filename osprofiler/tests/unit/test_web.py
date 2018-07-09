@@ -31,8 +31,8 @@ class WebTestCase(test.TestCase):
 
     def setUp(self):
         super(WebTestCase, self).setUp()
-        profiler._clean()
-        self.addCleanup(profiler._clean)
+        profiler.clean()
+        self.addCleanup(profiler.clean)
 
     def test_get_trace_id_headers_no_hmac(self):
         profiler.init(None, base_id="y", parent_id="z")
@@ -61,10 +61,10 @@ class WebTestCase(test.TestCase):
 class WebMiddlewareTestCase(test.TestCase):
     def setUp(self):
         super(WebMiddlewareTestCase, self).setUp()
-        profiler._clean()
+        profiler.clean()
         # it's default state of _ENABLED param, so let's set it here
         web._ENABLED = None
-        self.addCleanup(profiler._clean)
+        self.addCleanup(profiler.clean)
 
     def tearDown(self):
         web.enable()
