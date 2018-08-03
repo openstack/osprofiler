@@ -4,7 +4,19 @@
       jobs:
         - openstack-tox-functional
         - openstack-tox-functional-py35
+        - openstack-tox-cover
     gate:
       jobs:
         - openstack-tox-functional
         - openstack-tox-functional-py35
+    templates:
+      - openstack-python-jobs
+      - openstack-python35-jobs
+      - check-requirements
+      - publish-openstack-docs-pti
+      - release-notes-jobs-python3
+      - lib-forward-testing
+      - periodic-stable-jobs
+    post:
+      jobs:
+        - openstack-tox-cover
