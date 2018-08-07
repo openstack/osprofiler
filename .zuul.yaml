@@ -18,6 +18,7 @@
       - release-notes-jobs-python3
       - lib-forward-testing
       - periodic-stable-jobs
+      - openstack-python36-jobs
     post:
       jobs:
         - openstack-tox-cover
