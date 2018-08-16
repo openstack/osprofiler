@@ -175,6 +175,7 @@ class RedisSentinel(Redis, base.Driver):
         socket_timeout = self.conf.profiler.socket_timeout
         parsed_url = parser.urlparse(self.connection_str)
         sentinel = Sentinel([(parsed_url.hostname, int(parsed_url.port))],
+                            password=parsed_url.password,
                             socket_timeout=socket_timeout)
         self.db = sentinel.master_for(self.conf.profiler.sentinel_service_name,
                                       socket_timeout=socket_timeout)
