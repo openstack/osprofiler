@@ -26,12 +26,13 @@
     name: tempest-full-py3-profiler-enabled
     parent: tempest-full-py3
     voting: false
+    post-run: playbooks/osprofiler-post.yaml
     description: |
       Run full tempest on py3 with profiling enabled
     required-projects:
       - openstack/osprofiler
     vars:
-      tox_envlist: full
+      tox_envlist: smoke
       devstack_localrc:
         OSPROFILER_COLLECTOR: redis
         OSPROFILER_HMAC_KEYS: SECRET_KEY
