@@ -85,6 +85,11 @@ function configure_osprofiler() {
     fi
 }
 
+function configure_osprofiler_in_tempest() {
+
+    iniset $TEMPEST_CONFIG profiler key $OSPROFILER_HMAC_KEYS
+}
+
 
 # Restore xtrace
 $XTRACE

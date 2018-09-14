@@ -15,7 +15,25 @@
       jobs:
         - openstack-tox-functional
         - openstack-tox-functional-py35
+        - tempest-full-py3-profiler-enabled
     gate:
       jobs:
         - openstack-tox-functional
         - openstack-tox-functional-py35
+        - tempest-full-py3-profiler-enabled
+
+- job:
+    name: tempest-full-py3-profiler-enabled
+    parent: tempest-full-py3
+    voting: false
+    description: |
+      Run full tempest on py3 with profiling enabled
+    required-projects:
+      - openstack/osprofiler
+    vars:
+      tox_envlist: full
+      devstack_localrc:
+        OSPROFILER_COLLECTOR: redis
+        OSPROFILER_HMAC_KEYS: SECRET_KEY
+      devstack_plugins:
+        osprofiler: https://git.openstack.org/openstack/osprofiler
