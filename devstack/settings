@@ -5,4 +5,7 @@
 # requests that specify one of these keys in HTTP headers.
 OSPROFILER_HMAC_KEYS=${OSPROFILER_HMAC_KEYS:-"SECRET_KEY"}
 
+# Set whether tracing of SQL requests is enabled or not
+OSPROFILER_TRACE_SQLALCHEMY="True"
+
 enable_service osprofiler

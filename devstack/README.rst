@@ -80,3 +80,9 @@ that the default messaging driver is used.
 Example: enable Redis collector::
 
     OSPROFILER_COLLECTOR=redis
+
+**OSPROFILER_TRACE_SQLALCHEMY** - controls tracing of SQL statements. If enabled,
+all SQL statements processed by SQL Alchemy are added into traces. By default enabled.
+Example: disable SQL statements tracing::
+
+    OSPROFILER_TRACE_SQLALCHEMY=False
