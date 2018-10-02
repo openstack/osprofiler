@@ -153,8 +153,11 @@ def import_modules_from_package(package):
 
 def shorten_id(span_id):
     """Convert from uuid4 to 64 bit id for OpenTracing"""
+    int64_max = (1 << 64) - 1
+    if isinstance(span_id, six.integer_types):
+        return span_id & int64_max
     try:
-        short_id = uuid.UUID(span_id).int & (1 << 64) - 1
+        short_id = uuid.UUID(span_id).int & int64_max
     except ValueError:
         # Return a new short id for this
         short_id = shorten_id(uuidutils.generate_uuid())
