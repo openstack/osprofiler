@@ -7,7 +7,7 @@ set -o xtrace
 
 source $DEST/osprofiler/devstack/lib/osprofiler
 
-if [[ "$1" == "stack" && "$2" == "pre-install" ]]; then
+if [[ "$1" == "stack" && "$2" == "install" ]]; then
     echo_summary "Configuring system services for OSProfiler"
     install_osprofiler_collector
 

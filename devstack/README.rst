@@ -16,6 +16,7 @@ that control this:
 
   * ``<empty>`` - default messaging driver is used
   * ``redis`` - Redis is installed
+  * ``jaeger`` - Jaeger is installed
 
   The default value of ``OSPROFILER_CONNECTION_STRING`` is set automatically
   depending on ``OSPROFILER_COLLECTOR`` value.
@@ -29,6 +30,7 @@ that control this:
   * ``elasticsearch://host:port`` - use Elasticsearch as trace storage
   * ``mongodb://host:port`` - use MongoDB as trace storage
   * ``loginsight://username:password@host`` - use LogInsight as trace collector/storage
+  * ``jaeger://host:port`` - use Jaeger as trace collector
 
 
 To configure DevStack and enable OSProfiler edit ``${DEVSTACK_DIR}/local.conf``

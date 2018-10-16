@@ -56,12 +56,28 @@ function install_redis() {
     pip_install_gr redis
 }
 
+function install_jaeger() {
+    if is_ubuntu; then
+        install_package docker.io
+        start_service docker
+        add_user_to_group stack docker
+        sg docker -c "docker run -d --name jaeger -p 6831:6831/udp -p 16686:16686 jaegertracing/all-in-one:1.7"
+    else
+        exit_distro_not_supported "docker.io installation"
+    fi
+
+    pip_install jaeger-client
+}
+
 function install_osprofiler_collector() {
     if [ -z "$OSPROFILER_COLLECTOR" ]; then
         OSPROFILER_CONNECTION_STRING=${OSPROFILER_CONNECTION_STRING:-"messaging://"}
     elif [ "$OSPROFILER_COLLECTOR" == "redis" ]; then
         install_redis
         OSPROFILER_CONNECTION_STRING=${OSPROFILER_CONNECTION_STRING:-"redis://localhost:6379"}
+    elif [ "$OSPROFILER_COLLECTOR" == "jaeger" ]; then
+        install_jaeger
+        OSPROFILER_CONNECTION_STRING=${OSPROFILER_CONNECTION_STRING:-"jaeger://localhost:6831"}
     else
         die $LINENO "OSProfiler collector $OSPROFILER_COLLECTOR is not supported"
     fi
