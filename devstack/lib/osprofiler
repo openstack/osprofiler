@@ -42,16 +42,18 @@ done
 
 function install_redis() {
     if is_fedora; then
-        install_package redis python-redis
+        install_package redis
     elif is_ubuntu; then
-        install_package redis-server python-redis
+        install_package redis-server
     elif is_suse; then
-        install_package redis python-redis
+        install_package redis
     else
         exit_distro_not_supported "redis installation"
     fi
 
     start_service redis
+
+    pip_install_gr redis
 }
 
 function install_osprofiler_collector() {
