@@ -71,7 +71,7 @@ a comma-separated list of string values::
 **OSPROFILER_CONNECTION_STRING** - connection string to identify the driver.
 Default value is ``messaging://`` refers to messaging driver. For a full
 list of drivers please refer to
-``http://git.openstack.org/cgit/openstack/osprofiler/tree/osprofiler/drivers``.
+``https://git.openstack.org/cgit/openstack/osprofiler/tree/osprofiler/drivers``.
 Example: enable ElasticSearch driver with the server running on localhost::
 
     OSPROFILER_CONNECTION_STRING=elasticsearch://127.0.0.1:9200
