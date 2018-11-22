@@ -17,6 +17,7 @@ import collections
 import datetime
 import functools
 import inspect
+import six
 import socket
 import threading
 
@@ -158,7 +159,10 @@ def trace(name, info=None, hide_args=False, hide_result=True,
                 start(name, info=info_)
                 result = f(*args, **kwargs)
             except Exception as ex:
-                stop_info = {"etype": reflection.get_class_name(ex)}
+                stop_info = {
+                    "etype": reflection.get_class_name(ex),
+                    "message": six.text_type(ex)
+                }
                 raise
             else:
                 if not hide_result:

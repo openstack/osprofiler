@@ -105,6 +105,7 @@ def handle_error(exception_context):
 
     info = {
         "etype": exception_class_name,
+        "message": original_exception,
         "db": {
             "original_exception": original_exception,
             "chained_exception": chained_exception

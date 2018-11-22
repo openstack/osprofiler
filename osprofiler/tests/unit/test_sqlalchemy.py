@@ -62,6 +62,7 @@ class SqlalchemyTracingTestCase(test.TestCase):
         sqlalchemy.handle_error(sqlalchemy_exception_ctx)
         expected_info = {
             "etype": "Exception",
+            "message": "error",
             "db": {
                 "original_exception": str(original_exception),
                 "chained_exception": str(chained_exception),
