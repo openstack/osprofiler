@@ -83,6 +83,20 @@ function install_elasticsearch() {
     pip_install elasticsearch
 }
 
+function install_mongodb {
+    pip_install pymongo
+    if is_ubuntu; then
+        install_package mongodb-server
+        start_service mongodb
+    elif is_fedora; then
+        install_package mongodb
+        install_package mongodb-server
+        start_service mongod
+    else
+        exit_distro_not_supported "mongodb installation"
+    fi
+}
+
 function install_osprofiler_collector() {
     if [ -z "$OSPROFILER_COLLECTOR" ]; then
         OSPROFILER_CONNECTION_STRING=${OSPROFILER_CONNECTION_STRING:-"messaging://"}
@@ -95,6 +109,9 @@ function install_osprofiler_collector() {
     elif [ "$OSPROFILER_COLLECTOR" == "elasticsearch" ]; then
         install_elasticsearch
         OSPROFILER_CONNECTION_STRING=${OSPROFILER_CONNECTION_STRING:-"elasticsearch://elastic:changeme@localhost:9200"}
+    elif [ "$OSPROFILER_COLLECTOR" == "mongodb" ]; then
+        install_mongodb
+        OSPROFILER_CONNECTION_STRING=${OSPROFILER_CONNECTION_STRING:-"mongodb://localhost:27017"}
     else
         die $LINENO "OSProfiler collector $OSPROFILER_COLLECTOR is not supported"
     fi
