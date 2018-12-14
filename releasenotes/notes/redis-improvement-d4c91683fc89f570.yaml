@@ -1,0 +1,16 @@
+---
+features:
+  - |
+    Redis storage schema is optimized for higher performance.
+    Previously Redis driver stored each tracing event under its own key,
+    as result both list and get operations required full scan of the database.
+    With the optimized schema traces are stored as Redis lists under a key
+    equal to trace id. So list operation iterates only over unique
+    trace ids and get operation retrieves content of a specified list.
+    Note that list operation still needs to retrieve at least 1 event
+    from the trace to get a timestamp.
+upgrade:
+  - |
+    The optimized Redis driver is backward compatible: while new events are stored
+    using new schema the driver can retrieve existing events using both old and new
+    schemas.
