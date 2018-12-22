@@ -260,7 +260,7 @@ class TraceDecoratorTestCase(test.TestCase):
                 "name": "osprofiler.tests.unit.test_profiler.test_fn_exc"
             }
         }
-        expected_stop_info = {"etype": "ValueError"}
+        expected_stop_info = {"etype": "ValueError", "message": ""}
         mock_start.assert_called_once_with("foo", info=expected_info)
         mock_stop.assert_called_once_with(info=expected_stop_info)
 
