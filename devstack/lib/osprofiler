@@ -69,6 +69,20 @@ function install_jaeger() {
     pip_install jaeger-client
 }
 
+function install_elasticsearch() {
+    if is_ubuntu; then
+        install_package docker.io
+        start_service docker
+        add_user_to_group $STACK_USER docker
+        # https://www.elastic.co/guide/en/elasticsearch/reference/5.6/docker.html#docker-cli-run-dev-mode
+        sg docker -c 'docker run -d --name elasticsearch -p 9200:9200 -p 9300:9300 -e "discovery.type=single-node" docker.elastic.co/elasticsearch/elasticsearch:5.6.14'
+    else
+        exit_distro_not_supported "docker.io installation"
+    fi
+
+    pip_install elasticsearch
+}
+
 function install_osprofiler_collector() {
     if [ -z "$OSPROFILER_COLLECTOR" ]; then
         OSPROFILER_CONNECTION_STRING=${OSPROFILER_CONNECTION_STRING:-"messaging://"}
@@ -78,6 +92,9 @@ function install_osprofiler_collector() {
     elif [ "$OSPROFILER_COLLECTOR" == "jaeger" ]; then
         install_jaeger
         OSPROFILER_CONNECTION_STRING=${OSPROFILER_CONNECTION_STRING:-"jaeger://localhost:6831"}
+    elif [ "$OSPROFILER_COLLECTOR" == "elasticsearch" ]; then
+        install_elasticsearch
+        OSPROFILER_CONNECTION_STRING=${OSPROFILER_CONNECTION_STRING:-"elasticsearch://elastic:changeme@localhost:9200"}
     else
         die $LINENO "OSProfiler collector $OSPROFILER_COLLECTOR is not supported"
     fi
