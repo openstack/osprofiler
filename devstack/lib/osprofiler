@@ -94,13 +94,6 @@ function configure_osprofiler() {
             iniset $conf profiler connection_string $OSPROFILER_CONNECTION_STRING
         fi
     done
-
-    # Insert osprofiler filter into Neutron paste configuration
-    if [ -f $Q_API_PASTE_FILE ]; then
-        VAL=$(iniget $Q_API_PASTE_FILE composite:neutronapi_v2_0 keystone)
-        VAL=${VAL/catch_errors/catch_errors osprofiler}
-        iniset $Q_API_PASTE_FILE composite:neutronapi_v2_0 keystone "$VAL"
-    fi
 }
 
 
