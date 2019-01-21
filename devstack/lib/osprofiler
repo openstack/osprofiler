@@ -60,7 +60,7 @@ function install_jaeger() {
     if is_ubuntu; then
         install_package docker.io
         start_service docker
-        add_user_to_group stack docker
+        add_user_to_group $STACK_USER docker
         sg docker -c "docker run -d --name jaeger -p 6831:6831/udp -p 16686:16686 jaegertracing/all-in-one:1.7"
     else
         exit_distro_not_supported "docker.io installation"
