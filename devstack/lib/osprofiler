@@ -128,6 +128,9 @@ function configure_osprofiler() {
             iniset $conf profiler connection_string $OSPROFILER_CONNECTION_STRING
         fi
     done
+
+    # Keystone is already running, should be reloaded to apply osprofiler config
+    reload_service devstack@keystone
 }
 
 
