@@ -36,6 +36,12 @@ def get_driver(connection_string, *args, **kwargs):
               connection_string)
 
     backend = parsed_connection.scheme
+    # NOTE(toabctl): To be able to use the connection_string for as sqlalchemy
+    # connection string, transform the backend to the correct driver
+    # See https://docs.sqlalchemy.org/en/latest/core/engines.html#database-urls
+    if backend in ["mysql", "mysql+pymysql", "mysql+mysqldb",
+                   "postgresql", "postgresql+psycopg2"]:
+        backend = "sqlalchemy"
     for driver in _utils.itersubclasses(Driver):
         if backend == driver.get_name():
             return driver(connection_string, *args, **kwargs)

@@ -39,3 +39,28 @@ Redis
       value. Defaults to: 0.1 seconds
     * sentinel_service_name: The name of the Sentinel service to use.
       Defaults to: "mymaster"
+
+SQLAlchemy
+----------
+
+The SQLAlchemy collector allows you to store profiling data into a database
+supported by SQLAlchemy.
+
+Usage
+=====
+To use the driver, the `connection_string` in the `[osprofiler]` config section
+needs to be set to a connection string that `SQLAlchemy understands`_
+For example::
+
+  [osprofiler]
+  connection_string = mysql+pymysql://username:password@192.168.192.81/profiler?charset=utf8
+
+where `username` is the database username, `password` is the database password,
+`192.168.192.81` is the database IP address and `profiler` is the database name.
+
+The database (in this example called `profiler`) needs to be created manually and
+the database user (in this example called `username`) needs to have priviliges
+to create tables and select and insert rows.
+
+
+.. _SQLAlchemy understands: https://docs.sqlalchemy.org/en/latest/core/engines.html#database-urls
