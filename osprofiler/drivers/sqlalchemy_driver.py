@@ -34,34 +34,40 @@ class SQLAlchemyDriver(base.Driver):
             from sqlalchemy import Table, MetaData, Column
             from sqlalchemy import String, JSON, Integer
         except ImportError:
-            raise exc.CommandError(
-                "To use this command, you should install 'SQLAlchemy'")
+            LOG.exception("To use this command, install 'SQLAlchemy'")
+        else:
+            self._metadata = MetaData()
+            self._data_table = Table(
+                "data", self._metadata,
+                Column("id", Integer, primary_key=True),
+                # timestamp - date/time of the trace point
+                Column("timestamp", String(26), index=True),
+                # base_id - uuid common for all notifications related to
+                # one trace
+                Column("base_id", String(255), index=True),
+                # parent_id - uuid of parent element in trace
+                Column("parent_id", String(255), index=True),
+                # trace_id - uuid of current element in trace
+                Column("trace_id", String(255), index=True),
+                Column("project", String(255), index=True),
+                Column("host", String(255), index=True),
+                Column("service", String(255), index=True),
+                # name - trace point name
+                Column("name", String(255), index=True),
+                Column("data", JSON)
+            )
 
-        self._engine = create_engine(connection_str)
-        self._conn = self._engine.connect()
-        self._metadata = MetaData()
-        self._data_table = Table(
-            "data", self._metadata,
-            Column("id", Integer, primary_key=True),
-            # timestamp - date/time of the trace point
-            Column("timestamp", String(26), index=True),
-            # base_id - uuid common for all notifications related to one trace
-            Column("base_id", String(255), index=True),
-            # parent_id - uuid of parent element in trace
-            Column("parent_id", String(255), index=True),
-            # trace_id - uuid of current element in trace
-            Column("trace_id", String(255), index=True),
-            Column("project", String(255), index=True),
-            Column("host", String(255), index=True),
-            Column("service", String(255), index=True),
-            # name - trace point name
-            Column("name", String(255), index=True),
-            Column("data", JSON)
-        )
+        # we don't want to kill any service that does use osprofiler
+        try:
+            self._engine = create_engine(connection_str)
+            self._conn = self._engine.connect()
 
-        # FIXME(toabctl): Not the best idea to create the table on every
-        # startup when using the sqlalchemy driver...
-        self._metadata.create_all(self._engine, checkfirst=True)
+            # FIXME(toabctl): Not the best idea to create the table on every
+            # startup when using the sqlalchemy driver...
+            self._metadata.create_all(self._engine, checkfirst=True)
+        except Exception:
+            LOG.exception("Failed to create engine/connection and setup "
+                          "intial database tables")
 
     @classmethod
     def get_name(cls):
@@ -79,18 +85,18 @@ class SQLAlchemyDriver(base.Driver):
         service = data.pop("service", self.service)
         name = data.pop("name", None)
 
-        ins = self._data_table.insert().values(
-            timestamp=timestamp,
-            base_id=base_id,
-            parent_id=parent_id,
-            trace_id=trace_id,
-            project=project,
-            service=service,
-            host=host,
-            name=name,
-            data=jsonutils.dumps(data)
-        )
         try:
+            ins = self._data_table.insert().values(
+                timestamp=timestamp,
+                base_id=base_id,
+                parent_id=parent_id,
+                trace_id=trace_id,
+                project=project,
+                service=service,
+                host=host,
+                name=name,
+                data=jsonutils.dumps(data)
+            )
             self._conn.execute(ins)
         except Exception:
             LOG.exception("Can not store osprofiler tracepoint {} "
