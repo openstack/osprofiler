@@ -14,6 +14,11 @@ if [[ "$1" == "stack" && "$2" == "install" ]]; then
 elif [[ "$1" == "stack" && "$2" == "post-config" ]]; then
     echo_summary "Configuring OSProfiler"
     configure_osprofiler
+
+elif [[ "$1" == "stack" && "$2" == "test-config" ]]; then
+    echo_summary "Configuring Tempest"
+    configure_osprofiler_in_tempest
+
 fi
 
 # Restore xtrace

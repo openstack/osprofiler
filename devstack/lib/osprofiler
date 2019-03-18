@@ -133,6 +133,11 @@ function configure_osprofiler() {
     reload_service devstack@keystone
 }
 
+function configure_osprofiler_in_tempest() {
+
+    iniset $TEMPEST_CONFIG profiler key $OSPROFILER_HMAC_KEYS
+}
+
 
 # Restore xtrace
 $XTRACE
