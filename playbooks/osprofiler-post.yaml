@@ -1,0 +1,57 @@
+- hosts: controller
+  vars:
+    osprofiler_traces_dir: '/opt/stack/osprofiler-traces'
+  tasks:
+    - name: Create OSProfiler home directory
+      become: True
+      become_user: stack
+      file:
+        path: '{{ osprofiler_traces_dir }}'
+        state: directory
+        owner: stack
+        group: stack
+
+    - name: Get list of traces
+      command: osprofiler trace list --connection-string redis://localhost:6379
+      become: True
+      become_user: stack
+      register: osprofiler_trace_list
+
+    - debug:
+        msg: "{{ osprofiler_trace_list }}"
+
+    - name: Save traces to file
+      shell: |
+        osprofiler trace list --connection-string redis://localhost:6379 > {{ osprofiler_traces_dir }}/trace_list.txt
+        cat {{ osprofiler_traces_dir }}/trace_list.txt | tail -n +4 | head -n -1 | awk '{print $2}' > {{ osprofiler_traces_dir }}/trace_ids.txt
+
+        while read p; do
+          osprofiler trace show --connection-string redis://localhost:6379 --html $p > {{ osprofiler_traces_dir }}/trace-$p.html
+        done < {{ osprofiler_traces_dir }}/trace_ids.txt
+      become: True
+      become_user: stack
+
+    - name: Gzip results files
+      become: yes
+      become_user: stack
+      shell: "gzip * -9 -q | true"
+      args:
+        chdir: '{{ osprofiler_traces_dir }}'
+
+    - name: List all files
+      shell:
+        cmd: "ls -al {{ osprofiler_traces_dir }}"
+      become: True
+      become_user: stack
+
+    - name: Copy osprofiler output
+      become: yes
+      synchronize:
+        src: "{{ osprofiler_traces_dir }}"
+        dest: "{{ zuul.executor.log_root }}"
+        mode: pull
+        copy_links: true
+        verify_host: true
+        rsync_opts:
+          - "--include=/**"
+          - "--include=*/"
