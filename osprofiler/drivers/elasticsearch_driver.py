@@ -36,9 +36,9 @@ class ElasticsearchDriver(base.Driver):
             from elasticsearch import Elasticsearch
         except ImportError:
             raise exc.CommandError(
-                "To use this command, you should install "
-                "'elasticsearch' manually. Use command:\n "
-                "'pip install elasticsearch'.")
+                "To use OSProfiler with ElasticSearch driver, "
+                "please install `elasticsearch` library. "
+                "To install with pip:\n `pip install elasticsearch`.")
 
         client_url = parser.urlunparse(parser.urlparse(self.connection_str)
                                        ._replace(scheme="http"))

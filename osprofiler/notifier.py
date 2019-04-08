@@ -13,7 +13,12 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
+import logging
+
 from osprofiler.drivers import base
+
+
+LOG = logging.getLogger(__name__)
 
 
 def _noop_notifier(info, context=None):
@@ -22,7 +27,7 @@ def _noop_notifier(info, context=None):
 
 # NOTE(boris-42): By default we are using noop notifier.
 __notifier = _noop_notifier
-__driver_cache = {}
+__notifier_cache = {}  # map: connection-string -> notifier
 
 
 def notify(info):
@@ -54,14 +59,24 @@ def create(connection_string, *args, **kwargs):
 
     :param connection_string: connection string which specifies the storage
                               driver for notifier
-    :param *args: args that will be passed to the driver's __init__ method
-    :param **kwargs: kwargs that will be passed to the driver's __init__ method
+    :param args: args that will be passed to the driver's __init__ method
+    :param kwargs: kwargs that will be passed to the driver's __init__ method
     :returns: Callable notifier method
-    :raises TypeError: In case of invalid name of plugin raises TypeError
     """
-    global __driver_cache
-    if connection_string not in __driver_cache:
-        __driver_cache[connection_string] = base.get_driver(connection_string,
-                                                            *args,
-                                                            **kwargs).notify
-    return __driver_cache[connection_string]
+    global __notifier_cache
+    if connection_string not in __notifier_cache:
+        try:
+            driver = base.get_driver(connection_string, *args, **kwargs)
+            __notifier_cache[connection_string] = driver.notify
+            LOG.info("osprofiler is enabled with connection string: %s",
+                     connection_string)
+        except Exception:
+            LOG.exception("Could not initialize driver for connection string "
+                          "%s, osprofiler is disabled", connection_string)
+            __notifier_cache[connection_string] = _noop_notifier
+
+    return __notifier_cache[connection_string]
+
+
+def clear_notifier_cache():
+    __notifier_cache.clear()

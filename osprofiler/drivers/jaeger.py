@@ -40,8 +40,8 @@ class Jaeger(base.Driver):
         except ImportError:
             raise exc.CommandError(
                 "To use OSProfiler with Uber Jaeger tracer, "
-                "you have to install `jaeger-client` manually. "
-                "Install with pip:\n `pip install jaeger-client`."
+                "please install `jaeger-client` library. "
+                "To install with pip:\n `pip install jaeger-client`."
             )
 
         parsed_url = parser.urlparse(connection_str)

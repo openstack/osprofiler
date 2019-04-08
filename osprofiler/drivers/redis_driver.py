@@ -40,9 +40,9 @@ class Redis(base.Driver):
             from redis import StrictRedis
         except ImportError:
             raise exc.CommandError(
-                "To use this command, you should install "
-                "'redis' manually. Use command:\n "
-                "'pip install redis'.")
+                "To use OSProfiler with Redis driver, "
+                "please install `redis` library. "
+                "To install with pip:\n `pip install redis`.")
 
         # only connection over network is supported with schema
         # redis://[:password]@host[:port][/db]
