@@ -15,15 +15,15 @@
       jobs:
         - openstack-tox-functional
         - openstack-tox-functional-py35
-        - tempest-full-py3-profiler-enabled
+        - tempest-smoke-py3-osprofiler-redis
     gate:
       jobs:
         - openstack-tox-functional
         - openstack-tox-functional-py35
-        - tempest-full-py3-profiler-enabled
+        - tempest-smoke-py3-osprofiler-redis
 
 - job:
-    name: tempest-full-py3-profiler-enabled
+    name: tempest-smoke-py3-osprofiler-redis
     parent: tempest-full-py3
     voting: false
     post-run: playbooks/osprofiler-post.yaml
