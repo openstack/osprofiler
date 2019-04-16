@@ -14,12 +14,12 @@
     check:
       jobs:
         - openstack-tox-functional
-        - openstack-tox-functional-py35
+        - openstack-tox-functional-py36
         - tempest-smoke-py3-osprofiler-redis
     gate:
       jobs:
         - openstack-tox-functional
-        - openstack-tox-functional-py35
+        - openstack-tox-functional-py36
         - tempest-smoke-py3-osprofiler-redis
 
 - job:
