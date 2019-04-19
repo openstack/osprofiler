@@ -37,4 +37,4 @@
         OSPROFILER_COLLECTOR: redis
         OSPROFILER_HMAC_KEYS: SECRET_KEY
       devstack_plugins:
-        osprofiler: https://git.openstack.org/openstack/osprofiler
+        osprofiler: https://opendev.org/openstack/osprofiler
