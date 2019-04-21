@@ -62,5 +62,12 @@ The database (in this example called `profiler`) needs to be created manually an
 the database user (in this example called `username`) needs to have priviliges
 to create tables and select and insert rows.
 
+.. note::
+
+   SQLAlchemy collector requires database JSON data type support.
+   This type of data is supported by versions listed below or higher:
+
+   - MariaDB 10.2
+   - MySQL 5.7.8
 
 .. _SQLAlchemy understands: https://docs.sqlalchemy.org/en/latest/core/engines.html#database-urls
