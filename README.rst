@@ -28,6 +28,6 @@ reasons (for example in isolating cross-project performance issues).
 
 * Free software: Apache license
 * Documentation: https://docs.openstack.org/osprofiler/latest/
-* Source: https://git.openstack.org/cgit/openstack/osprofiler
+* Source: https://opendev.org/openstack/osprofiler
 * Bugs: https://bugs.launchpad.net/osprofiler
 * Release notes: https://docs.openstack.org/releasenotes/osprofiler

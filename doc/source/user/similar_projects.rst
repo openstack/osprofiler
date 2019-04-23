@@ -12,9 +12,9 @@ that are similar (in idea and ideal to OSprofiler).
 * `Jaeger`_
 * `OpenTracing`_
 
-.. _Zipkin: http://zipkin.io/
+.. _Zipkin: https://zipkin.io/
 .. _Dapper: http://research.google.com/pubs/pub36356.html
 .. _Tomograph: https://github.com/stackforge/tomograph
 .. _HTrace: https://htrace.incubator.apache.org/
 .. _Jaeger: https://uber.github.io/jaeger/
-.. _OpenTracing: http://opentracing.io/
+.. _OpenTracing: https://opentracing.io/

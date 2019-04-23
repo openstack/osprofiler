@@ -38,14 +38,14 @@ file and add the following to ``[[local|localrc]]`` section:
 
 * to use Redis collector::
 
-      enable_plugin osprofiler https://git.openstack.org/openstack/osprofiler master
+      enable_plugin osprofiler https://opendev.org/openstack/osprofiler master
       OSPROFILER_COLLECTOR=redis
 
   OSProfiler plugin will install Redis and configure OSProfiler to use Redis driver
 
 * to use specified driver::
 
-      enable_plugin osprofiler https://git.openstack.org/openstack/osprofiler master
+      enable_plugin osprofiler https://opendev.org/openstack/osprofiler master
       OSPROFILER_CONNECTION_STRING=<connection string value>
 
   the driver is chosen depending on the value of
@@ -71,7 +71,7 @@ a comma-separated list of string values::
 **OSPROFILER_CONNECTION_STRING** - connection string to identify the driver.
 Default value is ``messaging://`` refers to messaging driver. For a full
 list of drivers please refer to
-``https://git.openstack.org/cgit/openstack/osprofiler/tree/osprofiler/drivers``.
+``https://opendev.org/openstack/osprofiler/src/branch/master/osprofiler/drivers``.
 Example: enable ElasticSearch driver with the server running on localhost::
 
     OSPROFILER_CONNECTION_STRING=elasticsearch://127.0.0.1:9200
