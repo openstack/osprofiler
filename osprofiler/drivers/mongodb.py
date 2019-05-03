@@ -81,7 +81,7 @@ class MongoDB(base.Driver):
                 at least `base_id` and `timestamp`.
         """
         fields = set(fields or self.default_trace_fields)
-        ids = self.db.profiler.find("*").distinct("base_id")
+        ids = self.db.profiler.find({}).distinct("base_id")
         out_format = {"base_id": 1, "timestamp": 1, "_id": 0}
         out_format.update({i: 1 for i in fields})
         return [self.db.profiler.find(
