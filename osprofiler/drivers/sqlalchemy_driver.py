@@ -102,6 +102,23 @@ class SQLAlchemyDriver(base.Driver):
             LOG.exception("Can not store osprofiler tracepoint {} "
                           "(base_id {})".format(trace_id, base_id))
 
+    def list_traces(self, fields=None):
+        try:
+            from sqlalchemy.sql import select
+        except ImportError:
+            raise exc.CommandError(
+                "To use this command, you should install 'SQLAlchemy'")
+        stmt = select([self._data_table])
+        seen_ids = set()
+        result = []
+        traces = self._conn.execute(stmt).fetchall()
+        for trace in traces:
+            if trace["base_id"] not in seen_ids:
+                seen_ids.add(trace["base_id"])
+                result.append({key: value for key, value in trace.items()
+                               if key in fields})
+        return result
+
     def get_report(self, base_id):
         try:
             from sqlalchemy.sql import select

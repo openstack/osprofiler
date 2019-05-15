@@ -16,11 +16,13 @@
         - openstack-tox-functional
         - openstack-tox-functional-py36
         - tempest-smoke-py3-osprofiler-redis
+        - tempest-smoke-py3-osprofiler-sqlalchemy
     gate:
       jobs:
         - openstack-tox-functional
         - openstack-tox-functional-py36
         - tempest-smoke-py3-osprofiler-redis
+        - tempest-smoke-py3-osprofiler-sqlalchemy
 
 - job:
     name: tempest-smoke-py3-osprofiler-redis
@@ -28,13 +30,30 @@
     voting: false
     post-run: playbooks/osprofiler-post.yaml
     description: |
-      Run full tempest on py3 with profiling enabled
+      Run full tempest on py3 with profiling enabled (redis driver)
     required-projects:
       - openstack/osprofiler
     vars:
       tox_envlist: smoke
       devstack_localrc:
         OSPROFILER_COLLECTOR: redis
+        OSPROFILER_HMAC_KEYS: SECRET_KEY
+      devstack_plugins:
+        osprofiler: https://opendev.org/openstack/osprofiler
+
+- job:
+    name: tempest-smoke-py3-osprofiler-sqlalchemy
+    parent: tempest-full-py3
+    voting: false
+    post-run: playbooks/osprofiler-post.yaml
+    description: |
+      Run full tempest on py3 with profiling enabled (sqlalchemy driver)
+    required-projects:
+      - openstack/osprofiler
+    vars:
+      tox_envlist: smoke
+      devstack_localrc:
+        OSPROFILER_COLLECTOR: sqlalchemy
         OSPROFILER_HMAC_KEYS: SECRET_KEY
       devstack_plugins:
         osprofiler: https://opendev.org/openstack/osprofiler

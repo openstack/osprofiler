@@ -112,9 +112,15 @@ function install_osprofiler_collector() {
     elif [ "$OSPROFILER_COLLECTOR" == "mongodb" ]; then
         install_mongodb
         OSPROFILER_CONNECTION_STRING=${OSPROFILER_CONNECTION_STRING:-"mongodb://localhost:27017"}
+    elif [ "$OSPROFILER_COLLECTOR" == "sqlalchemy" ]; then
+        local db=`database_connection_url osprofiler`
+        OSPROFILER_CONNECTION_STRING=${OSPROFILER_CONNECTION_STRING:-${db}}
+        recreate_database osprofiler
     else
         die $LINENO "OSProfiler collector $OSPROFILER_COLLECTOR is not supported"
     fi
+
+    echo ${OSPROFILER_CONNECTION_STRING} > $HOME/.osprofiler_connection_string
 }
 
 function configure_osprofiler() {

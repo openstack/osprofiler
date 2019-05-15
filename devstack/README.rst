@@ -17,6 +17,7 @@ that control this:
   * ``<empty>`` - default messaging driver is used
   * ``redis`` - Redis is installed
   * ``jaeger`` - Jaeger is installed
+  * ``sqlalchemy`` - SQLAlchemy driver is installed
 
   The default value of ``OSPROFILER_CONNECTION_STRING`` is set automatically
   depending on ``OSPROFILER_COLLECTOR`` value.
@@ -31,6 +32,7 @@ that control this:
   * ``mongodb://host:port`` - use MongoDB as trace storage
   * ``loginsight://username:password@host`` - use LogInsight as trace collector/storage
   * ``jaeger://host:port`` - use Jaeger as trace collector
+  * ``mysql+pymysql://username:password@host/profiler?charset=utf8`` - use SQLAlchemy driver with MySQL database
 
 
 To configure DevStack and enable OSProfiler edit ``${DEVSTACK_DIR}/local.conf``

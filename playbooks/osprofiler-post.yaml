@@ -2,7 +2,7 @@
   vars:
     osprofiler_traces_dir: '/opt/stack/osprofiler-traces'
   tasks:
-    - name: Create OSProfiler home directory
+    - name: Create directory for traces
       become: True
       become_user: stack
       file:
@@ -11,8 +11,15 @@
         owner: stack
         group: stack
 
+    - name: Read connection string from a file
+      command: "cat /opt/stack/.osprofiler_connection_string"
+      register: osprofiler_connection_string
+
+    - debug:
+        msg: "OSProfiler connection string is: {{ osprofiler_connection_string.stdout }}"
+
     - name: Get list of traces
-      command: osprofiler trace list --connection-string redis://localhost:6379
+      command: "osprofiler trace list --connection-string {{ osprofiler_connection_string.stdout }}"
       become: True
       become_user: stack
       register: osprofiler_trace_list
@@ -20,31 +27,25 @@
     - debug:
         msg: "{{ osprofiler_trace_list }}"
 
-    - name: Save traces to file
+    - name: Save traces to files
       shell: |
-        osprofiler trace list --connection-string redis://localhost:6379 > {{ osprofiler_traces_dir }}/trace_list.txt
+        osprofiler trace list --connection-string {{ osprofiler_connection_string.stdout }} > {{ osprofiler_traces_dir }}/trace_list.txt
         cat {{ osprofiler_traces_dir }}/trace_list.txt | tail -n +4 | head -n -1 | awk '{print $2}' > {{ osprofiler_traces_dir }}/trace_ids.txt
 
         while read p; do
-          osprofiler trace show --connection-string redis://localhost:6379 --html $p > {{ osprofiler_traces_dir }}/trace-$p.html
+          osprofiler trace show --connection-string {{ osprofiler_connection_string.stdout }} --html $p > {{ osprofiler_traces_dir }}/trace-$p.html
         done < {{ osprofiler_traces_dir }}/trace_ids.txt
       become: True
       become_user: stack
 
-    - name: Gzip results files
+    - name: Gzip trace files
       become: yes
       become_user: stack
       shell: "gzip * -9 -q | true"
       args:
         chdir: '{{ osprofiler_traces_dir }}'
 
-    - name: List all files
-      shell:
-        cmd: "ls -al {{ osprofiler_traces_dir }}"
-      become: True
-      become_user: stack
-
-    - name: Copy osprofiler output
+    - name: Sync trace files to Zuul
       become: yes
       synchronize:
         src: "{{ osprofiler_traces_dir }}"
