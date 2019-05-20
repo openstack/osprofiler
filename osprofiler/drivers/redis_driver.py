@@ -47,7 +47,8 @@ class Redis(base.Driver):
         # only connection over network is supported with schema
         # redis://[:password]@host[:port][/db]
         self.db = StrictRedis.from_url(self.connection_str)
-        self.namespace = "osprofiler:"
+        self.namespace_opt = "osprofiler_opt:"
+        self.namespace = "osprofiler:"  # legacy
         self.namespace_error = "osprofiler_error:"
 
     @classmethod
@@ -73,9 +74,8 @@ class Redis(base.Driver):
         data = info.copy()
         data["project"] = self.project
         data["service"] = self.service
-        key = self.namespace + data["base_id"] + "_" + data["trace_id"] + "_" + \
-            data["timestamp"]
-        self.db.set(key, jsonutils.dumps(data))
+        key = self.namespace_opt + data["base_id"]
+        self.db.lpush(key, jsonutils.dumps(data))
 
         if (self.filter_error_trace
                 and data.get("info", {}).get("etype") is not None):
@@ -100,6 +100,19 @@ class Redis(base.Driver):
         """
         fields = set(fields or self.default_trace_fields)
 
+        # first get legacy events
+        result = self._list_traces_legacy(fields)
+
+        # with optimized schema trace events are stored in a list
+        ids = self.db.scan_iter(match=self.namespace_opt + "*")
+        for i in ids:
+            # for each trace query the first event to have a timestamp
+            first_event = jsonutils.loads(self.db.lindex(i, 1))
+            result.append({key: value for key, value in first_event.items()
+                           if key in fields})
+        return result
+
+    def _list_traces_legacy(self, fields):
         # With current schema every event is stored under its own unique key
         # To query all traces we first need to get all keys, then
         # get all events, sort them and pick up only the first one
@@ -134,8 +147,15 @@ class Redis(base.Driver):
 
         :param base_id: Base id of trace elements.
         """
-        for key in self.db.scan_iter(match=self.namespace + base_id + "*"):
-            data = self.db.get(key)
+        def iterate_events():
+            for key in self.db.scan_iter(
+                    match=self.namespace + base_id + "*"):  # legacy
+                yield self.db.get(key)
+
+            for event in self.db.lrange(self.namespace_opt + base_id, 0, -1):
+                yield event
+
+        for data in iterate_events():
             n = jsonutils.loads(data)
             trace_id = n["trace_id"]
             parent_id = n["parent_id"]
