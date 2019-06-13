@@ -26,6 +26,7 @@ CONF_FILES=(
     $SENLIN_CONF
     $MAGNUM_CONF
     $ZUN_CONF
+    $PLACEMENT_CONF
 )
 
 # Add config files of Nova Cells
