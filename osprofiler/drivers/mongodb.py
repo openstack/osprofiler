@@ -28,9 +28,9 @@ class MongoDB(base.Driver):
             from pymongo import MongoClient
         except ImportError:
             raise exc.CommandError(
-                "To use this command, you should install "
-                "'pymongo' manually. Use command:\n "
-                "'pip install pymongo'.")
+                "To use OSProfiler with MongoDB driver, "
+                "please install `pymongo` library. "
+                "To install with pip:\n `pip install pymongo`.")
 
         client = MongoClient(self.connection_str, connect=False)
         self.db = client[db_name]
