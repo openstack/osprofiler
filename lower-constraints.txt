@@ -2,7 +2,6 @@ coverage===4.0
 ddt===1.0.1
 dulwich===0.15.0
 elasticsearch===2.0.0
-futures===3.0.0
 jaeger-client==3.8.0
 mock===2.0.0
 netaddr===0.7.18

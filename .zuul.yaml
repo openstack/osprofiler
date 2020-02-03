@@ -1,27 +1,21 @@
 - project:
     templates:
       - check-requirements
-      - lib-forward-testing
       - lib-forward-testing-python3
       - openstack-cover-jobs
       - openstack-lower-constraints-jobs
-      - openstack-python-jobs
       - openstack-python3-ussuri-jobs
       - periodic-stable-jobs
       - publish-openstack-docs-pti
       - release-notes-jobs-python3
     check:
       jobs:
-        - openstack-tox-functional
         - openstack-tox-functional-py36
         - tempest-smoke-py3-osprofiler-redis
         - tempest-smoke-py3-osprofiler-sqlalchemy
     gate:
       jobs:
-        - openstack-tox-functional
         - openstack-tox-functional-py36
-        - tempest-smoke-py3-osprofiler-redis
-        - tempest-smoke-py3-osprofiler-sqlalchemy
 
 - job:
     name: tempest-smoke-py3-osprofiler-redis
