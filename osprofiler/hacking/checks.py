@@ -28,6 +28,8 @@ import functools
 import re
 import tokenize
 
+from hacking import core
+
 re_assert_true_instance = re.compile(
     r"(.)*assertTrue\(isinstance\((\w|\.|\'|\"|\[|\])+, "
     r"(\w|\.|\'|\"|\[|\])+\)\)")
@@ -63,6 +65,7 @@ re_raises = re.compile(
     r"\s:raise[^s] *.*$|\s:raises *:.*$|\s:raises *[^:]+$")
 
 
+@core.flake8ext
 def skip_ignored_lines(func):
 
     @functools.wraps(func)
@@ -86,6 +89,7 @@ def _parse_assert_mock_str(line):
 
 
 @skip_ignored_lines
+@core.flake8ext
 def check_assert_methods_from_mock(logical_line, filename):
     """Ensure that ``assert_*`` methods from ``mock`` library is used correctly
 
@@ -132,6 +136,7 @@ def check_assert_methods_from_mock(logical_line, filename):
 
 
 @skip_ignored_lines
+@core.flake8ext
 def assert_true_instance(logical_line, filename):
     """Check for assertTrue(isinstance(a, b)) sentences
 
@@ -143,6 +148,7 @@ def assert_true_instance(logical_line, filename):
 
 
 @skip_ignored_lines
+@core.flake8ext
 def assert_equal_type(logical_line, filename):
     """Check for assertEqual(type(A), B) sentences
 
@@ -154,6 +160,7 @@ def assert_equal_type(logical_line, filename):
 
 
 @skip_ignored_lines
+@core.flake8ext
 def assert_equal_none(logical_line, filename):
     """Check for assertEqual(A, None) or assertEqual(None, A) sentences
 
@@ -168,6 +175,7 @@ def assert_equal_none(logical_line, filename):
 
 
 @skip_ignored_lines
+@core.flake8ext
 def assert_true_or_false_with_in(logical_line, filename):
     """Check assertTrue/False(A in/not in B) with collection contents
 
@@ -186,6 +194,7 @@ def assert_true_or_false_with_in(logical_line, filename):
 
 
 @skip_ignored_lines
+@core.flake8ext
 def assert_equal_in(logical_line, filename):
     """Check assertEqual(A in/not in B, True/False) with collection contents
 
@@ -204,6 +213,7 @@ def assert_equal_in(logical_line, filename):
 
 
 @skip_ignored_lines
+@core.flake8ext
 def check_quotes(logical_line, filename):
     """Check that single quotation marks are not used
 
@@ -257,6 +267,7 @@ def check_quotes(logical_line, filename):
 
 
 @skip_ignored_lines
+@core.flake8ext
 def check_no_constructor_data_struct(logical_line, filename):
     """Check that data structs (lists, dicts) are declared using literals
 
@@ -271,6 +282,7 @@ def check_no_constructor_data_struct(logical_line, filename):
         yield (0, "N351 Remove list() construct and use literal []")
 
 
+@core.flake8ext
 def check_dict_formatting_in_string(logical_line, tokens):
     """Check that strings do not use dict-formatting with a single replacement
 
@@ -322,7 +334,7 @@ def check_dict_formatting_in_string(logical_line, tokens):
                     format_keys.add(match.group(1))
                 if len(format_keys) == 1:
                     yield (0,
-                           "N353 Do not use mapping key string formatting "
+                           "N352 Do not use mapping key string formatting "
                            "with a single key")
             if text != ")":
                 # NOTE(stpierre): You can have a parenthesized string
@@ -339,6 +351,7 @@ def check_dict_formatting_in_string(logical_line, tokens):
 
 
 @skip_ignored_lines
+@core.flake8ext
 def check_using_unicode(logical_line, filename):
     """Check crosspython unicode usage
 
@@ -350,6 +363,7 @@ def check_using_unicode(logical_line, filename):
                   "use 'six.text_type' instead.")
 
 
+@core.flake8ext
 def check_raises(physical_line, filename):
     """Check raises usage
 
@@ -362,17 +376,3 @@ def check_raises(physical_line, filename):
         if re_raises.search(physical_line):
             return (0, "N354 ':Please use ':raises Exception: conditions' "
                        "in docstrings.")
-
-
-def factory(register):
-    register(check_assert_methods_from_mock)
-    register(assert_true_instance)
-    register(assert_equal_type)
-    register(assert_equal_none)
-    register(assert_true_or_false_with_in)
-    register(assert_equal_in)
-    register(check_quotes)
-    register(check_no_constructor_data_struct)
-    register(check_dict_formatting_in_string)
-    register(check_using_unicode)
-    register(check_raises)
