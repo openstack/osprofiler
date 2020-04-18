@@ -17,8 +17,8 @@ import collections
 import copy
 import datetime
 import re
+from unittest import mock
 
-import mock
 import six
 
 from osprofiler import profiler

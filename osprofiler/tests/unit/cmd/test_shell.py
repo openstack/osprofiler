@@ -16,9 +16,9 @@
 import json
 import os
 import sys
+from unittest import mock
 
 import ddt
-import mock
 import six
 
 from osprofiler.cmd import shell

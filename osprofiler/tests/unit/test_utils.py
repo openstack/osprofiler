@@ -16,9 +16,9 @@
 import base64
 import hashlib
 import hmac
+from unittest import mock
 import uuid
 
-import mock
 
 from osprofiler import _utils as utils
 from osprofiler.tests import test

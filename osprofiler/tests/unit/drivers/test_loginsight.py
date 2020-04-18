@@ -14,9 +14,9 @@
 #    under the License.
 
 import json
+from unittest import mock
 
 import ddt
-import mock
 
 from osprofiler.drivers import loginsight
 from osprofiler import exc
