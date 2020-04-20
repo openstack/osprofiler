@@ -17,12 +17,12 @@ import collections
 import datetime
 import functools
 import inspect
-import six
 import socket
 import threading
 
 from oslo_utils import reflection
 from oslo_utils import uuidutils
+import six
 
 from osprofiler import _utils as utils
 from osprofiler import notifier

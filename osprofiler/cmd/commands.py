@@ -15,11 +15,11 @@
 
 import json
 import os
-import prettytable
-import six
 
 from oslo_utils import encodeutils
 from oslo_utils import uuidutils
+import prettytable
+import six
 
 from osprofiler.cmd import cliutils
 from osprofiler.drivers import base

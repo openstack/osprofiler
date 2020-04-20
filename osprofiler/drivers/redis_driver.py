@@ -15,7 +15,6 @@
 #    under the License.
 
 from debtcollector import removals
-
 from oslo_config import cfg
 from oslo_serialization import jsonutils
 import six.moves.urllib.parse as parser
