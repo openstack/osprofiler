@@ -40,9 +40,10 @@ extensions = [
 ]
 
 # openstackdocstheme options
-repository_name = 'openstack/osprofiler'
-bug_project = 'osprofiler'
-bug_tag = ''
+openstackdocs_repo_name = 'openstack/osprofiler'
+openstackdocs_auto_name = False
+openstackdocs_bug_project = 'osprofiler'
+openstackdocs_bug_tag = ''
 
 todo_include_todos = True
 
@@ -91,7 +92,7 @@ add_module_names = True
 #show_authors = False
 
 # The name of the Pygments (syntax highlighting) style to use.
-pygments_style = 'sphinx'
+pygments_style = 'native'
 
 # A list of ignored prefixes for module index sorting.
 #modindex_common_prefix = []
@@ -131,10 +132,6 @@ html_theme = 'openstackdocs'
 # relative to this directory. They are copied after the builtin static files,
 # so a file named "default.css" will overwrite the builtin "default.css".
 html_static_path = []
-
-# If not '', a 'Last updated on:' timestamp is inserted at every page bottom,
-# using the given strftime format.
-html_last_updated_fmt = '%Y-%m-%d %H:%M'
 
 # If true, SmartyPants will be used to convert quotes and dashes to
 # typographically correct entities.
