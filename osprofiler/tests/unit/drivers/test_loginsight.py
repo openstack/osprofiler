@@ -293,4 +293,4 @@ class LogInsightClientTestCase(test.TestCase):
         exp_send_request_call = mock.call(
             "get", "https", "api/v1/events/foo/CONTAINS+bar/timestamp/GT+0",
             headers=exp_header, params=exp_params)
-        send_request.assert_has_calls([exp_send_request_call]*2)
+        send_request.assert_has_calls([exp_send_request_call] * 2)

@@ -107,8 +107,8 @@ class WsgiMiddleware(object):
 
     @webob.dec.wsgify
     def __call__(self, request):
-        if (_ENABLED is not None and not _ENABLED or
-                _ENABLED is None and not self.enabled):
+        if (_ENABLED is not None and not _ENABLED
+                or _ENABLED is None and not self.enabled):
             return request.get_response(self.application)
 
         trace_info = utils.signed_unpack(request.headers.get(X_TRACE_INFO),

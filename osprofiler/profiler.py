@@ -306,8 +306,8 @@ class TracedMeta(type):
 
         traceable_attrs = []
         for attr_name, attr_value in attrs.items():
-            if not (inspect.ismethod(attr_value) or
-                    inspect.isfunction(attr_value)):
+            if not (inspect.ismethod(attr_value)
+                    or inspect.isfunction(attr_value)):
                 continue
             if attr_name.startswith("__"):
                 continue

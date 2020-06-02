@@ -146,7 +146,7 @@ class RedisParserTestCase(test.TestCase):
                     "db": {
                         "params": {
 
-                            },
+                        },
                         "statement": "SELECT 1"
                     },
                     "service": None
@@ -195,8 +195,8 @@ class RedisParserTestCase(test.TestCase):
                 "parent_id": "7253ca8c-33b3-4f84-b4f1-f5a4311ddfa4",
                 "base_id": "7253ca8c-33b3-4f84-b4f1-f5a4311ddfa4"
             }]
-        results = {result["base_id"] + "_" + result["trace_id"] +
-                   "_" + result["timestamp"]: result
+        results = {result["base_id"] + "_" + result["trace_id"]
+                   + "_" + result["timestamp"]: result
                    for result in result_elements}
 
         expected = {"children": [{"children": [{
@@ -311,8 +311,7 @@ class RedisParserTestCase(test.TestCase):
                 "finished": 88,
                 "name": "total",
                 "started": 0,
-                "last_trace_started": 88
-            },
+                "last_trace_started": 88},
             "stats": {"db": {"count": 1, "duration": 20},
                       "wsgi": {"count": 3, "duration": 0}}}
 

@@ -228,8 +228,8 @@ class Driver(object):
         def msec(dt):
             # NOTE(boris-42): Unfortunately this is the simplest way that works
             # in py26 and py27
-            microsec = (dt.microseconds + (dt.seconds + dt.days * 24 * 3600) *
-                        1e6)
+            microsec = (dt.microseconds + (dt.seconds + dt.days * 24 * 3600)
+                        * 1e6)
             return int(microsec / 1000.0)
 
         stats = {}
@@ -245,8 +245,8 @@ class Driver(object):
 
             op_type = r["info"]["name"]
             op_started = msec(r["info"]["started"] - self.started_at)
-            op_finished = msec(r["info"]["finished"] -
-                               self.started_at)
+            op_finished = msec(r["info"]["finished"]
+                               - self.started_at)
             duration = op_finished - op_started
 
             r["info"]["started"] = op_started
@@ -256,7 +256,7 @@ class Driver(object):
                 stats[op_type] = {
                     "count": 1,
                     "duration": duration
-                    }
+                }
             else:
                 stats[op_type]["count"] += 1
                 stats[op_type]["duration"] += duration
@@ -265,8 +265,9 @@ class Driver(object):
             "info": {
                 "name": "total",
                 "started": 0,
-                "finished": msec(self.finished_at -
-                                 self.started_at) if self.started_at else None,
+                "finished": msec(
+                    self.finished_at - self.started_at
+                ) if self.started_at else None,
                 "last_trace_started": msec(
                     self.last_started_at - self.started_at
                 ) if self.started_at else None
