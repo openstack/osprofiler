@@ -140,8 +140,10 @@ class Jaeger(base.Driver):
             tags["http.scheme"] = info["request"]["scheme"]
         elif info.get("function"):
             # RPC, function calls
-            tags["args"] = info["function"]["args"]
-            tags["kwargs"] = info["function"]["kwargs"]
+            if "args" in info["function"]:
+                tags["args"] = info["function"]["args"]
+            if "kwargs" in info["function"]:
+                tags["kwargs"] = info["function"]["kwargs"]
             tags["name"] = info["function"]["name"]
 
         return tags
