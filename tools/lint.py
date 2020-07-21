@@ -12,9 +12,6 @@
 #    WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
 #    License for the specific language governing permissions and limitations
 #    under the License.
-#
-# @author: Zhongyue Luo, Intel Corporation.
-#
 
 import sys
 
@@ -27,6 +24,7 @@ ENABLED_PYLINT_MSGS = ['W0611']
 def main(dirpath):
     enable_opt = '--enable=%s' % ','.join(ENABLED_PYLINT_MSGS)
     lint.Run(['--reports=n', '--disable=all', enable_opt, dirpath])
+
 
 if __name__ == '__main__':
     main(sys.argv[1])

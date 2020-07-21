@@ -41,8 +41,9 @@ def main(argv):
     project = 'oslo'
     install = install_venv.InstallVenv(root, venv, pip_requires, test_requires,
                                        py_version, project)
-    #NOTE(dprince): For Tox we only run post_process (which patches files, etc)
+    # NOTE(dprince): For Tox we only run post_process, which patches files, etc
     install.post_process()
+
 
 if __name__ == '__main__':
     main(sys.argv)
