@@ -364,7 +364,7 @@ def check_using_unicode(logical_line, filename):
 
     if re.search(r"\bunicode\(", logical_line):
         yield (0, "N353 'unicode' function is absent in python3. Please "
-                  "use 'six.text_type' instead.")
+                  "use 'str' instead.")
 
 
 @core.flake8ext

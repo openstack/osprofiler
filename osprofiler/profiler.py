@@ -22,7 +22,6 @@ import threading
 
 from oslo_utils import reflection
 from oslo_utils import uuidutils
-import six
 
 from osprofiler import _utils as utils
 from osprofiler import notifier
@@ -161,7 +160,7 @@ def trace(name, info=None, hide_args=False, hide_result=True,
             except Exception as ex:
                 stop_info = {
                     "etype": reflection.get_class_name(ex),
-                    "message": six.text_type(ex)
+                    "message": str(ex)
                 }
                 raise
             else:
@@ -274,8 +273,7 @@ class TracedMeta(type):
 
     Possible usage:
 
-    >>>  @six.add_metaclass(profiler.TracedMeta)
-    >>>  class RpcManagerClass(object):
+    >>>  class RpcManagerClass(object, metaclass=profiler.TracedMeta):
     >>>      __trace_args__ = {'name': 'rpc',
     >>>                        'info': None,
     >>>                        'hide_args': False,

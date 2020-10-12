@@ -16,10 +16,10 @@
 import collections
 import datetime
 import time
+from urllib import parse as parser
 
 from oslo_config import cfg
 from oslo_serialization import jsonutils
-import six.moves.urllib.parse as parser
 
 from osprofiler import _utils as utils
 from osprofiler.drivers import base

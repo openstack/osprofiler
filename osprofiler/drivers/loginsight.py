@@ -19,11 +19,11 @@ Classes to use VMware vRealize Log Insight as the trace data store.
 
 import json
 import logging as log
+from urllib import parse as urlparse
 
 import netaddr
 from oslo_concurrency.lockutils import synchronized
 import requests
-import six.moves.urllib.parse as urlparse
 
 from osprofiler.drivers import base
 from osprofiler import exc

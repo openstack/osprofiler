@@ -13,7 +13,6 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
-import six
 import webob.dec
 
 from osprofiler import _utils as utils
@@ -98,7 +97,7 @@ class WsgiMiddleware(object):
     def _trace_is_valid(self, trace_info):
         if not isinstance(trace_info, dict):
             return False
-        trace_keys = set(six.iterkeys(trace_info))
+        trace_keys = set(trace_info.keys())
         if not all(k in trace_keys for k in _REQUIRED_KEYS):
             return False
         if trace_keys.difference(_REQUIRED_KEYS + _OPTIONAL_KEYS):

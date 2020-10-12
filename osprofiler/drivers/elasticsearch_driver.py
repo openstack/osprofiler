@@ -13,8 +13,9 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
+from urllib import parse as parser
+
 from oslo_config import cfg
-import six.moves.urllib.parse as parser
 
 from osprofiler.drivers import base
 from osprofiler import exc

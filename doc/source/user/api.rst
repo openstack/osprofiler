@@ -39,8 +39,7 @@ Five ways to add a new trace point.
         def _traced_only_if_trace_private_true(self):
              pass
 
-    @six.add_metaclass(profiler.TracedMeta)
-    class RpcManagerClass(object):
+    class RpcManagerClass(object, metaclass=profiler.TracedMeta):
         __trace_args__ = {'name': 'rpc',
                           'info': None,
                           'hide_args': False,
