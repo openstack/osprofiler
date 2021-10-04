@@ -22,7 +22,6 @@ import uuid
 
 from oslo_utils import secretutils
 from oslo_utils import uuidutils
-import six
 
 
 def split(text, strip=True):
@@ -32,7 +31,7 @@ def split(text, strip=True):
     """
     if isinstance(text, (tuple, list)):
         return text
-    if not isinstance(text, six.string_types):
+    if not isinstance(text, str):
         raise TypeError("Unknown how to split '%s': %s" % (text, type(text)))
     if strip:
         return [t.strip() for t in text.split(",") if t.strip()]
@@ -45,9 +44,9 @@ def binary_encode(text, encoding="utf-8"):
 
     Does nothing if text not unicode string.
     """
-    if isinstance(text, six.binary_type):
+    if isinstance(text, bytes):
         return text
-    elif isinstance(text, six.text_type):
+    elif isinstance(text, str):
         return text.encode(encoding)
     else:
         raise TypeError("Expected binary or string type")
@@ -58,9 +57,9 @@ def binary_decode(data, encoding="utf-8"):
 
     Does nothing if data is already unicode string.
     """
-    if isinstance(data, six.binary_type):
+    if isinstance(data, bytes):
         return data.decode(encoding)
-    elif isinstance(data, six.text_type):
+    elif isinstance(data, str):
         return data
     else:
         raise TypeError("Expected binary or string type")
@@ -154,7 +153,7 @@ def import_modules_from_package(package):
 def shorten_id(span_id):
     """Convert from uuid4 to 64 bit id for OpenTracing"""
     int64_max = (1 << 64) - 1
-    if isinstance(span_id, six.integer_types):
+    if isinstance(span_id, int):
         return span_id & int64_max
     try:
         short_id = uuid.UUID(span_id).int & int64_max

@@ -15,8 +15,7 @@
 
 import datetime
 import logging
-
-import six.moves.urllib.parse as urlparse
+from urllib import parse as urlparse
 
 from osprofiler import _utils
 

@@ -13,13 +13,13 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
+import io
 import json
 import os
 import sys
 from unittest import mock
 
 import ddt
-import six
 
 from osprofiler.cmd import shell
 from osprofiler import exc
@@ -43,7 +43,7 @@ class ShellTestCase(test.TestCase):
         cmd = "trace show --connection-string redis:// %s" % self.TRACE_ID
         return cmd if format_ is None else "%s --%s" % (cmd, format_)
 
-    @mock.patch("sys.stdout", six.StringIO())
+    @mock.patch("sys.stdout", io.StringIO())
     @mock.patch("osprofiler.cmd.shell.OSProfilerShell")
     def test_shell_main(self, mock_shell):
         mock_shell.side_effect = exc.CommandError("some_message")
@@ -99,7 +99,7 @@ class ShellTestCase(test.TestCase):
         }
         return notifications
 
-    @mock.patch("sys.stdout", six.StringIO())
+    @mock.patch("sys.stdout", io.StringIO())
     @mock.patch("osprofiler.drivers.redis_driver.Redis.get_report")
     def test_trace_show_in_json(self, mock_get):
         notifications = self._create_mock_notifications()
@@ -110,7 +110,7 @@ class ShellTestCase(test.TestCase):
                                              separators=(",", ": "),),
                          sys.stdout.getvalue())
 
-    @mock.patch("sys.stdout", six.StringIO())
+    @mock.patch("sys.stdout", io.StringIO())
     @mock.patch("osprofiler.drivers.redis_driver.Redis.get_report")
     def test_trace_show_in_html(self, mock_get):
         notifications = self._create_mock_notifications()
@@ -139,7 +139,7 @@ class ShellTestCase(test.TestCase):
                                                separators=(",", ": ")),
                              sys.stdout.getvalue())
 
-    @mock.patch("sys.stdout", six.StringIO())
+    @mock.patch("sys.stdout", io.StringIO())
     @mock.patch("osprofiler.drivers.redis_driver.Redis.get_report")
     def test_trace_show_write_to_file(self, mock_get):
         notifications = self._create_mock_notifications()
