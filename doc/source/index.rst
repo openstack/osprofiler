@@ -14,6 +14,12 @@ reasons (for example in isolating cross-project performance issues).
 
    user/index
 
+.. toctree::
+   :hidden:
+
+   contributor/modules/modules
+
+
 .. rubric:: Indices and tables
 
 * :ref:`genindex`
