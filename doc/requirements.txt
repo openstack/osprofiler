@@ -1,0 +1,7 @@
+docutils>=0.14 # OSI-Approved Open Source, Public Domain
+openstackdocstheme>=2.2.1 # Apache-2.0
+sphinx>=2.0.0,!=2.1.0 # BSD
+sphinxcontrib-apidoc>=0.2.1 # BSD
+
+# Build release notes
+reno>=3.1.0 # Apache-2.0

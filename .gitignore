@@ -40,6 +40,9 @@ cover
 .pydevproject
 .idea
 
+# Docs generated
+doc/source/contributor/modules
+
 # reno build
 releasenotes/build
 RELEASENOTES.rst

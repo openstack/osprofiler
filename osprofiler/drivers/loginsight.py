@@ -39,13 +39,12 @@ class LogInsightDriver(base.Driver):
     is 3.3.
 
     The connection string to initialize the driver should be of the format:
-        loginsight://<username>:<password>@<loginsight-host>
+    loginsight://<username>:<password>@<loginsight-host>
 
     If the username or password contains the character ':' or '@', it must be
     escaped using URL encoding. For example, the connection string to connect
     to Log Insight server at 10.1.2.3 using username "osprofiler" and password
-    "p@ssword" is:
-        loginsight://osprofiler:p%40ssword@10.1.2.3
+    "p@ssword" is: loginsight://osprofiler:p%40ssword@10.1.2.3
     """
     def __init__(
             self, connection_str, project=None, service=None, host=None,

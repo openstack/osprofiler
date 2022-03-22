@@ -87,15 +87,12 @@ class Driver(object):
         :param info:  Contains information about trace element.
                       In payload dict there are always 3 ids:
                       "base_id" - uuid that is common for all notifications
-                                  related to one trace. Used to simplify
-                                  retrieving of all trace elements from
-                                  the backend.
+                      related to one trace. Used to simplify retrieving of all
+                      trace elements from the backend.
                       "parent_id" - uuid of parent element in trace
                       "trace_id" - uuid of current element in trace
-
                       With parent_id and trace_id it's quite simple to build
                       tree of trace elements, which simplify analyze of trace.
-
         """
         raise NotImplementedError("{0}: This method is either not supported "
                                   "or has to be overridden".format(
@@ -119,9 +116,9 @@ class Driver(object):
         """Query all traces from the storage.
 
         :param fields: Set of trace fields to return. Defaults to 'base_id'
-               and 'timestamp'
-        :return List of traces, where each trace is a dictionary containing
-                at least `base_id` and `timestamp`.
+                       and 'timestamp'
+        :returns: List of traces, where each trace is a dictionary containing
+                  at least `base_id` and `timestamp`.
         """
         raise NotImplementedError("{0}: This method is either not supported "
                                   "or has to be overridden".format(

@@ -1,5 +1,6 @@
 coverage===4.0
 ddt===1.0.1
+docutils==0.14
 dulwich===0.15.0
 elasticsearch===2.0.0
 importlib_metadata==1.7.0

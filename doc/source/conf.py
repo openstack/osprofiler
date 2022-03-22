@@ -49,6 +49,7 @@ extensions = [
     'sphinx.ext.ifconfig',
     'sphinx.ext.viewcode',
     'openstackdocstheme',
+    'sphinxcontrib.apidoc',
 ]
 
 # openstackdocstheme options
@@ -129,4 +130,11 @@ texinfo_documents = [
         'One line description of project.',
         'Miscellaneous'
     ),
+]
+
+apidoc_output_dir = 'contributor/modules'
+apidoc_module_dir = '../../osprofiler'
+apidoc_excluded_paths = [
+  'hacking',
+  'tests',
 ]
