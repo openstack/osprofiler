@@ -76,14 +76,14 @@ How profiler works?
   .. code-block:: python
 
         profiler.start("parent_point") # trace_stack.push(<new_uuid>)
-                                       # send to collector -> trace_stack[-2:]
+                                       # send to collector -> trace_stack[1]
 
-        profiler.start("parent_point") # trace_stack.push(<new_uuid>)
-                                       # send to collector -> trace_stack[-2:]
-        profiler.stop()                # send to collector -> trace_stack[-2:]
+        profiler.start("child_point") # trace_stack.push(<new_uuid>)
+                                       # send to collector -> trace_stack[2]
+        profiler.stop()                # send to collector -> trace_stack[2]
                                        # trace_stack.pop()
 
-        profiler.stop()                # send to collector -> trace_stack[-2:]
+        profiler.stop()                # send to collector -> trace_stack[1]
                                        # trace_stack.pop()
 
   It's simple to build a tree of nested trace points, having
