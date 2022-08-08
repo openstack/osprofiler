@@ -70,8 +70,8 @@ source_suffix = '.rst'
 master_doc = 'index'
 
 # General information about the project.
-project = u'OSprofiler'
-copyright = u'2016, OpenStack Foundation'
+project = 'OSprofiler'
+copyright = '2016, OpenStack Foundation'
 
 # List of patterns, relative to source directory, that match files and
 # directories to ignore when looking for source files.
@@ -111,8 +111,8 @@ latex_elements = {}
 latex_documents = [
     ('index',
      '%s.tex' % project,
-     u'%s Documentation' % project,
-     u'OpenStack Foundation', 'manual'),
+     '%s Documentation' % project,
+     'OpenStack Foundation', 'manual'),
 ]
 
 # -- Options for Texinfo output -----------
@@ -124,8 +124,8 @@ texinfo_documents = [
     (
         'index',
         'OSprofiler',
-        u'OSprofiler Documentation',
-        u'OSprofiler Team',
+        'OSprofiler Documentation',
+        'OSprofiler Team',
         'OSprofiler',
         'One line description of project.',
         'Miscellaneous'

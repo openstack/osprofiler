@@ -58,8 +58,8 @@ source_suffix = '.rst'
 master_doc = 'index'
 
 # General information about the project.
-project = u'osprofiler Release Notes'
-copyright = u'2016, osprofiler Developers'
+project = 'osprofiler Release Notes'
+copyright = '2016, osprofiler Developers'
 
 # Release notes do not need a version in the title, they span
 # multiple versions.
@@ -209,8 +209,8 @@ latex_elements = {
 #  author, documentclass [howto, manual, or own class]).
 latex_documents = [
     ('index', 'osprofilerReleaseNotes.tex',
-     u'osprofiler Release Notes Documentation',
-     u'osprofiler Developers', 'manual'),
+     'osprofiler Release Notes Documentation',
+     'osprofiler Developers', 'manual'),
 ]
 
 # The name of an image file (relative to this directory) to place at the top of
@@ -240,8 +240,8 @@ latex_documents = [
 # (source start file, name, description, authors, manual section).
 man_pages = [
     ('index', 'osprofilerReleaseNotes',
-     u'osprofiler Release Notes Documentation',
-     [u'osprofiler Developers'], 1)
+     'osprofiler Release Notes Documentation',
+     ['osprofiler Developers'], 1)
 ]
 
 # If true, show URL addresses after external links.
@@ -255,8 +255,8 @@ man_pages = [
 #  dir menu entry, description, category)
 texinfo_documents = [
     ('index', 'osprofilerReleaseNotes',
-     u'osprofiler Release Notes Documentation',
-     u'osprofiler Developers', 'osprofilerReleaseNotes',
+     'osprofiler Release Notes Documentation',
+     'osprofiler Developers', 'osprofilerReleaseNotes',
      'One line description of project.',
      'Miscellaneous'),
 ]
