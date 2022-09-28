@@ -37,7 +37,7 @@ class Redis(base.Driver):
                                     service=service, host=host,
                                     conf=conf, **kwargs)
         try:
-            from redis import StrictRedis
+            from redis import Redis as _Redis
         except ImportError:
             raise exc.CommandError(
                 "To use OSProfiler with Redis driver, "
@@ -46,7 +46,7 @@ class Redis(base.Driver):
 
         # only connection over network is supported with schema
         # redis://[:password]@host[:port][/db]
-        self.db = StrictRedis.from_url(self.connection_str)
+        self.db = _Redis.from_url(self.connection_str)
         self.namespace_opt = "osprofiler_opt:"
         self.namespace = "osprofiler:"  # legacy
         self.namespace_error = "osprofiler_error:"
