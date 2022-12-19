@@ -1,5 +1,4 @@
-from osprofiler import profiler
-import re
+from osprofiler import profiler, web
 
 try:
     import requests.adapters
@@ -24,6 +23,9 @@ def send_wrapper(http_adapter, request, **kwargs):
         "path": request.path_url
     }
     })
+    # Profiling headers are overrident to take in account this new context/span
+    trace_headers = web.get_trace_id_headers()
+    request.headers.update(trace_headers)
     response = orig_HTTPAdapter_send(http_adapter, request, **kwargs)
     profiler.stop(info={"requests": {"status_code": response.status_code}})
     return response
