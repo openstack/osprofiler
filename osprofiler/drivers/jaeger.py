@@ -151,8 +151,8 @@ class Jaeger(base.Driver):
             if "url" in info["requests"]:
                 tags["url"] = info["requests"]["url"]
             if "path" in info["requests"]:
-                tags["path"] = info["path"]["path"]
+                tags["path"] = info["requests"]["path"]
             if "status_code" in info["requests"]:
-                tags["http.status_code"] = info["path"]["status_code"]
+                tags["http.status_code"] = info["requests"]["status_code"]
         return tags
 
