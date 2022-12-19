@@ -24,13 +24,10 @@ def enable():
 
 
 def send_wrapper(http_adapter, request, **kwargs):
-    host, port = split_host_and_port()
     profiler.start("requests", info={
         "method": request.method,
         "url": request.url,
-        "path": request.path_url,
-        "host": host,
-        "port": port,
+        "path": request.path_url
     })
     response = orig_HTTPAdapter_send(http_adapter, request, **kwargs)
     profiler.stop(info={
