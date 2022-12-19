@@ -13,7 +13,7 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
-from osprofiler import notifier
+from osprofiler import notifier, requests
 from osprofiler import web
 
 
@@ -39,3 +39,4 @@ def init_from_conf(conf, context, project, service, host, **kwargs):
         **kwargs)
     notifier.set(_notifier)
     web.enable(conf.profiler.hmac_keys)
+    requests.enable()

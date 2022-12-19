@@ -145,5 +145,14 @@ class Jaeger(base.Driver):
             if "kwargs" in info["function"]:
                 tags["kwargs"] = info["function"]["kwargs"]
             tags["name"] = info["function"]["name"]
-
+        elif info.get("requests"):
+            if "method" in info["requests"]:
+                tags["method"] = info["requests"]["method"]
+            if "url" in info["requests"]:
+                tags["url"] = info["requests"]["url"]
+            if "path" in info["requests"]:
+                tags["path"] = info["path"]["path"]
+            if "status_code" in info["requests"]:
+                tags["http.status_code"] = info["path"]["status_code"]
         return tags
+
