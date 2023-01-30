@@ -53,11 +53,17 @@ class Jaeger(base.Driver):
         }
 
         # Initialize tracer for each profiler
-        service_name = "{}-{}".format(project, service)
+        service_name = self._get_service_name(conf, project, service)
         config = jaeger_client.Config(cfg, service_name=service_name)
         self.tracer = config.initialize_tracer()
 
         self.spans = collections.deque()
+
+    def _get_service_name(self, conf, project, service):
+        prefix = conf.profiler_jaeger.service_name_prefix
+        if prefix:
+            return "{}-{}-{}".format(prefix, project, service)
+        return "{}-{}".format(project, service)
 
     @classmethod
     def get_name(cls):

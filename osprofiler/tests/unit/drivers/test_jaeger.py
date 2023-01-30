@@ -15,7 +15,10 @@
 
 from unittest import mock
 
+from oslo_config import cfg
+
 from osprofiler.drivers import jaeger
+from osprofiler import opts
 from osprofiler.tests import test
 
 from jaeger_client import Config
@@ -25,6 +28,9 @@ class JaegerTestCase(test.TestCase):
 
     def setUp(self):
         super(JaegerTestCase, self).setUp()
+
+        opts.set_defaults(cfg.CONF)
+
         self.payload_start = {
             "name": "api-start",
             "base_id": "4e3e0ec6-2938-40b1-8504-09eb1d4b0dee",
@@ -81,3 +87,13 @@ class JaegerTestCase(test.TestCase):
         mock_time.reset_mock()
 
         span.finish.assert_called_once_with(finish_time=fake_time)
+
+    def test_service_name_default(self):
+        self.assertEqual("pr1-svc1", self.driver._get_service_name(
+            cfg.CONF, "pr1", "svc1"))
+
+    def test_service_name_prefix(self):
+        cfg.CONF.set_default(
+            "service_name_prefix", "prx1", "profiler_jaeger")
+        self.assertEqual("prx1-pr1-svc1", self.driver._get_service_name(
+            cfg.CONF, "pr1", "svc1"))

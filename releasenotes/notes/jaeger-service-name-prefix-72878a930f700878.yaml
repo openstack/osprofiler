@@ -1,0 +1,5 @@
+---
+features:
+  - |
+    Introduces service name prefix for Jaeger driver. Please consider
+    using option `profiler_jaeger/service_name_prefix` to set it.

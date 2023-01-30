@@ -170,6 +170,22 @@ _PROFILER_OPTS = [
 
 cfg.CONF.register_opts(_PROFILER_OPTS, group=_profiler_opt_group)
 
+_jaegerprofiler_opt_group = cfg.OptGroup(
+    "profiler_jaeger",
+    title="Jaeger's profiler driver related options")
+
+_service_name_prefix = cfg.StrOpt(
+    "service_name_prefix",
+    help="""
+Set service name prefix to Jaeger service name.
+""")
+
+_JAEGER_OPTS = [
+    _service_name_prefix
+]
+
+cfg.CONF.register_opts(_JAEGER_OPTS, group=_jaegerprofiler_opt_group)
+
 
 def set_defaults(conf, enabled=None, trace_sqlalchemy=None, hmac_keys=None,
                  connection_string=None, es_doc_type=None,
@@ -239,4 +255,5 @@ def disable_web_trace(conf=None):
 
 
 def list_opts():
-    return [(_profiler_opt_group.name, _PROFILER_OPTS)]
+    return [(_profiler_opt_group.name, _PROFILER_OPTS),
+            (_jaegerprofiler_opt_group, _JAEGER_OPTS)]
