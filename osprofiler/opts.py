@@ -180,8 +180,16 @@ _service_name_prefix = cfg.StrOpt(
 Set service name prefix to Jaeger service name.
 """)
 
+_process_tags = cfg.DictOpt(
+    "process_tags",
+    default={},
+    help="""
+Set process tracer tags.
+""")
+
 _JAEGER_OPTS = [
-    _service_name_prefix
+    _service_name_prefix,
+    _process_tags
 ]
 
 cfg.CONF.register_opts(_JAEGER_OPTS, group=_jaegerprofiler_opt_group)

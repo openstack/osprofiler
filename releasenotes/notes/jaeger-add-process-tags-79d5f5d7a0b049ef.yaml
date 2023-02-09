@@ -1,0 +1,5 @@
+---
+features:
+  - |
+    Add ability to set tracer process tags to Jaeger via a
+    configuration option introduced, `profiler_jaeger/process_tags`.

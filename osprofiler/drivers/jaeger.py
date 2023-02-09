@@ -49,7 +49,8 @@ class Jaeger(base.Driver):
             "local_agent": {
                 "reporting_host": parsed_url.hostname,
                 "reporting_port": parsed_url.port,
-            }
+            },
+            "tags": conf.profiler_jaeger.process_tags
         }
 
         # Initialize tracer for each profiler
