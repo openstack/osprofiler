@@ -18,6 +18,8 @@ from unittest import mock
 from osprofiler.drivers import jaeger
 from osprofiler.tests import test
 
+from jaeger_client import Config
+
 
 class JaegerTestCase(test.TestCase):
 
@@ -48,6 +50,9 @@ class JaegerTestCase(test.TestCase):
             }
         }
 
+        # Force to False as if already initialized, tracer will be None.
+        # see: jaeger_client/config.py#L374
+        Config._initialized = False
         self.driver = jaeger.Jaeger("jaeger://127.0.0.1:6831",
                                     project="nova", service="api")
 
