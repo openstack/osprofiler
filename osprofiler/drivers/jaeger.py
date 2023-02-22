@@ -46,6 +46,10 @@ class Jaeger(base.Driver):
 
         parsed_url = parser.urlparse(connection_str)
         cfg = {
+            'sampler': {
+                'type': 'const',
+                'param': 1,
+            },
             "local_agent": {
                 "reporting_host": parsed_url.hostname,
                 "reporting_port": parsed_url.port,
@@ -55,8 +59,7 @@ class Jaeger(base.Driver):
 
         # Initialize tracer for each profiler
         service_name = self._get_service_name(conf, project, service)
-        config = jaeger_client.Config(cfg, service_name=service_name)
-        self.tracer = config.initialize_tracer()
+        self.config = jaeger_client.Config(cfg, service_name=service_name)
 
         self.spans = collections.deque()
 
@@ -85,8 +88,10 @@ class Jaeger(base.Driver):
                 flags=self.jaeger_client.span.SAMPLED_FLAG
             )
 
+            # Initial tracer
+            tracer = self.config.new_tracer()
             # Create Jaeger Tracing span
-            span = self.tracer.start_span(
+            span = tracer.start_span(
                 operation_name=payload["name"].rstrip("-start"),
                 child_of=child_of,
                 tags=self.create_span_tags(payload),
