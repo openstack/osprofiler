@@ -1,0 +1,8 @@
+---
+features:
+  - |
+    An OTLP (OpenTelemetry) exporter is now supported. The current
+    support is experimental but the aim is to deprecate and remove
+    legacy Jaeger driver which is using the already deprecated python
+    library jaeger client. Operators who want to use it should enable
+    `otlp`. OTLP is comptatible with Jaeger backend.

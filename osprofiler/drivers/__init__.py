@@ -1,6 +1,7 @@
 from osprofiler.drivers import base  # noqa
 from osprofiler.drivers import elasticsearch_driver  # noqa
 from osprofiler.drivers import jaeger  # noqa
+from osprofiler.drivers import otlp # noqa
 from osprofiler.drivers import loginsight  # noqa
 from osprofiler.drivers import messaging  # noqa
 from osprofiler.drivers import mongodb  # noqa

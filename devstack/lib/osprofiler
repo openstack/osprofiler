@@ -58,17 +58,27 @@ function install_redis() {
     pip_install_gr redis
 }
 
-function install_jaeger() {
+function install_jaeger_backend() {
     if is_ubuntu; then
         install_package docker.io
         start_service docker
         add_user_to_group $STACK_USER docker
-        sg docker -c "docker run -d --name jaeger -p 6831:6831/udp -p 16686:16686 jaegertracing/all-in-one:1.7"
+        sg docker -c "docker run -d --name jaeger -e COLLECTOR_OTLP_ENABLED=true -p 6831:6831/udp -p 16686:16686 -p 4318:4318 jaegertracing/all-in-one:1.42"
     else
         exit_distro_not_supported "docker.io installation"
     fi
+}
 
+function install_jaeger() {
+    install_jaeger_backend
     pip_install jaeger-client
+}
+
+function install_otlp() {
+    # For OTLP we use Jaeger backend but any OTLP compatible backend
+    # can be used.
+    install_jaeger_backend
+    pip_install opentelemetry-sdk opentelemetry-exporter-otlp
 }
 
 function drop_jaeger() {
@@ -112,6 +122,9 @@ function install_osprofiler_collector() {
     elif [ "$OSPROFILER_COLLECTOR" == "jaeger" ]; then
         install_jaeger
         OSPROFILER_CONNECTION_STRING=${OSPROFILER_CONNECTION_STRING:-"jaeger://localhost:6831"}
+    elif [ "$OSPROFILER_COLLECTOR" == "otlp" ]; then
+        install_otlp
+        OSPROFILER_CONNECTION_STRING=${OSPROFILER_CONNECTION_STRING:-"otlp://localhost:4318"}
     elif [ "$OSPROFILER_COLLECTOR" == "elasticsearch" ]; then
         install_elasticsearch
         OSPROFILER_CONNECTION_STRING=${OSPROFILER_CONNECTION_STRING:-"elasticsearch://elastic:changeme@localhost:9200"}

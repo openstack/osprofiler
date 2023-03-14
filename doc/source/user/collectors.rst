@@ -71,3 +71,25 @@ to create tables and select and insert rows.
    - MySQL 5.7.8
 
 .. _SQLAlchemy understands: https://docs.sqlalchemy.org/en/latest/core/engines.html#database-urls
+
+
+OTLP
+----
+
+Use OTLP exporter. Can be used with any comptable backend that support
+OTLP.
+
+Usage
+=====
+To use the driver, the `connection_string` in the `[osprofiler]` config section
+needs to be set::
+
+  [osprofiler]
+  connection_string = otlp://192.168.192.81:4318
+
+Example: By default, jaeger is listening OTLP on 4318.
+
+.. note::
+
+   Curently the exporter is only supporting HTTP. In future some work
+   may happen to support gRPC.

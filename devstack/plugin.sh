@@ -20,7 +20,8 @@ elif [[ "$1" == "stack" && "$2" == "test-config" ]]; then
     configure_osprofiler_in_tempest
 
 elif [[ "$1" == "unstack" ]]; then
-    if [[ "$OSPROFILER_COLLECTOR" == "jaeger" ]]; then
+    if [[ "$OSPROFILER_COLLECTOR" == "jaeger" || \
+            "$OSPROFILER_COLLECTOR" == "otlp" ]]; then
         echo_summary "Deleting jaeger docker container"
         drop_jaeger
     fi

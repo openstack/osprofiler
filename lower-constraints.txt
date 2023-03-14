@@ -5,6 +5,8 @@ dulwich===0.15.0
 elasticsearch===2.0.0
 importlib_metadata==1.7.0
 jaeger-client==3.8.0
+opentelemetry-exporter-otlp==1.16.0
+opentelemetry-sdk==1.16.0
 netaddr===0.7.18
 openstackdocstheme==2.2.1
 oslo.concurrency===3.26.0

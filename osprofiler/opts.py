@@ -195,6 +195,22 @@ _JAEGER_OPTS = [
 
 cfg.CONF.register_opts(_JAEGER_OPTS, group=_jaegerprofiler_opt_group)
 
+_otlp_profiler_opt_group = cfg.OptGroup(
+    "profiler_otlp",
+    title="OTLP's profiler driver related options")
+
+_otlp_service_name_prefix = cfg.StrOpt(
+    "service_name_prefix",
+    help="""
+Set service name prefix to OTLP exporters.
+""")
+
+_OTLP_OPTS = [
+    _otlp_service_name_prefix,
+]
+
+cfg.CONF.register_opts(_OTLP_OPTS, group=_otlp_profiler_opt_group)
+
 
 def set_defaults(conf, enabled=None, trace_sqlalchemy=None, hmac_keys=None,
                  connection_string=None, es_doc_type=None,
@@ -265,4 +281,5 @@ def disable_web_trace(conf=None):
 
 def list_opts():
     return [(_profiler_opt_group.name, _PROFILER_OPTS),
-            (_jaegerprofiler_opt_group, _JAEGER_OPTS)]
+            (_jaegerprofiler_opt_group, _JAEGER_OPTS),
+            (_otlp_profiler_opt_group, _OTLP_OPTS)]
