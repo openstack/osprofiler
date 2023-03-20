@@ -71,6 +71,10 @@ function install_jaeger() {
     pip_install jaeger-client
 }
 
+function drop_jaeger() {
+    sg docker -c 'docker rm jaeger --force'
+}
+
 function install_elasticsearch() {
     if is_ubuntu; then
         install_package docker.io

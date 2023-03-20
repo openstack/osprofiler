@@ -1,0 +1,7 @@
+---
+issues:
+  - |
+    Using devstack, when unstacking, the docker container running
+    Jaeger tracing will be deleted that to correctly clean processes
+    started by devstack.. This also avoid `./stack.sh` to fail when
+    recreating the environnement.
