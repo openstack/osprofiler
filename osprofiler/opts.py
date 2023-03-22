@@ -67,6 +67,7 @@ Possible values:
 _hmac_keys_opt = cfg.StrOpt(
     "hmac_keys",
     default="SECRET_KEY",
+    secret=True,
     help="""
 Secret key(s) to use for encrypting context data for performance profiling.
 
