@@ -14,6 +14,7 @@
 #    under the License.
 
 from osprofiler import notifier
+from osprofiler import requests
 from osprofiler import web
 
 
@@ -39,3 +40,5 @@ def init_from_conf(conf, context, project, service, host, **kwargs):
         **kwargs)
     notifier.set(_notifier)
     web.enable(conf.profiler.hmac_keys)
+    if conf.profiler.trace_requests:
+        requests.enable()

@@ -1,0 +1,5 @@
+---
+features:
+  - |
+    New profiler for python requests. Currently only OTLP driver is
+    supporting it, see `profiler/trace_requests`'s option.

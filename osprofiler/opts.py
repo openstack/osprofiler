@@ -64,6 +64,22 @@ Possible values:
   higher level of operations. Single SQL queries cannot be analyzed this way.
 """)
 
+_trace_requests_opt = cfg.BoolOpt(
+    "trace_requests",
+    default=False,
+    help="""
+Enable python requests package profiling.
+
+Supported drivers: jaeger+otlp
+
+Default value is False.
+
+Possible values:
+
+* True: Enables requests profiling.
+* False: Disables requests profiling.
+""")
+
 _hmac_keys_opt = cfg.StrOpt(
     "hmac_keys",
     default="SECRET_KEY",
@@ -159,6 +175,7 @@ Possible values:
 _PROFILER_OPTS = [
     _enabled_opt,
     _trace_sqlalchemy_opt,
+    _trace_requests_opt,
     _hmac_keys_opt,
     _connection_string_opt,
     _es_doc_type_opt,

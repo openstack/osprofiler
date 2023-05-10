@@ -87,6 +87,10 @@ In case of OpenStack there are 2 kinds of interaction between 2 services:
   the list and rolling out that change and then removing the older key at
   some time in the future).
 
+  * Optionally you can enable client tracing using `requests`_,
+    Currently only supported by OTLP driver, this will add client call
+    tracing. see `profiler/trace_requests`'s option.
+
 * RPC API
 
   RPC calls are used for interaction between services of one project.
@@ -132,3 +136,4 @@ I think that for all projects we should include by default 5 kinds of points:
 .. _Ceilometer: https://wiki.openstack.org/wiki/Ceilometer
 .. _oslo.messaging: https://pypi.org/project/oslo.messaging
 .. _OSprofiler WSGI middleware: https://github.com/openstack/osprofiler/blob/master/osprofiler/web.py
+.. _requests: https://docs.python-requests.org/en/latest/index.html

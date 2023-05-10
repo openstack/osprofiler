@@ -81,18 +81,21 @@ class OTLP(base.Driver):
     def _kind(self, name):
         if "wsgi" in name:
             return self.trace_api.SpanKind.SERVER
-        elif ("db" in name or "http_client" in name or "api" in name):
+        elif ("db" in name or "http" in name or "api" in name):
             return self.trace_api.SpanKind.CLIENT
         return self.trace_api.SpanKind.INTERNAL
 
     def _name(self, payload):
         info = payload["info"]
         if info.get("request"):
-            return "{}_{}".format(
+            return "WSGI_{}_{}".format(
                 info["request"]["method"], info["request"]["path"])
         elif info.get("db"):
             return "SQL_{}".format(
                 info["db"]["statement"].split(' ', 1)[0].upper())
+        elif info.get("requests"):
+            return "REQUESTS_{}_{}".format(
+                info["requests"]["method"], info["requests"]["hostname"])
         return payload["name"].rstrip("-start")
 
     def notify(self, payload):
@@ -130,6 +133,10 @@ class OTLP(base.Driver):
                 if payload.get("info", {}).get(call):
                     span.set_attribute(
                         "result", payload["info"][call]["result"])
+            # Store result of requests
+            if payload.get("info", {}).get("requests"):
+                span.set_attribute(
+                    "status_code", payload["info"]["requests"]["status_code"])
             # Span error tag and log
             if payload["info"].get("etype"):
                 span.set_attribute("error", True)
@@ -168,6 +175,14 @@ class OTLP(base.Driver):
             tags["http.query"] = info["request"]["query"]
             tags["http.method"] = info["request"]["method"]
             tags["http.scheme"] = info["request"]["scheme"]
+        elif info.get("requests"):
+            # requests call
+            tags["http.path"] = info["requests"]["path"]
+            tags["http.query"] = info["requests"]["query"]
+            tags["http.method"] = info["requests"]["method"]
+            tags["http.scheme"] = info["requests"]["scheme"]
+            tags["http.hostname"] = info["requests"]["hostname"]
+            tags["http.port"] = info["requests"]["port"]
         elif info.get("function"):
             # RPC, function calls
             if "args" in info["function"]:
