@@ -163,7 +163,7 @@ class LogInsightClientTestCase(test.TestCase):
         super(LogInsightClientTestCase, self).setUp()
         self._host = "localhost"
         self._username = "username"
-        self._password = "password"
+        self._password = "password"  # nosec
         self._client = loginsight.LogInsightClient(
             self._host, self._username, self._password)
         self._client._session_id = "4ff800d1-3175-4b49-9209-39714ea56416"
