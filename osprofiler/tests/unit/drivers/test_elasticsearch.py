@@ -23,7 +23,8 @@ class ElasticsearchTestCase(test.TestCase):
 
     def setUp(self):
         super(ElasticsearchTestCase, self).setUp()
-        self.elasticsearch = ElasticsearchDriver("elasticsearch://localhost")
+        self.elasticsearch = ElasticsearchDriver(
+            "elasticsearch://localhost:9001/")
         self.elasticsearch.project = "project"
         self.elasticsearch.service = "service"
 
