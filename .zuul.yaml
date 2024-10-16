@@ -9,12 +9,13 @@
       - release-notes-jobs-python3
     check:
       jobs:
-        - openstack-tox-functional-py38
+        - openstack-tox-functional-py39
+        - openstack-tox-functional-py312
         - tempest-smoke-py3-osprofiler-redis
         - tempest-smoke-py3-osprofiler-sqlalchemy
     gate:
       jobs:
-        - openstack-tox-functional-py38
+        - openstack-tox-functional-py39
 
 - job:
     name: tempest-smoke-py3-osprofiler-redis
