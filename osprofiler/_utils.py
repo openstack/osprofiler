@@ -20,7 +20,6 @@ import json
 import os
 import uuid
 
-from oslo_utils import secretutils
 from oslo_utils import uuidutils
 
 
@@ -107,7 +106,7 @@ def signed_unpack(data, hmac_data, hmac_keys):
         except Exception:  # nosec
             pass
         else:
-            if secretutils.constant_time_compare(hmac_data, user_hmac_data):
+            if hmac.compare_digest(hmac_data, user_hmac_data):
                 try:
                     contents = json.loads(
                         binary_decode(base64.urlsafe_b64decode(data)))
