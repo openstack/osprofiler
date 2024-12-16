@@ -135,6 +135,6 @@ texinfo_documents = [
 apidoc_output_dir = 'contributor/modules'
 apidoc_module_dir = '../../osprofiler'
 apidoc_excluded_paths = [
-  'hacking',
-  'tests',
+    'hacking',
+    'tests',
 ]
