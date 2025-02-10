@@ -65,7 +65,7 @@ def enable(hmac_keys=None):
     _HMAC_KEYS = utils.split(hmac_keys or "")
 
 
-class WsgiMiddleware(object):
+class WsgiMiddleware:
     """WSGI Middleware that enables tracing for an application."""
 
     def __init__(self, application, hmac_keys=None, enabled=False, **kwargs):

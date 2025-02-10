@@ -27,7 +27,7 @@ from jaeger_client import Config
 class JaegerTestCase(test.TestCase):
 
     def setUp(self):
-        super(JaegerTestCase, self).setUp()
+        super().setUp()
 
         opts.set_defaults(cfg.CONF)
         cfg.CONF.set_default(

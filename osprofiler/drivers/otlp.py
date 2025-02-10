@@ -28,9 +28,9 @@ class OTLP(base.Driver):
                  conf=cfg.CONF, **kwargs):
         """OTLP driver using OTLP exporters."""
 
-        super(OTLP, self).__init__(connection_str, project=project,
-                                   service=service, host=host,
-                                   conf=conf, **kwargs)
+        super().__init__(connection_str, project=project,
+                         service=service, host=host,
+                         conf=conf, **kwargs)
         try:
             from opentelemetry import trace as trace_api
 

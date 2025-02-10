@@ -24,7 +24,7 @@ from osprofiler.tests import test
 class OTLPTestCase(test.TestCase):
 
     def setUp(self):
-        super(OTLPTestCase, self).setUp()
+        super().setUp()
 
         opts.set_defaults(cfg.CONF)
 

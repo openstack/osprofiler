@@ -31,7 +31,7 @@ def dummy_app(environ, response):
 class WebTestCase(test.TestCase):
 
     def setUp(self):
-        super(WebTestCase, self).setUp()
+        super().setUp()
         profiler.clean()
         self.addCleanup(profiler.clean)
 
@@ -61,7 +61,7 @@ class WebTestCase(test.TestCase):
 
 class WebMiddlewareTestCase(test.TestCase):
     def setUp(self):
-        super(WebMiddlewareTestCase, self).setUp()
+        super().setUp()
         profiler.clean()
         # it's default state of _ENABLED param, so let's set it here
         web._ENABLED = None
@@ -69,7 +69,7 @@ class WebMiddlewareTestCase(test.TestCase):
 
     def tearDown(self):
         web.enable()
-        super(WebMiddlewareTestCase, self).tearDown()
+        super().tearDown()
 
     def test_factory(self):
         mock_app = mock.MagicMock()

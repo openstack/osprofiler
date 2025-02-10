@@ -31,9 +31,9 @@ class Jaeger(base.Driver):
                  conf=cfg.CONF, **kwargs):
         """Jaeger driver for OSProfiler."""
 
-        super(Jaeger, self).__init__(connection_str, project=project,
-                                     service=service, host=host,
-                                     conf=conf, **kwargs)
+        super().__init__(connection_str, project=project,
+                         service=service, host=host,
+                         conf=conf, **kwargs)
         try:
             import jaeger_client
             self.jaeger_client = jaeger_client

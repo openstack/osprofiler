@@ -88,7 +88,7 @@ class TitlesTestCase(test.TestCase):
             trailing_spaces = re.findall(" +$", line)
             self.assertEqual(
                 len(trailing_spaces), 0,
-                "Found trailing spaces on line %s of %s" % (i + 1, tpl))
+                "Found trailing spaces on line {} of {}".format(i + 1, tpl))
 
     def test_template(self):
         with open(os.path.join(self.specs_path, "template.rst")) as f:
@@ -98,7 +98,7 @@ class TitlesTestCase(test.TestCase):
         template_titles = self._get_titles(spec)
 
         for d in ["implemented", "in-progress"]:
-            spec_dir = "%s/%s" % (self.specs_path, d)
+            spec_dir = "{}/{}".format(self.specs_path, d)
 
             self.assertTrue(os.path.isdir(spec_dir),
                             "%s is not a directory" % spec_dir)

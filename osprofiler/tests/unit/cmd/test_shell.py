@@ -32,16 +32,16 @@ class ShellTestCase(test.TestCase):
     TRACE_ID = "c598094d-bbee-40b6-b317-d76003b679d3"
 
     def setUp(self):
-        super(ShellTestCase, self).setUp()
+        super().setUp()
         self.old_environment = os.environ.copy()
 
     def tearDown(self):
-        super(ShellTestCase, self).tearDown()
+        super().tearDown()
         os.environ = self.old_environment
 
     def _trace_show_cmd(self, format_=None):
         cmd = "trace show --connection-string redis:// %s" % self.TRACE_ID
-        return cmd if format_ is None else "%s --%s" % (cmd, format_)
+        return cmd if format_ is None else "{} --{}".format(cmd, format_)
 
     @mock.patch("sys.stdout", io.StringIO())
     @mock.patch("osprofiler.cmd.shell.OSProfilerShell")

@@ -292,7 +292,7 @@ class TracedMeta(type):
     traced - E.g. wsgi, rpc, db, etc...
     """
     def __init__(cls, cls_name, bases, attrs):
-        super(TracedMeta, cls).__init__(cls_name, bases, attrs)
+        super().__init__(cls_name, bases, attrs)
 
         trace_args = dict(getattr(cls, "__trace_args__", {}))
         trace_private = trace_args.pop("trace_private", False)
@@ -321,7 +321,7 @@ class TracedMeta(type):
                                                                 attr_name)))
 
 
-class Trace(object):
+class Trace:
 
     def __init__(self, name, info=None):
         """With statement way to use profiler start()/stop().
@@ -355,7 +355,7 @@ class Trace(object):
             stop()
 
 
-class _Profiler(object):
+class _Profiler:
 
     def __init__(self, hmac_key, base_id=None, parent_id=None):
         self.hmac_key = hmac_key

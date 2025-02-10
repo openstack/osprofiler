@@ -137,7 +137,7 @@ class UtilsTestCase(test.TestCase):
 
     def test_itersubclasses(self):
 
-        class A(object):
+        class A:
             pass
 
         class B(A):

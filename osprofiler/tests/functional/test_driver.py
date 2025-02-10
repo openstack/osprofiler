@@ -30,7 +30,7 @@ LOG = logging.getLogger(__name__)
 
 
 @profiler.trace_cls("rpc", hide_args=True)
-class Foo(object):
+class Foo:
     def bar(self, x):
         return self.baz(x, x)
 
@@ -44,7 +44,7 @@ class DriverTestCase(test.FunctionalTestCase):
     PROJECT = "project"
 
     def setUp(self):
-        super(DriverTestCase, self).setUp()
+        super().setUp()
         CONF(["--config-file", os.path.dirname(__file__) + "/config.cfg"])
         opts.set_defaults(CONF,
                           enabled=True,

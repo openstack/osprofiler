@@ -21,7 +21,7 @@ from osprofiler.tests import test
 
 class MongoDBParserTestCase(test.TestCase):
     def setUp(self):
-        super(MongoDBParserTestCase, self).setUp()
+        super().setUp()
         self.mongodb = MongoDB("mongodb://localhost")
 
     def test_build_empty_tree(self):

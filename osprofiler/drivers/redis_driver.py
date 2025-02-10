@@ -33,9 +33,9 @@ class Redis(base.Driver):
                  service=None, host=None, conf=cfg.CONF, **kwargs):
         """Redis driver for OSProfiler."""
 
-        super(Redis, self).__init__(connection_str, project=project,
-                                    service=service, host=host,
-                                    conf=conf, **kwargs)
+        super().__init__(connection_str, project=project,
+                         service=service, host=host,
+                         conf=conf, **kwargs)
         try:
             from redis import Redis as _Redis
         except ImportError:
@@ -149,8 +149,7 @@ class Redis(base.Driver):
                     match=self.namespace + base_id + "*"):  # legacy
                 yield self.db.get(key)
 
-            for event in self.db.lrange(self.namespace_opt + base_id, 0, -1):
-                yield event
+            yield from self.db.lrange(self.namespace_opt + base_id, 0, -1)
 
         for data in iterate_events():
             n = jsonutils.loads(data)
@@ -177,9 +176,9 @@ class RedisSentinel(Redis, base.Driver):
                  service=None, host=None, conf=cfg.CONF, **kwargs):
         """Redis driver for OSProfiler."""
 
-        super(RedisSentinel, self).__init__(connection_str, project=project,
-                                            service=service, host=host,
-                                            conf=conf, **kwargs)
+        super().__init__(connection_str, project=project,
+                         service=service, host=host,
+                         conf=conf, **kwargs)
         try:
             from redis.sentinel import Sentinel
         except ImportError:

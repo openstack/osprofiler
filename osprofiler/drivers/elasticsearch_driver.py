@@ -27,12 +27,12 @@ class ElasticsearchDriver(base.Driver):
                  **kwargs):
         """Elasticsearch driver for OSProfiler."""
 
-        super(ElasticsearchDriver, self).__init__(connection_str,
-                                                  project=project,
-                                                  service=service,
-                                                  host=host,
-                                                  conf=conf,
-                                                  **kwargs)
+        super().__init__(connection_str,
+                         project=project,
+                         service=service,
+                         host=host,
+                         conf=conf,
+                         **kwargs)
         try:
             from elasticsearch import Elasticsearch
         except ImportError:

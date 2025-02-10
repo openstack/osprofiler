@@ -24,7 +24,7 @@ from osprofiler.tests import test
 
 class RedisParserTestCase(test.TestCase):
     def setUp(self):
-        super(RedisParserTestCase, self).setUp()
+        super().setUp()
         self.redisdb = Redis("redis://localhost:6379")
 
     def test_build_empty_tree(self):

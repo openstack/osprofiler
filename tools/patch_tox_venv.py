@@ -37,7 +37,7 @@ def main(argv):
         os.path.join(root, 'test-requirements.txt'),
         os.path.join(root, 'tools', 'test-requires'),
     ])
-    py_version = "python%s.%s" % (sys.version_info[0], sys.version_info[1])
+    py_version = "python{}.{}".format(sys.version_info[0], sys.version_info[1])
     project = 'oslo'
     install = install_venv.InstallVenv(root, venv, pip_requires, test_requires,
                                        py_version, project)

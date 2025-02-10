@@ -25,7 +25,7 @@ from osprofiler.drivers import base
 from osprofiler import exc
 
 
-class BaseCommand(object):
+class BaseCommand:
     group_name = None
 
 
@@ -136,12 +136,12 @@ class TraceCommands(BaseCommand):
 
             if name == "wsgi":
                 req = info["meta.raw_payload.wsgi-start"]["info"]["request"]
-                label = "%s\\n%s %s.." % (label, req["method"],
-                                          req["path"][:30])
+                label = "{}\\n{} {}..".format(label, req["method"],
+                                              req["path"][:30])
             elif name == "rpc" or name == "driver":
                 raw = info["meta.raw_payload.%s-start" % name]
                 fn_name = raw["info"]["function"]["name"]
-                label = "%s\\n%s" % (label, fn_name.split(".")[-1])
+                label = "{}\\n{}".format(label, fn_name.split(".")[-1])
 
             node_id = str(next_id[0])
             next_id[0] += 1
