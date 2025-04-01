@@ -49,7 +49,7 @@ def get_driver(connection_string, *args, **kwargs):
                      "%s" % connection_string)
 
 
-class Driver(object):
+class Driver:
     """Base Driver class.
 
     This class provides protected common methods that
@@ -94,7 +94,7 @@ class Driver(object):
                       With parent_id and trace_id it's quite simple to build
                       tree of trace elements, which simplify analyze of trace.
         """
-        raise NotImplementedError("{0}: This method is either not supported "
+        raise NotImplementedError("{}: This method is either not supported "
                                   "or has to be overridden".format(
                                       self.get_name()))
 
@@ -103,7 +103,7 @@ class Driver(object):
 
         :param base_id: Base id of trace elements.
         """
-        raise NotImplementedError("{0}: This method is either not supported "
+        raise NotImplementedError("{}: This method is either not supported "
                                   "or has to be overridden".format(
                                       self.get_name()))
 
@@ -120,7 +120,7 @@ class Driver(object):
         :returns: List of traces, where each trace is a dictionary containing
                   at least `base_id` and `timestamp`.
         """
-        raise NotImplementedError("{0}: This method is either not supported "
+        raise NotImplementedError("{}: This method is either not supported "
                                   "or has to be overridden".format(
                                       self.get_name()))
 
@@ -130,7 +130,7 @@ class Driver(object):
         :return List of traces, where each trace is a dictionary containing
                 `base_id` and `timestamp`.
         """
-        raise NotImplementedError("{0}: This method is either not supported "
+        raise NotImplementedError("{}: This method is either not supported "
                                   "or has to be overridden".format(
                                       self.get_name()))
 

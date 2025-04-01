@@ -49,10 +49,10 @@ class LogInsightDriver(base.Driver):
     def __init__(
             self, connection_str, project=None, service=None, host=None,
             **kwargs):
-        super(LogInsightDriver, self).__init__(connection_str,
-                                               project=project,
-                                               service=service,
-                                               host=host)
+        super().__init__(connection_str,
+                         project=project,
+                         service=service,
+                         host=host)
 
         parsed_connection = urlparse.urlparse(connection_str)
         try:
@@ -126,7 +126,7 @@ class LogInsightDriver(base.Driver):
         return self._parse_results()
 
 
-class LogInsightClient(object):
+class LogInsightClient:
     """A minimal Log Insight client."""
 
     LI_OSPROFILER_AGENT_ID = "F52D775B-6017-4787-8C8A-F21AE0AEC057"
@@ -174,7 +174,7 @@ class LogInsightClient(object):
 
     def _send_request(
             self, method, scheme, path, headers=None, body=None, params=None):
-        url = "%s/%s" % (self._build_base_url(scheme), path)
+        url = "{}/{}".format(self._build_base_url(scheme), path)
 
         headers = headers or {}
         headers["content-type"] = "application/json"
@@ -239,10 +239,11 @@ class LogInsightClient(object):
         # the operator is "CONTAINS".
         constraints = []
         for field, value in params.items():
-            constraints.append("%s/CONTAINS+%s" % (field, value))
+            constraints.append("{}/CONTAINS+{}".format(field, value))
         constraints.append("timestamp/GT+0")
 
-        path = "%s/%s" % (self.QUERY_EVENTS_BASE_PATH, "/".join(constraints))
+        path = "{}/{}".format(self.QUERY_EVENTS_BASE_PATH,
+                              "/".join(constraints))
 
         def _query_events():
             return self._send_request("get",

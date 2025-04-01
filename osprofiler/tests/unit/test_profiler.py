@@ -285,7 +285,7 @@ class TraceDecoratorTestCase(test.TestCase):
         mock_stop.assert_called_once_with(info=stop_info)
 
 
-class FakeTracedCls(object):
+class FakeTracedCls:
 
     def method1(self, a, b, c=10):
         return a + b + c
@@ -488,7 +488,7 @@ class TraceClsDecoratorTestCase(test.TestCase):
         self.assertFalse(mock_stop.called)
 
 
-class FakeTraceWithMetaclassBase(object, metaclass=profiler.TracedMeta):
+class FakeTraceWithMetaclassBase(metaclass=profiler.TracedMeta):
     __trace_args__ = {"name": "rpc",
                       "info": {"a": 10}}
 

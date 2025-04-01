@@ -26,8 +26,8 @@ LOG = logging.getLogger(__name__)
 class SQLAlchemyDriver(base.Driver):
     def __init__(self, connection_str, project=None, service=None, host=None,
                  **kwargs):
-        super(SQLAlchemyDriver, self).__init__(connection_str, project=project,
-                                               service=service, host=host)
+        super().__init__(connection_str, project=project,
+                         service=service, host=host)
 
         try:
             from sqlalchemy import create_engine

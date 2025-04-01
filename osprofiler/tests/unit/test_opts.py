@@ -23,7 +23,7 @@ from osprofiler.tests import test
 
 class ConfigTestCase(test.TestCase):
     def setUp(self):
-        super(ConfigTestCase, self).setUp()
+        super().setUp()
         self.conf_fixture = self.useFixture(fixture.Config())
 
     def test_options_defaults(self):

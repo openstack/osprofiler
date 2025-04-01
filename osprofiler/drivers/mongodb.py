@@ -22,8 +22,8 @@ class MongoDB(base.Driver):
                  service=None, host=None, **kwargs):
         """MongoDB driver for OSProfiler."""
 
-        super(MongoDB, self).__init__(connection_str, project=project,
-                                      service=service, host=host, **kwargs)
+        super().__init__(connection_str, project=project,
+                         service=service, host=host, **kwargs)
         try:
             from pymongo import MongoClient
         except ImportError:

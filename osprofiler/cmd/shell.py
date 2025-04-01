@@ -30,7 +30,7 @@ from osprofiler import exc
 from osprofiler import opts
 
 
-class OSProfilerShell(object):
+class OSProfilerShell:
 
     def __init__(self, argv):
         args = self._get_base_parser().parse_args(argv)

@@ -49,8 +49,8 @@ class Messaging(base.Driver):
             raise ValueError("Oslo.messaging library is required for "
                              "messaging driver")
 
-        super(Messaging, self).__init__(connection_str, project=project,
-                                        service=service, host=host)
+        super().__init__(connection_str, project=project,
+                         service=service, host=host)
 
         self.context = context
 
@@ -167,7 +167,7 @@ class Messaging(base.Driver):
         return self._parse_results()
 
 
-class NotifyEndpoint(object):
+class NotifyEndpoint:
 
     def __init__(self, oslo_messaging, base_id):
         self.received_messages = []

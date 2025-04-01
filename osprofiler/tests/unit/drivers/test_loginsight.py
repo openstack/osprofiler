@@ -29,7 +29,7 @@ class LogInsightDriverTestCase(test.TestCase):
     BASE_ID = "8d28af1e-acc0-498c-9890-6908e33eff5f"
 
     def setUp(self):
-        super(LogInsightDriverTestCase, self).setUp()
+        super().setUp()
         self._client = mock.Mock(spec=loginsight.LogInsightClient)
         self._project = "cinder"
         self._service = "osapi_volume"
@@ -160,7 +160,7 @@ class LogInsightDriverTestCase(test.TestCase):
 class LogInsightClientTestCase(test.TestCase):
 
     def setUp(self):
-        super(LogInsightClientTestCase, self).setUp()
+        super().setUp()
         self._host = "localhost"
         self._username = "username"
         self._password = "password"  # nosec
