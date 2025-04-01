@@ -166,9 +166,9 @@ class WithTraceTestCase(test.TestCase):
             mock_start.reset_mock()
             with profiler.Trace("b", info="b1"):
                 mock_start.assert_called_once_with("b", info="b1")
-            mock_stop.assert_called_once_with()
+            mock_stop.assert_called_once_with(info=None)
             mock_stop.reset_mock()
-        mock_stop.assert_called_once_with()
+        mock_stop.assert_called_once_with(info=None)
 
     @mock.patch("osprofiler.profiler.stop")
     @mock.patch("osprofiler.profiler.start")
@@ -234,7 +234,7 @@ class TraceDecoratorTestCase(test.TestCase):
             }
         }
         mock_start.assert_called_once_with("function", info=expected_info)
-        mock_stop.assert_called_once_with()
+        mock_stop.assert_called_once_with(info=None)
 
     @mock.patch("osprofiler.profiler.stop")
     @mock.patch("osprofiler.profiler.start")
@@ -247,7 +247,7 @@ class TraceDecoratorTestCase(test.TestCase):
             }
         }
         mock_start.assert_called_once_with("hide_args", info=expected_info)
-        mock_stop.assert_called_once_with()
+        mock_stop.assert_called_once_with(info=None)
 
     @mock.patch("osprofiler.profiler.stop")
     @mock.patch("osprofiler.profiler.start")
@@ -375,7 +375,7 @@ class TraceClsDecoratorTestCase(test.TestCase):
         self.assertEqual(1, len(mock_start.call_args_list))
         self.assertIn(mock_start.call_args_list[0],
                       possible_mock_calls("rpc", expected_info))
-        mock_stop.assert_called_once_with()
+        mock_stop.assert_called_once_with(info=None)
 
     @mock.patch("osprofiler.profiler.stop")
     @mock.patch("osprofiler.profiler.start")
@@ -394,7 +394,7 @@ class TraceClsDecoratorTestCase(test.TestCase):
         self.assertEqual(1, len(mock_start.call_args_list))
         self.assertIn(mock_start.call_args_list[0],
                       possible_mock_calls("rpc", expected_info))
-        mock_stop.assert_called_once_with()
+        mock_stop.assert_called_once_with(info=None)
 
     @mock.patch("osprofiler.profiler.stop")
     @mock.patch("osprofiler.profiler.start")
@@ -420,7 +420,7 @@ class TraceClsDecoratorTestCase(test.TestCase):
         self.assertEqual(1, len(mock_start.call_args_list))
         self.assertIn(mock_start.call_args_list[0],
                       possible_mock_calls("a", expected_info))
-        mock_stop.assert_called_once_with()
+        mock_stop.assert_called_once_with(info=None)
 
     @mock.patch("osprofiler.profiler.stop")
     @mock.patch("osprofiler.profiler.start")
@@ -440,7 +440,7 @@ class TraceClsDecoratorTestCase(test.TestCase):
         self.assertEqual(1, len(mock_start.call_args_list))
         self.assertIn(mock_start.call_args_list[0],
                       possible_mock_calls("rpc", expected_info))
-        mock_stop.assert_called_once_with()
+        mock_stop.assert_called_once_with(info=None)
 
     @mock.patch("osprofiler.profiler.stop")
     @mock.patch("osprofiler.profiler.start")
@@ -471,7 +471,7 @@ class TraceClsDecoratorTestCase(test.TestCase):
         self.assertEqual(1, len(mock_start.call_args_list))
         self.assertIn(mock_start.call_args_list[0],
                       possible_mock_calls("rpc", expected_info))
-        mock_stop.assert_called_once_with()
+        mock_stop.assert_called_once_with(info=None)
 
     @mock.patch("osprofiler.profiler.stop")
     @mock.patch("osprofiler.profiler.start")
@@ -553,7 +553,7 @@ class TraceWithMetaclassTestCase(test.TestCase):
         self.assertEqual(1, len(mock_start.call_args_list))
         self.assertIn(mock_start.call_args_list[0],
                       possible_mock_calls("rpc", expected_info))
-        mock_stop.assert_called_once_with()
+        mock_stop.assert_called_once_with(info=None)
 
     @mock.patch("osprofiler.profiler.stop")
     @mock.patch("osprofiler.profiler.start")
@@ -572,7 +572,7 @@ class TraceWithMetaclassTestCase(test.TestCase):
         self.assertEqual(1, len(mock_start.call_args_list))
         self.assertIn(mock_start.call_args_list[0],
                       possible_mock_calls("rpc", expected_info))
-        mock_stop.assert_called_once_with()
+        mock_stop.assert_called_once_with(info=None)
 
     @mock.patch("osprofiler.profiler.stop")
     @mock.patch("osprofiler.profiler.start")
@@ -598,7 +598,7 @@ class TraceWithMetaclassTestCase(test.TestCase):
         self.assertEqual(1, len(mock_start.call_args_list))
         self.assertIn(mock_start.call_args_list[0],
                       possible_mock_calls("a", expected_info))
-        mock_stop.assert_called_once_with()
+        mock_stop.assert_called_once_with(info=None)
 
     @mock.patch("osprofiler.profiler.stop")
     @mock.patch("osprofiler.profiler.start")
@@ -618,4 +618,4 @@ class TraceWithMetaclassTestCase(test.TestCase):
         self.assertEqual(1, len(mock_start.call_args_list))
         self.assertIn(mock_start.call_args_list[0],
                       possible_mock_calls("rpc", expected_info))
-        mock_stop.assert_called_once_with()
+        mock_stop.assert_called_once_with(info=None)
