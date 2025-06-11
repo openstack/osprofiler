@@ -1,0 +1,6 @@
+---
+upgrade:
+  - |
+    The Jager driver is no longer supported and now using it raises
+    CommandError. This is because the jaeger-client-python library, which is
+    its core dependency, was already retired.

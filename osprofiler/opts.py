@@ -194,6 +194,8 @@ _jaegerprofiler_opt_group = cfg.OptGroup(
 
 _service_name_prefix = cfg.StrOpt(
     "service_name_prefix",
+    deprecated_for_removal=True,
+    deprecated_reason="Jager driver is no longer supported",
     help="""
 Set service name prefix to Jaeger service name.
 """)
@@ -201,6 +203,8 @@ Set service name prefix to Jaeger service name.
 _process_tags = cfg.DictOpt(
     "process_tags",
     default={},
+    deprecated_for_removal=True,
+    deprecated_reason="Jager driver is no longer supported",
     help="""
 Set process tracer tags.
 """)
