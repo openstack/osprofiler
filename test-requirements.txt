@@ -14,5 +14,6 @@ redis>=2.10.0 # MIT
 
 # For Jaeger Tracing
 jaeger-client>=3.8.0 # Apache-2.0
+six>=1.10.0 # MIT
 opentelemetry-exporter-otlp>=1.16.0 # Apache-2.0
 opentelemetry-sdk>=1.16.0 # Apache-2.0
