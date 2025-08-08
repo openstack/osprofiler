@@ -69,11 +69,6 @@ function install_jaeger_backend() {
     fi
 }
 
-function install_jaeger() {
-    install_jaeger_backend
-    pip_install jaeger-client
-}
-
 function install_otlp() {
     # For OTLP we use Jaeger backend but any OTLP compatible backend
     # can be used.
@@ -81,7 +76,7 @@ function install_otlp() {
     pip_install opentelemetry-sdk opentelemetry-exporter-otlp
 }
 
-function drop_jaeger() {
+function drop_jaeger_backend() {
     sg docker -c 'docker rm jaeger --force'
 }
 
@@ -119,9 +114,6 @@ function install_osprofiler_collector() {
     elif [ "$OSPROFILER_COLLECTOR" == "redis" ]; then
         install_redis
         OSPROFILER_CONNECTION_STRING=${OSPROFILER_CONNECTION_STRING:-"redis://localhost:6379"}
-    elif [ "$OSPROFILER_COLLECTOR" == "jaeger" ]; then
-        install_jaeger
-        OSPROFILER_CONNECTION_STRING=${OSPROFILER_CONNECTION_STRING:-"jaeger://localhost:6831"}
     elif [ "$OSPROFILER_COLLECTOR" == "otlp" ]; then
         install_otlp
         OSPROFILER_CONNECTION_STRING=${OSPROFILER_CONNECTION_STRING:-"otlp://localhost:4318"}

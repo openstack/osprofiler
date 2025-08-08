@@ -114,7 +114,8 @@ Examples of possible values:
 * ``mongodb://127.0.0.1:27017`` - use mongodb driver for sending spans.
 * ``elasticsearch://127.0.0.1:9200`` - use elasticsearch driver for sending
   spans.
-* ``jaeger://127.0.0.1:6831`` - use jaeger tracing as driver for sending spans.
+* ``otlp://127.0.0.1:4318`` - use OpenTelementry as driver for sending spans
+  to jaeger.
 """)
 
 _es_doc_type_opt = cfg.StrOpt(

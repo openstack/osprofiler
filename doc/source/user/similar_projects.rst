@@ -16,5 +16,5 @@ that are similar (in idea and ideal to OSprofiler).
 .. _Dapper: http://research.google.com/pubs/pub36356.html
 .. _Tomograph: https://github.com/stackforge/tomograph
 .. _HTrace: https://htrace.incubator.apache.org/
-.. _Jaeger: https://uber.github.io/jaeger/
+.. _Jaeger: https://www.jaegertracing.io/
 .. _OpenTracing: https://opentracing.io/
