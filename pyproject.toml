@@ -1,3 +1,66 @@
 [build-system]
 requires = ["pbr>=6.1.1"]
 build-backend = "pbr.build"
+
+[project]
+name = "osprofiler"
+description = "OpenStack Profiler Library"
+authors = [
+    {name = "OpenStack", email = "openstack-discuss@lists.openstack.org"},
+]
+readme = {file = "README.rst", content-type = "text/x-rst"}
+license = {text = "Apache-2.0"}
+dynamic = ["version", "dependencies"]
+requires-python = ">=3.10"
+classifiers = [
+  "Development Status :: 5 - Production/Stable",
+  "Environment :: Console",
+  "Intended Audience :: Developers",
+  "License :: OSI Approved :: Apache Software License",
+  "Operating System :: POSIX :: Linux",
+  "Programming Language :: Python",
+  "Programming Language :: Python :: 3",
+  "Programming Language :: Python :: 3.10",
+  "Programming Language :: Python :: 3.11",
+  "Programming Language :: Python :: 3.12",
+  "Programming Language :: Python :: 3.13",
+]
+
+[project.urls]
+Homepage = "https://docs.openstack.org/osprofiler/"
+Repository = "https://opendev.org/openstack/osprofiler"
+
+[project.entry-points."oslo.config.opts"]
+osprofiler = "osprofiler.opts:list_opts"
+
+[project.entry-points."paste.filter_factory"]
+osprofiler = "osprofiler.web:WsgiMiddleware.factory"
+
+[project.optional-dependencies]
+elasticsearch = [
+    "elasticsearch>=2.0.0", # Apache-2.0
+]
+messaging = [
+    "oslo.messaging>=14.1.0", # Apache-2.0
+]
+mongo = [
+    "pymongo!=3.1,>=3.0.2", # Apache-2.0
+]
+otlp = [
+    "opentelemetry-exporter-otlp>=1.16.0", #Apache-2.0
+    "opentelemetry-sdk>=1.16.0", # Apache-2.0
+]
+redis = [
+    "redis>=2.10.0", # MIT
+]
+sqlalchemy = [
+    "SQLAlchemy>=1.4.0", # MIT
+]
+
+[project.scripts]
+osprofiler = "osprofiler.cmd.shell:main"
+
+[tool.setuptools]
+packages = [
+    "osprofiler"
+]
