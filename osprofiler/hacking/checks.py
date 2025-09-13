@@ -30,24 +30,6 @@ import tokenize
 
 from hacking import core
 
-re_assert_true_instance = re.compile(
-    r"(.)*assertTrue\(isinstance\((\w|\.|\'|\"|\[|\])+, "
-    r"(\w|\.|\'|\"|\[|\])+\)\)")
-re_assert_equal_type = re.compile(
-    r"(.)*assertEqual\(type\((\w|\.|\'|\"|\[|\])+\), "
-    r"(\w|\.|\'|\"|\[|\])+\)")
-re_assert_equal_end_with_none = re.compile(r"assertEqual\(.*?,\s+None\)$")
-re_assert_equal_start_with_none = re.compile(r"assertEqual\(None,")
-re_assert_true_false_with_in_or_not_in = re.compile(
-    r"assert(True|False)\("
-    r"(\w|[][.'\"])+( not)? in (\w|[][.'\",])+(, .*)?\)")
-re_assert_true_false_with_in_or_not_in_spaces = re.compile(
-    r"assert(True|False)\((\w|[][.'\"])+( not)? in [\[|'|\"](\w|[][.'\", ])+"
-    r"[\[|'|\"](, .*)?\)")
-re_assert_equal_in_end_with_true_or_false = re.compile(
-    r"assertEqual\((\w|[][.'\"])+( not)? in (\w|[][.'\", ])+, (True|False)\)")
-re_assert_equal_in_start_with_true_or_false = re.compile(
-    r"assertEqual\((True|False), (\w|[][.'\"])+( not)? in (\w|[][.'\", ])+\)")
 re_no_construct_dict = re.compile(
     r"\sdict\(\)")
 re_no_construct_list = re.compile(
@@ -136,84 +118,6 @@ def check_assert_methods_from_mock(logical_line, filename):
                     "error_number": error_number,
                     "method": method_name,
                     "custom_msg": custom_msg})
-
-
-@skip_ignored_lines
-@core.flake8ext
-def assert_true_instance(logical_line, filename):
-    """Check for assertTrue(isinstance(a, b)) sentences
-
-    N320
-    """
-    if re_assert_true_instance.match(logical_line):
-        yield (0, "N320 assertTrue(isinstance(a, b)) sentences not allowed, "
-                  "you should use assertIsInstance(a, b) instead.")
-
-
-@skip_ignored_lines
-@core.flake8ext
-def assert_equal_type(logical_line, filename):
-    """Check for assertEqual(type(A), B) sentences
-
-    N321
-    """
-    if re_assert_equal_type.match(logical_line):
-        yield (0, "N321 assertEqual(type(A), B) sentences not allowed, "
-                  "you should use assertIsInstance(a, b) instead.")
-
-
-@skip_ignored_lines
-@core.flake8ext
-def assert_equal_none(logical_line, filename):
-    """Check for assertEqual(A, None) or assertEqual(None, A) sentences
-
-    N322
-    """
-    res = (re_assert_equal_start_with_none.search(logical_line)
-           or re_assert_equal_end_with_none.search(logical_line))
-    if res:
-        yield (0, "N322 assertEqual(A, None) or assertEqual(None, A) "
-                  "sentences not allowed, you should use assertIsNone(A) "
-                  "instead.")
-
-
-@skip_ignored_lines
-@core.flake8ext
-def assert_true_or_false_with_in(logical_line, filename):
-    """Check assertTrue/False(A in/not in B) with collection contents
-
-    Check for assertTrue/False(A in B), assertTrue/False(A not in B),
-    assertTrue/False(A in B, message) or assertTrue/False(A not in B, message)
-    sentences.
-
-    N323
-    """
-    res = (re_assert_true_false_with_in_or_not_in.search(logical_line)
-           or re_assert_true_false_with_in_or_not_in_spaces.search(
-               logical_line))
-    if res:
-        yield (0, "N323 assertTrue/assertFalse(A in/not in B)sentences not "
-                  "allowed, you should use assertIn(A, B) or assertNotIn(A, B)"
-                  " instead.")
-
-
-@skip_ignored_lines
-@core.flake8ext
-def assert_equal_in(logical_line, filename):
-    """Check assertEqual(A in/not in B, True/False) with collection contents
-
-    Check for assertEqual(A in B, True/False), assertEqual(True/False, A in B),
-    assertEqual(A not in B, True/False) or assertEqual(True/False, A not in B)
-    sentences.
-
-    N324
-    """
-    res = (re_assert_equal_in_end_with_true_or_false.search(logical_line)
-           or re_assert_equal_in_start_with_true_or_false.search(logical_line))
-    if res:
-        yield (0, "N324: Use assertIn/NotIn(A, B) rather than "
-                  "assertEqual(A in/not in B, True/False) when checking "
-                  "collection contents.")
 
 
 @skip_ignored_lines
