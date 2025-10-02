@@ -64,3 +64,6 @@ osprofiler = "osprofiler.cmd.shell:main"
 packages = [
     "osprofiler"
 ]
+
+[tool.bandit]
+exclude_dirs = ["tests"]
