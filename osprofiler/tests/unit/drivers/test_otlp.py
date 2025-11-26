@@ -16,6 +16,7 @@ from unittest import mock
 
 from oslo_config import cfg
 
+from osprofiler import _utils as utils
 from osprofiler.drivers import otlp
 from osprofiler import opts
 from osprofiler.tests import test
@@ -32,6 +33,15 @@ class OTLPTestCase(test.TestCase):
             "base_id": "4e3e0ec6-2938-40b1-8504-09eb1d4b0dee",
             "trace_id": "1c089ea8-28fe-4f3d-8c00-f6daa2bc32f1",
             "parent_id": "e2715537-3d1c-4f0c-b3af-87355dc5fc5b",
+            "timestamp": "2018-05-03T04:31:51.781381",
+            "info": {"host": "test"},
+        }
+
+        self.root_span_payload_start = {
+            "name": "api-start",
+            "base_id": "4e3e0ec6-2938-40b1-8504-09eb1d4b0dee",
+            "trace_id": "1c089ea8-28fe-4f3d-8c00-f6daa2bc32f1",
+            "parent_id": "4e3e0ec6-2938-40b1-8504-09eb1d4b0dee",
             "timestamp": "2018-05-03T04:31:51.781381",
             "info": {"host": "test"},
         }
@@ -55,6 +65,25 @@ class OTLPTestCase(test.TestCase):
     def test_notify_start(self):
         self.driver.notify(self.payload_start)
         self.assertEqual(1, len(self.driver.spans))
+
+    def test_notify_start_with_parent_span(self):
+        self.driver.notify(self.payload_start)
+        self.assertEqual(1, len(self.driver.spans))
+        result_span = self.driver.spans[0]
+        self.assertEqual(
+            utils.uuid_to_int128(str(self.payload_start["base_id"])),
+            result_span._parent.trace_id,
+        )
+        self.assertEqual(
+            utils.shorten_id(str(self.payload_start["parent_id"])),
+            result_span._parent.span_id,
+        )
+
+    def test_notify_start_with_root_span(self):
+        self.driver.notify(self.root_span_payload_start)
+        self.assertEqual(1, len(self.driver.spans))
+        result_span = self.driver.spans[0]
+        self.assertIsNone(result_span._parent)
 
     def test_notify_stop(self):
         mock_end = mock.MagicMock()

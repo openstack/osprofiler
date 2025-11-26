@@ -119,18 +119,22 @@ class OTLP(base.Driver):
     def notify(self, info: dict[str, Any], **kwargs: Any) -> None:
         payload = info
         if payload["name"].endswith("start"):
-            parent = self.trace_api.SpanContext(
-                trace_id=utils.uuid_to_int128(payload["base_id"]),
-                span_id=utils.shorten_id(payload["parent_id"]),
-                is_remote=False,
-                trace_flags=self.trace_api.TraceFlags(
-                    self.trace_api.TraceFlags.SAMPLED
-                ),
-            )
+            ctx = None
+            trace_id = utils.uuid_to_int128(payload["base_id"])
+            if payload["base_id"] != payload["parent_id"]:
+                # only non-root spans should have a parent span and context
+                parent = self.trace_api.SpanContext(
+                    trace_id=trace_id,
+                    span_id=utils.shorten_id(payload["parent_id"]),
+                    is_remote=False,
+                    trace_flags=self.trace_api.TraceFlags(
+                        self.trace_api.TraceFlags.SAMPLED
+                    ),
+                )
 
-            ctx = self.trace_api.set_span_in_context(
-                self.trace_api.NonRecordingSpan(parent)
-            )
+                ctx = self.trace_api.set_span_in_context(
+                    self.trace_api.NonRecordingSpan(parent)
+                )
 
             # OTLP Tracing span
             span = self.tracer.start_span(
@@ -141,7 +145,7 @@ class OTLP(base.Driver):
             )
 
             span._context = self.trace_api.SpanContext(  # type: ignore[attr-defined]
-                trace_id=span.context.trace_id,  # type: ignore[attr-defined]
+                trace_id=trace_id,
                 span_id=utils.shorten_id(payload["trace_id"]),
                 is_remote=span.context.is_remote,  # type: ignore[attr-defined]
                 trace_flags=span.context.trace_flags,  # type: ignore[attr-defined]
