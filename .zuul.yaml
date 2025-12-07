@@ -10,7 +10,7 @@
     check:
       jobs:
         - openstack-tox-functional-py310
-        - openstack-tox-functional-py312
+        - openstack-tox-functional-py313
         - tempest-smoke-py3-osprofiler-redis
         - tempest-smoke-py3-osprofiler-sqlalchemy
     gate:
