@@ -14,13 +14,13 @@
 #    under the License.
 
 import collections
-import datetime
 import functools
 import inspect
 import socket
 import threading
 
 from oslo_utils import reflection
+from oslo_utils import timeutils
 from oslo_utils import uuidutils
 
 from osprofiler import _utils as utils
@@ -423,8 +423,7 @@ class _Profiler:
             "base_id": self.get_base_id(),
             "trace_id": self.get_id(),
             "parent_id": self.get_parent_id(),
-            "timestamp": datetime.datetime.utcnow().strftime(
-                "%Y-%m-%dT%H:%M:%S.%f"),
+            "timestamp": timeutils.utcnow().strftime("%Y-%m-%dT%H:%M:%S.%f"),
         }
         if info:
             payload["info"] = info

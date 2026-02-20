@@ -100,14 +100,14 @@ class ProfilerTestCase(test.TestCase):
         prof.start("test")
         self.assertEqual(prof.get_id(), "43")
 
-    @mock.patch("osprofiler.profiler.datetime")
+    @mock.patch("osprofiler.profiler.timeutils")
     @mock.patch("osprofiler.profiler.uuidutils.generate_uuid")
     @mock.patch("osprofiler.profiler.notifier.notify")
     def test_profiler_start(self, mock_notify, mock_generate_uuid,
-                            mock_datetime):
+                            mock_timeutils):
         mock_generate_uuid.return_value = "44"
-        now = datetime.datetime.utcnow()
-        mock_datetime.datetime.utcnow.return_value = now
+        now = datetime.datetime.now(datetime.timezone.utc).replace(tzinfo=None)
+        mock_timeutils.utcnow.return_value = now
 
         info = {"some": "info"}
         payload = {
@@ -124,11 +124,11 @@ class ProfilerTestCase(test.TestCase):
 
         mock_notify.assert_called_once_with(payload)
 
-    @mock.patch("osprofiler.profiler.datetime")
+    @mock.patch("osprofiler.profiler.timeutils")
     @mock.patch("osprofiler.profiler.notifier.notify")
-    def test_profiler_stop(self, mock_notify, mock_datetime):
-        now = datetime.datetime.utcnow()
-        mock_datetime.datetime.utcnow.return_value = now
+    def test_profiler_stop(self, mock_notify, mock_timeutils):
+        now = datetime.datetime.now(datetime.timezone.utc).replace(tzinfo=None)
+        mock_timeutils.utcnow.return_value = now
         prof = profiler._Profiler("secret", base_id="1", parent_id="2")
         prof._trace_stack.append("44")
         prof._name.append("abc")
