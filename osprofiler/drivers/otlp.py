@@ -130,7 +130,7 @@ class OTLP(base.Driver):
 
             # Store result of db call and function call
             for call in ("db", "function"):
-                if payload.get("info", {}).get(call):
+                if payload.get("info", {}).get(call, {}).get("result"):
                     span.set_attribute(
                         "result", payload["info"][call]["result"])
             # Store result of requests

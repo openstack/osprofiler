@@ -69,6 +69,59 @@ class OTLPTestCase(test.TestCase):
         self.driver.notify(self.payload_stop)
         mock_end.assert_called_once()
 
+    def test_notify_stop_with_db_result(self):
+        self.payload_stop["info"] = {
+            "host": "test",
+            "db": {
+                "result": "()"
+            }
+        }
+        mock_end = mock.MagicMock()
+        self.driver.notify(self.payload_start)
+        self.driver.spans[0].end = mock_end
+        self.driver.notify(self.payload_stop)
+        mock_end.assert_called_once()
+
+    def test_notify_stop_with_db_error(self):
+        self.payload_stop["info"] = {
+            "host": "test",
+            "etype": "test_error",
+            "message": "test_error_message",
+            "db": {
+                "original_exception": "test_exception",
+                "chained_exception": "test_chained_exception",
+            }
+        }
+        mock_end = mock.MagicMock()
+        self.driver.notify(self.payload_start)
+        self.driver.spans[0].end = mock_end
+        self.driver.notify(self.payload_stop)
+        mock_end.assert_called_once()
+
+    def test_notify_stop_without_function_result(self):
+        self.payload_stop["info"] = {
+            "host": "test",
+            "function": {}
+        }
+        mock_end = mock.MagicMock()
+        self.driver.notify(self.payload_start)
+        self.driver.spans[0].end = mock_end
+        self.driver.notify(self.payload_stop)
+        mock_end.assert_called_once()
+
+    def test_notify_stop_with_requests(self):
+        self.payload_stop["info"] = {
+            "host": "test",
+            "requests": {
+                "status_code": 200,
+            }
+        }
+        mock_end = mock.MagicMock()
+        self.driver.notify(self.payload_start)
+        self.driver.spans[0].end = mock_end
+        self.driver.notify(self.payload_stop)
+        mock_end.assert_called_once()
+
     def test_service_name_default(self):
         self.assertEqual("pr1-svc1", self.driver._get_service_name(
             cfg.CONF, "pr1", "svc1"))
