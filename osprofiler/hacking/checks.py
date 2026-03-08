@@ -30,11 +30,10 @@ import tokenize
 
 from hacking import core
 
-re_no_construct_dict = re.compile(
-    r"\sdict\(\)")
-re_no_construct_list = re.compile(
-    r"\slist\(\)")
-re_str_format = re.compile(r"""
+re_no_construct_dict = re.compile(r"\sdict\(\)")
+re_no_construct_list = re.compile(r"\slist\(\)")
+re_str_format = re.compile(
+    r"""
 %            # start of specifier
 \(([^)]+)\)  # mapping key, in group 1
 [#0 +\-]?    # optional conversion flag
@@ -42,9 +41,10 @@ re_str_format = re.compile(r"""
 (?:\.\d*)?   # optional precision
 [hLl]?       # optional length modifier
 [A-z%]       # conversion modifier
-""", re.X)
-re_raises = re.compile(
-    r"\s:raise[^s] *.*$|\s:raises *:.*$|\s:raises *[^:]+$")
+""",
+    re.X,
+)
+re_raises = re.compile(r"\s:raise[^s] *.*$|\s:raises *:.*$|\s:raises *[^:]+$")
 
 
 @core.flake8ext
@@ -68,7 +68,7 @@ def _parse_assert_mock_str(line):
 
     if point != -1:
         end_pos = line[point:].find("(") + point
-        return point, line[point + 1: end_pos], line[: point]
+        return point, line[point + 1 : end_pos], line[:point]
     else:
         return None, None, None
 
@@ -83,8 +83,12 @@ def check_assert_methods_from_mock(logical_line, filename):
     N303 - related to nonexistent "assert_called_once"
     """
 
-    correct_names = ["assert_any_call", "assert_called_once_with",
-                     "assert_called_with", "assert_has_calls"]
+    correct_names = [
+        "assert_any_call",
+        "assert_called_once_with",
+        "assert_called_with",
+        "assert_has_calls",
+    ]
     ignored_files = ["./tests/unit/test_hacking.py"]
 
     if filename.startswith("./tests") and filename not in ignored_files:
@@ -93,31 +97,42 @@ def check_assert_methods_from_mock(logical_line, filename):
         if pos:
             if method_name not in correct_names:
                 error_number = "N301"
-                msg = ("%(error_number)s:'%(method)s' is not present in `mock`"
-                       " library. %(custom_msg)s For more details, visit "
-                       "http://www.voidspace.org.uk/python/mock/ .")
+                msg = (
+                    "%(error_number)s:'%(method)s' is not present in `mock`"
+                    " library. %(custom_msg)s For more details, visit "
+                    "http://www.voidspace.org.uk/python/mock/ ."
+                )
 
                 if method_name == "assert_called":
                     error_number = "N302"
-                    custom_msg = ("Maybe, you should try to use "
-                                  "'assertTrue(%s.called)' instead." %
-                                  obj_name)
+                    custom_msg = (
+                        "Maybe, you should try to use "
+                        f"'assertTrue({obj_name}.called)' instead."
+                    )
                 elif method_name == "assert_called_once":
                     # For more details, see a bug in Rally:
                     #    https://bugs.launchpad.net/rally/+bug/1305991
                     error_number = "N303"
-                    custom_msg = ("Maybe, you should try to use "
-                                  "'assertEqual(1, %s.call_count)' "
-                                  "or '%s.assert_called_once_with()'"
-                                  " instead." % (obj_name, obj_name))
+                    custom_msg = (
+                        "Maybe, you should try to use "
+                        f"'assertEqual(1, {obj_name}.call_count)' "
+                        f"or '{obj_name}.assert_called_once_with()'"
+                        " instead."
+                    )
                 else:
-                    custom_msg = ("Correct 'assert_*' methods: '%s'."
-                                  % "', '".join(correct_names))
+                    custom_msg = "Correct 'assert_*' methods: '{}'.".format(
+                        "', '".join(correct_names)
+                    )
 
-                yield (pos, msg % {
-                    "error_number": error_number,
-                    "method": method_name,
-                    "custom_msg": custom_msg})
+                yield (
+                    pos,
+                    msg
+                    % {
+                        "error_number": error_number,
+                        "method": method_name,
+                        "custom_msg": custom_msg,
+                    },
+                )
 
 
 @skip_ignored_lines
@@ -132,12 +147,10 @@ def check_quotes(logical_line, filename):
     in_multiline_string = False
     single_quotas_are_used = False
 
-    check_tripple = (
-        lambda line, i, char: (
-            i + 2 < len(line)
-            and (char == line[i] == line[i + 1] == line[i + 2])
+    def check_tripple(line, i, char):
+        return i + 2 < len(line) and (
+            char == line[i] == line[i + 1] == line[i + 2]
         )
-    )
 
     i = 0
     while i < len(logical_line):
@@ -199,9 +212,11 @@ def check_dict_formatting_in_string(logical_line, tokens):
     # NOTE(stpierre): Can't use @skip_ignored_lines here because it's
     # a stupid decorator that only works on functions that take
     # (logical_line, filename) as arguments.
-    if (not logical_line
+    if (
+        not logical_line
         or logical_line.startswith("#")
-        or logical_line.endswith("# noqa")):
+        or logical_line.endswith("# noqa")
+    ):
         return
 
     current_string = ""
@@ -241,9 +256,11 @@ def check_dict_formatting_in_string(logical_line, tokens):
                 for match in re_str_format.finditer(current_string):
                     format_keys.add(match.group(1))
                 if len(format_keys) == 1:
-                    yield (0,
-                           "N352 Do not use mapping key string formatting "
-                           "with a single key")
+                    yield (
+                        0,
+                        "N352 Do not use mapping key string formatting "
+                        "with a single key",
+                    )
             if text != ")":
                 # NOTE(stpierre): You can have a parenthesized string
                 # followed by %, so a closing paren doesn't obviate
@@ -267,8 +284,11 @@ def check_using_unicode(logical_line, filename):
     """
 
     if re.search(r"\bunicode\(", logical_line):
-        yield (0, "N353 'unicode' function is absent in python3. Please "
-                  "use 'str' instead.")
+        yield (
+            0,
+            "N353 'unicode' function is absent in python3. Please "
+            "use 'str' instead.",
+        )
 
 
 @core.flake8ext
@@ -278,9 +298,14 @@ def check_raises(physical_line, filename):
     N354
     """
 
-    ignored_files = ["./tests/unit/test_hacking.py",
-                     "./tests/hacking/checks.py"]
+    ignored_files = [
+        "./tests/unit/test_hacking.py",
+        "./tests/hacking/checks.py",
+    ]
     if filename not in ignored_files:
         if re_raises.search(physical_line):
-            return (0, "N354 ':Please use ':raises Exception: conditions' "
-                       "in docstrings.")
+            return (
+                0,
+                "N354 ':Please use ':raises Exception: conditions' "
+                "in docstrings.",
+            )

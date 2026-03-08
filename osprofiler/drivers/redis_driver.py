@@ -25,24 +25,41 @@ from osprofiler import exc
 
 
 class Redis(base.Driver):
-    @removals.removed_kwarg("db", message="'db' parameter is deprecated "
-                                          "and will be removed in future. "
-                                          "Please specify 'db' in "
-                                          "'connection_string' instead.")
-    def __init__(self, connection_str, db=0, project=None,
-                 service=None, host=None, conf=cfg.CONF, **kwargs):
+    @removals.removed_kwarg(
+        "db",
+        message="'db' parameter is deprecated "
+        "and will be removed in future. "
+        "Please specify 'db' in "
+        "'connection_string' instead.",
+    )
+    def __init__(
+        self,
+        connection_str,
+        db=0,
+        project=None,
+        service=None,
+        host=None,
+        conf=cfg.CONF,
+        **kwargs,
+    ):
         """Redis driver for OSProfiler."""
 
-        super().__init__(connection_str, project=project,
-                         service=service, host=host,
-                         conf=conf, **kwargs)
+        super().__init__(
+            connection_str,
+            project=project,
+            service=service,
+            host=host,
+            conf=conf,
+            **kwargs,
+        )
         try:
             from redis import Redis as _Redis
         except ImportError:
             raise exc.CommandError(
                 "To use OSProfiler with Redis driver, "
                 "please install `redis` library. "
-                "To install with pip:\n `pip install redis`.")
+                "To install with pip:\n `pip install redis`."
+            )
 
         # only connection over network is supported with schema
         # redis://[:password]@host[:port][/db]
@@ -74,17 +91,18 @@ class Redis(base.Driver):
         key = self.namespace_opt + data["base_id"]
         self.db.lpush(key, jsonutils.dumps(data))
 
-        if (self.filter_error_trace
-                and data.get("info", {}).get("etype") is not None):
+        if (
+            self.filter_error_trace
+            and data.get("info", {}).get("etype") is not None
+        ):
             self.notify_error_trace(data)
 
     def notify_error_trace(self, data):
         """Store base_id and timestamp of error trace to a separate key."""
         key = self.namespace_error + data["base_id"]
-        value = jsonutils.dumps({
-            "base_id": data["base_id"],
-            "timestamp": data["timestamp"]
-        })
+        value = jsonutils.dumps(
+            {"base_id": data["base_id"], "timestamp": data["timestamp"]}
+        )
         self.db.set(key, value)
 
     def list_traces(self, fields=None):
@@ -105,8 +123,13 @@ class Redis(base.Driver):
         for i in ids:
             # for each trace query the first event to have a timestamp
             first_event = jsonutils.loads(self.db.lindex(i, 1))
-            result.append({key: value for key, value in first_event.items()
-                           if key in fields})
+            result.append(
+                {
+                    key: value
+                    for key, value in first_event.items()
+                    if key in fields
+                }
+            )
         return result
 
     def _list_traces_legacy(self, fields):
@@ -121,8 +144,13 @@ class Redis(base.Driver):
         for trace in traces:
             if trace["base_id"] not in seen_ids:
                 seen_ids.add(trace["base_id"])
-                result.append({key: value for key, value in trace.items()
-                               if key in fields})
+                result.append(
+                    {
+                        key: value
+                        for key, value in trace.items()
+                        if key in fields
+                    }
+                )
         return result
 
     def list_error_traces(self):
@@ -144,9 +172,11 @@ class Redis(base.Driver):
 
         :param base_id: Base id of trace elements.
         """
+
         def iterate_events():
             for key in self.db.scan_iter(
-                    match=self.namespace + base_id + "*"):  # legacy
+                match=self.namespace + base_id + "*"
+            ):  # legacy
                 yield self.db.get(key)
 
             yield from self.db.lrange(self.namespace_opt + base_id, 0, -1)
@@ -161,40 +191,62 @@ class Redis(base.Driver):
             host = n["info"]["host"]
             timestamp = n["timestamp"]
 
-            self._append_results(trace_id, parent_id, name, project, service,
-                                 host, timestamp, n)
+            self._append_results(
+                trace_id, parent_id, name, project, service, host, timestamp, n
+            )
 
         return self._parse_results()
 
 
 class RedisSentinel(Redis, base.Driver):
-    @removals.removed_kwarg("db", message="'db' parameter is deprecated "
-                                          "and will be removed in future. "
-                                          "Please specify 'db' in "
-                                          "'connection_string' instead.")
-    def __init__(self, connection_str, db=0, project=None,
-                 service=None, host=None, conf=cfg.CONF, **kwargs):
+    @removals.removed_kwarg(
+        "db",
+        message="'db' parameter is deprecated "
+        "and will be removed in future. "
+        "Please specify 'db' in "
+        "'connection_string' instead.",
+    )
+    def __init__(
+        self,
+        connection_str,
+        db=0,
+        project=None,
+        service=None,
+        host=None,
+        conf=cfg.CONF,
+        **kwargs,
+    ):
         """Redis driver for OSProfiler."""
 
-        super().__init__(connection_str, project=project,
-                         service=service, host=host,
-                         conf=conf, **kwargs)
+        super().__init__(
+            connection_str,
+            project=project,
+            service=service,
+            host=host,
+            conf=conf,
+            **kwargs,
+        )
         try:
             from redis.sentinel import Sentinel
         except ImportError:
             raise exc.CommandError(
                 "To use this command, you should install "
                 "'redis' manually. Use command:\n "
-                "'pip install redis'.")
+                "'pip install redis'."
+            )
 
         self.conf = conf
         socket_timeout = self.conf.profiler.socket_timeout
         parsed_url = parser.urlparse(self.connection_str)
-        sentinel = Sentinel([(parsed_url.hostname, int(parsed_url.port))],
-                            password=parsed_url.password,
-                            socket_timeout=socket_timeout)
-        self.db = sentinel.master_for(self.conf.profiler.sentinel_service_name,
-                                      socket_timeout=socket_timeout)
+        sentinel = Sentinel(
+            [(parsed_url.hostname, int(parsed_url.port))],
+            password=parsed_url.password,
+            socket_timeout=socket_timeout,
+        )
+        self.db = sentinel.master_for(
+            self.conf.profiler.sentinel_service_name,
+            socket_timeout=socket_timeout,
+        )
 
     @classmethod
     def get_name(cls):

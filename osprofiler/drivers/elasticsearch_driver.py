@@ -22,27 +22,38 @@ from osprofiler import exc
 
 
 class ElasticsearchDriver(base.Driver):
-    def __init__(self, connection_str, index_name="osprofiler-notifications",
-                 project=None, service=None, host=None, conf=cfg.CONF,
-                 **kwargs):
+    def __init__(
+        self,
+        connection_str,
+        index_name="osprofiler-notifications",
+        project=None,
+        service=None,
+        host=None,
+        conf=cfg.CONF,
+        **kwargs,
+    ):
         """Elasticsearch driver for OSProfiler."""
 
-        super().__init__(connection_str,
-                         project=project,
-                         service=service,
-                         host=host,
-                         conf=conf,
-                         **kwargs)
+        super().__init__(
+            connection_str,
+            project=project,
+            service=service,
+            host=host,
+            conf=conf,
+            **kwargs,
+        )
         try:
             from elasticsearch import Elasticsearch
         except ImportError:
             raise exc.CommandError(
                 "To use OSProfiler with ElasticSearch driver, "
                 "please install `elasticsearch` library. "
-                "To install with pip:\n `pip install elasticsearch`.")
+                "To install with pip:\n `pip install elasticsearch`."
+            )
 
-        client_url = parser.urlunparse(parser.urlparse(self.connection_str)
-                                       ._replace(scheme="http"))
+        client_url = parser.urlunparse(
+            parser.urlparse(self.connection_str)._replace(scheme="http")
+        )
         self.conf = conf
         self.client = Elasticsearch(client_url)
         self.index_name = index_name
@@ -69,11 +80,16 @@ class ElasticsearchDriver(base.Driver):
         info = info.copy()
         info["project"] = self.project
         info["service"] = self.service
-        self.client.index(index=self.index_name,
-                          doc_type=self.conf.profiler.es_doc_type, body=info)
+        self.client.index(
+            index=self.index_name,
+            doc_type=self.conf.profiler.es_doc_type,
+            body=info,
+        )
 
-        if (self.filter_error_trace
-                and info.get("info", {}).get("etype") is not None):
+        if (
+            self.filter_error_trace
+            and info.get("info", {}).get("etype") is not None
+        ):
             self.notify_error_trace(info)
 
     def notify_error_trace(self, info):
@@ -81,7 +97,7 @@ class ElasticsearchDriver(base.Driver):
         self.client.index(
             index=self.index_name_error,
             doc_type=self.conf.profiler.es_doc_type,
-            body={"base_id": info["base_id"], "timestamp": info["timestamp"]}
+            body={"base_id": info["base_id"], "timestamp": info["timestamp"]},
         )
 
     def _hits(self, response):
@@ -96,9 +112,9 @@ class ElasticsearchDriver(base.Driver):
         while scroll_size > 0:
             for hit in response["hits"]["hits"]:
                 result.append(hit["_source"])
-            response = self.client.scroll(scroll_id=scroll_id,
-                                          scroll=self.conf.profiler.
-                                          es_scroll_time)
+            response = self.client.scroll(
+                scroll_id=scroll_id, scroll=self.conf.profiler.es_scroll_time
+            )
             scroll_id = response["_scroll_id"]
             scroll_size = len(response["hits"]["hits"])
 
@@ -115,12 +131,17 @@ class ElasticsearchDriver(base.Driver):
         query = {"match_all": {}}
         fields = set(fields or self.default_trace_fields)
 
-        response = self.client.search(index=self.index_name,
-                                      doc_type=self.conf.profiler.es_doc_type,
-                                      size=self.conf.profiler.es_scroll_size,
-                                      scroll=self.conf.profiler.es_scroll_time,
-                                      body={"_source": fields, "query": query,
-                                            "sort": [{"timestamp": "asc"}]})
+        response = self.client.search(
+            index=self.index_name,
+            doc_type=self.conf.profiler.es_doc_type,
+            size=self.conf.profiler.es_scroll_size,
+            scroll=self.conf.profiler.es_scroll_time,
+            body={
+                "_source": fields,
+                "query": query,
+                "sort": [{"timestamp": "asc"}],
+            },
+        )
 
         return self._hits(response)
 
@@ -134,8 +155,8 @@ class ElasticsearchDriver(base.Driver):
             body={
                 "_source": self.default_trace_fields,
                 "query": {"match_all": {}},
-                "sort": [{"timestamp": "asc"}]
-            }
+                "sort": [{"timestamp": "asc"}],
+            },
         )
 
         return self._hits(response)
@@ -145,12 +166,13 @@ class ElasticsearchDriver(base.Driver):
 
         :param base_id: Base id of trace elements.
         """
-        response = self.client.search(index=self.index_name,
-                                      doc_type=self.conf.profiler.es_doc_type,
-                                      size=self.conf.profiler.es_scroll_size,
-                                      scroll=self.conf.profiler.es_scroll_time,
-                                      body={"query": {
-                                          "match": {"base_id": base_id}}})
+        response = self.client.search(
+            index=self.index_name,
+            doc_type=self.conf.profiler.es_doc_type,
+            size=self.conf.profiler.es_scroll_size,
+            scroll=self.conf.profiler.es_scroll_time,
+            body={"query": {"match": {"base_id": base_id}}},
+        )
 
         for n in self._hits(response):
             trace_id = n["trace_id"]
@@ -161,7 +183,8 @@ class ElasticsearchDriver(base.Driver):
             host = n["info"]["host"]
             timestamp = n["timestamp"]
 
-            self._append_results(trace_id, parent_id, name, project, service,
-                                 host, timestamp, n)
+            self._append_results(
+                trace_id, parent_id, name, project, service, host, timestamp, n
+            )
 
         return self._parse_results()

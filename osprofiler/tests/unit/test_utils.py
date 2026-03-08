@@ -25,7 +25,6 @@ from osprofiler.tests import test
 
 
 class UtilsTestCase(test.TestCase):
-
     def test_split(self):
         self.assertEqual([1, 2], utils.split([1, 2]))
         self.assertEqual(["A", "B"], utils.split("A, B"))
@@ -35,8 +34,9 @@ class UtilsTestCase(test.TestCase):
         self.assertRaises(TypeError, utils.split, 1)
 
     def test_binary_encode_and_decode(self):
-        self.assertEqual("text",
-                         utils.binary_decode(utils.binary_encode("text")))
+        self.assertEqual(
+            "text", utils.binary_decode(utils.binary_encode("text"))
+        )
 
     def test_binary_encode_invalid_type(self):
         self.assertRaises(TypeError, utils.binary_encode, 1234)

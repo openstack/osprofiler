@@ -18,19 +18,32 @@ from osprofiler import exc
 
 
 class MongoDB(base.Driver):
-    def __init__(self, connection_str, db_name="osprofiler", project=None,
-                 service=None, host=None, **kwargs):
+    def __init__(
+        self,
+        connection_str,
+        db_name="osprofiler",
+        project=None,
+        service=None,
+        host=None,
+        **kwargs,
+    ):
         """MongoDB driver for OSProfiler."""
 
-        super().__init__(connection_str, project=project,
-                         service=service, host=host, **kwargs)
+        super().__init__(
+            connection_str,
+            project=project,
+            service=service,
+            host=host,
+            **kwargs,
+        )
         try:
             from pymongo import MongoClient
         except ImportError:
             raise exc.CommandError(
                 "To use OSProfiler with MongoDB driver, "
                 "please install `pymongo` library. "
-                "To install with pip:\n `pip install pymongo`.")
+                "To install with pip:\n `pip install pymongo`."
+            )
 
         client = MongoClient(self.connection_str, connect=False)
         self.db = client[db_name]
@@ -57,8 +70,10 @@ class MongoDB(base.Driver):
         data["service"] = self.service
         self.db.profiler.insert_one(data)
 
-        if (self.filter_error_trace
-                and data.get("info", {}).get("etype") is not None):
+        if (
+            self.filter_error_trace
+            and data.get("info", {}).get("etype") is not None
+        ):
             self.notify_error_trace(data)
 
     def notify_error_trace(self, data):
@@ -66,7 +81,7 @@ class MongoDB(base.Driver):
         self.db.profiler_error.update(
             {"base_id": data["base_id"]},
             {"base_id": data["base_id"], "timestamp": data["timestamp"]},
-            upsert=True
+            upsert=True,
         )
 
     def list_traces(self, fields=None):
@@ -81,8 +96,12 @@ class MongoDB(base.Driver):
         ids = self.db.profiler.find({}).distinct("base_id")
         out_format = {"base_id": 1, "timestamp": 1, "_id": 0}
         out_format.update({i: 1 for i in fields})
-        return [self.db.profiler.find(
-                {"base_id": i}, out_format).sort("timestamp")[0] for i in ids]
+        return [
+            self.db.profiler.find({"base_id": i}, out_format).sort(
+                "timestamp"
+            )[0]
+            for i in ids
+        ]
 
     def list_error_traces(self):
         """Returns all traces that have error/exception."""
@@ -103,7 +122,8 @@ class MongoDB(base.Driver):
             host = n["info"]["host"]
             timestamp = n["timestamp"]
 
-            self._append_results(trace_id, parent_id, name, project, service,
-                                 host, timestamp, n)
+            self._append_results(
+                trace_id, parent_id, name, project, service, host, timestamp, n
+            )
 
         return self._parse_results()

@@ -46,9 +46,9 @@ def get():
 def set(notifier):
     """Service that are going to use profiler should set callable notifier.
 
-       Callable notifier is instance of callable object, that accept exactly
-       one argument "info". "info" - is dictionary of values that contains
-       profiling information.
+    Callable notifier is instance of callable object, that accept exactly
+    one argument "info". "info" - is dictionary of values that contains
+    profiling information.
     """
     global __notifier
     __notifier = notifier
@@ -68,11 +68,16 @@ def create(connection_string, *args, **kwargs):
         try:
             driver = base.get_driver(connection_string, *args, **kwargs)
             __notifier_cache[connection_string] = driver.notify
-            LOG.info("osprofiler is enabled with connection string: %s",
-                     connection_string)
+            LOG.info(
+                "osprofiler is enabled with connection string: %s",
+                connection_string,
+            )
         except Exception:
-            LOG.exception("Could not initialize driver for connection string "
-                          "%s, osprofiler is disabled", connection_string)
+            LOG.exception(
+                "Could not initialize driver for connection string "
+                "%s, osprofiler is disabled",
+                connection_string,
+            )
             __notifier_cache[connection_string] = _noop_notifier
 
     return __notifier_cache[connection_string]

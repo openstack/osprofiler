@@ -28,7 +28,6 @@ from osprofiler.tests import test
 
 @ddt.ddt
 class ShellTestCase(test.TestCase):
-
     TRACE_ID = "c598094d-bbee-40b6-b317-d76003b679d3"
 
     def setUp(self):
@@ -40,8 +39,8 @@ class ShellTestCase(test.TestCase):
         os.environ = self.old_environment
 
     def _trace_show_cmd(self, format_=None):
-        cmd = "trace show --connection-string redis:// %s" % self.TRACE_ID
-        return cmd if format_ is None else "{} --{}".format(cmd, format_)
+        cmd = f"trace show --connection-string redis:// {self.TRACE_ID}"
+        return cmd if format_ is None else f"{cmd} --{format_}"
 
     @mock.patch("sys.stdout", io.StringIO())
     @mock.patch("osprofiler.cmd.shell.OSProfilerShell")
@@ -61,41 +60,45 @@ class ShellTestCase(test.TestCase):
         else:
             raise ValueError(
                 "Expected: `osprofiler.exc.CommandError` is raised with "
-                "message: '%s'." % expected_message)
+                f"message: '{expected_message}'."
+            )
 
     @mock.patch("osprofiler.drivers.redis_driver.Redis.get_report")
     def test_trace_show_no_selected_format(self, mock_get):
         mock_get.return_value = self._create_mock_notifications()
-        msg = ("You should choose one of the following output formats: "
-               "json, html or dot.")
+        msg = (
+            "You should choose one of the following output formats: "
+            "json, html or dot."
+        )
         self._test_with_command_error(self._trace_show_cmd(), msg)
 
     @mock.patch("osprofiler.drivers.redis_driver.Redis.get_report")
-    @ddt.data(None, {"info": {"started": 0, "finished": 1, "name": "total"},
-                     "children": []})
+    @ddt.data(
+        None,
+        {
+            "info": {"started": 0, "finished": 1, "name": "total"},
+            "children": [],
+        },
+    )
     def test_trace_show_trace_id_not_found(self, notifications, mock_get):
         mock_get.return_value = notifications
 
-        msg = ("Trace with UUID %s not found. Please check the HMAC key "
-               "used in the command." % self.TRACE_ID)
+        msg = (
+            f"Trace with UUID {self.TRACE_ID} not found. Please check the "
+            f"HMAC key used in the command."
+        )
 
         self._test_with_command_error(self._trace_show_cmd(), msg)
 
     def _create_mock_notifications(self):
         notifications = {
-            "info": {
-                "started": 0,
-                "finished": 1,
-                "name": "total"
-            },
-            "children": [{
-                "info": {
-                    "started": 0,
-                    "finished": 1,
-                    "name": "total"
-                },
-                "children": []
-            }]
+            "info": {"started": 0, "finished": 1, "name": "total"},
+            "children": [
+                {
+                    "info": {"started": 0, "finished": 1, "name": "total"},
+                    "children": [],
+                }
+            ],
         }
         return notifications
 
@@ -106,9 +109,16 @@ class ShellTestCase(test.TestCase):
         mock_get.return_value = notifications
 
         self.run_command(self._trace_show_cmd(format_="json"))
-        self.assertEqual("%s\n" % json.dumps(notifications, indent=2,
-                                             separators=(",", ": "),),
-                         sys.stdout.getvalue())
+        self.assertEqual(
+            "{}\n".format(
+                json.dumps(
+                    notifications,
+                    indent=2,
+                    separators=(",", ": "),
+                )
+            ),
+            sys.stdout.getvalue(),
+        )
 
     @mock.patch("sys.stdout", io.StringIO())
     @mock.patch("osprofiler.drivers.redis_driver.Redis.get_report")
@@ -124,20 +134,27 @@ class ShellTestCase(test.TestCase):
             "It is a period of civil war. Rebel"
             "spaceships, striking from a hidden"
             "base, have won their first victory"
-            "against the evil Galactic Empire.")
+            "against the evil Galactic Empire."
+        )
 
-        with mock.patch("osprofiler.cmd.commands.open",
-                        mock.mock_open(read_data=html_template), create=True):
+        with mock.patch(
+            "osprofiler.cmd.commands.open",
+            mock.mock_open(read_data=html_template),
+            create=True,
+        ):
             self.run_command(self._trace_show_cmd(format_="html"))
-            self.assertEqual("A long time ago in a galaxy far, far away..."
-                             "    some_data = %s"
-                             "It is a period of civil war. Rebel"
-                             "spaceships, striking from a hidden"
-                             "base, have won their first victory"
-                             "against the evil Galactic Empire."
-                             "\n" % json.dumps(notifications, indent=4,
-                                               separators=(",", ": ")),
-                             sys.stdout.getvalue())
+            self.assertEqual(
+                "A long time ago in a galaxy far, far away..."
+                "    some_data = {}"
+                "It is a period of civil war. Rebel"
+                "spaceships, striking from a hidden"
+                "base, have won their first victory"
+                "against the evil Galactic Empire."
+                "\n".format(
+                    json.dumps(notifications, indent=4, separators=(",", ": "))
+                ),
+                sys.stdout.getvalue(),
+            )
 
     @mock.patch("sys.stdout", io.StringIO())
     @mock.patch("osprofiler.drivers.redis_driver.Redis.get_report")
@@ -145,11 +162,14 @@ class ShellTestCase(test.TestCase):
         notifications = self._create_mock_notifications()
         mock_get.return_value = notifications
 
-        with mock.patch("osprofiler.cmd.commands.open",
-                        mock.mock_open(), create=True) as mock_open:
-            self.run_command("%s --out='/file'" %
-                             self._trace_show_cmd(format_="json"))
+        with mock.patch(
+            "osprofiler.cmd.commands.open", mock.mock_open(), create=True
+        ) as mock_open:
+            self.run_command(
+                "{} --out='/file'".format(self._trace_show_cmd(format_="json"))
+            )
 
             output = mock_open.return_value.__enter__.return_value
             output.write.assert_called_once_with(
-                json.dumps(notifications, indent=2, separators=(",", ": ")))
+                json.dumps(notifications, indent=2, separators=(",", ": "))
+            )

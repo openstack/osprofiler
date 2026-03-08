@@ -42,11 +42,13 @@ def add_tracing(sqlalchemy, engine, name, hide_result=True):
     """Add tracing to all sqlalchemy calls."""
 
     if not _DISABLED:
-        sqlalchemy.event.listen(engine, "before_cursor_execute",
-                                _before_cursor_execute(name))
         sqlalchemy.event.listen(
-            engine, "after_cursor_execute",
-            _after_cursor_execute(hide_result=hide_result)
+            engine, "before_cursor_execute", _before_cursor_execute(name)
+        )
+        sqlalchemy.event.listen(
+            engine,
+            "after_cursor_execute",
+            _after_cursor_execute(hide_result=hide_result),
         )
         sqlalchemy.event.listen(engine, "handle_error", handle_error)
 
@@ -64,10 +66,7 @@ def _before_cursor_execute(name):
     """Add listener that will send trace info before query is executed."""
 
     def handler(conn, cursor, statement, params, context, executemany):
-        info = {"db": {
-            "statement": statement,
-            "params": params}
-        }
+        info = {"db": {"statement": statement, "params": params}}
         profiler.start(name, info=info)
 
     return handler
@@ -84,11 +83,7 @@ def _after_cursor_execute(hide_result=True):
     def handler(conn, cursor, statement, params, context, executemany):
         if not hide_result:
             # Add SQL result to trace info in *-stop phase
-            info = {
-                "db": {
-                    "result": str(cursor._rows)
-                }
-            }
+            info = {"db": {"result": str(cursor._rows)}}
             profiler.stop(info=info)
         else:
             profiler.stop()
@@ -99,7 +94,8 @@ def _after_cursor_execute(hide_result=True):
 def handle_error(exception_context):
     """Handle SQLAlchemy errors"""
     exception_class_name = reflection.get_class_name(
-        exception_context.original_exception)
+        exception_context.original_exception
+    )
     original_exception = str(exception_context.original_exception)
     chained_exception = str(exception_context.chained_exception)
 
@@ -108,9 +104,10 @@ def handle_error(exception_context):
         "message": original_exception,
         "db": {
             "original_exception": original_exception,
-            "chained_exception": chained_exception
-        }
+            "chained_exception": chained_exception,
+        },
     }
     profiler.stop(info=info)
-    LOG.debug("OSProfiler has handled SQLAlchemy error: %s",
-              original_exception)
+    LOG.debug(
+        "OSProfiler has handled SQLAlchemy error: %s", original_exception
+    )

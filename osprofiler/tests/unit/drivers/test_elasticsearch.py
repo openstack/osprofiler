@@ -20,11 +20,11 @@ from osprofiler.tests import test
 
 
 class ElasticsearchTestCase(test.TestCase):
-
     def setUp(self):
         super().setUp()
         self.elasticsearch = ElasticsearchDriver(
-            "elasticsearch://localhost:9001/")
+            "elasticsearch://localhost:9001/"
+        )
         self.elasticsearch.project = "project"
         self.elasticsearch.service = "service"
 
@@ -35,23 +35,20 @@ class ElasticsearchTestCase(test.TestCase):
         service = "service"
         host = "host"
 
-        info = {
-            "a": 10,
-            "project": project,
-            "service": service,
-            "host": host
-        }
+        info = {"a": 10, "project": project, "service": service, "host": host}
         self.elasticsearch.notify(info)
 
-        self.elasticsearch.client\
-            .index.assert_called_once_with(index="osprofiler-notifications",
-                                           doc_type="notification",
-                                           body=info)
+        self.elasticsearch.client.index.assert_called_once_with(
+            index="osprofiler-notifications",
+            doc_type="notification",
+            body=info,
+        )
 
     def test_get_empty_report(self):
         self.elasticsearch.client = mock.MagicMock()
-        self.elasticsearch.client.search = mock\
-            .MagicMock(return_value={"_scroll_id": "1", "hits": {"hits": []}})
+        self.elasticsearch.client.search = mock.MagicMock(
+            return_value={"_scroll_id": "1", "hits": {"hits": []}}
+        )
         self.elasticsearch.client.reset_mock()
 
         get_report = self.elasticsearch.get_report
@@ -59,14 +56,13 @@ class ElasticsearchTestCase(test.TestCase):
 
         get_report(base_id)
 
-        self.elasticsearch.client\
-            .search.assert_called_once_with(index="osprofiler-notifications",
-                                            doc_type="notification",
-                                            size=10000,
-                                            scroll="2m",
-                                            body={"query": {
-                                                "match": {"base_id": base_id}}
-                                            })
+        self.elasticsearch.client.search.assert_called_once_with(
+            index="osprofiler-notifications",
+            doc_type="notification",
+            size=10000,
+            scroll="2m",
+            body={"query": {"match": {"base_id": base_id}}},
+        )
 
     def test_get_non_empty_report(self):
         base_id = "1"
@@ -82,34 +78,37 @@ class ElasticsearchTestCase(test.TestCase):
                             "service": "service",
                             "parent_id": "0",
                             "name": "test",
-                            "info": {
-                                "host": "host"
-                            },
-                            "trace_id": "1"
+                            "info": {"host": "host"},
+                            "trace_id": "1",
                         }
                     }
-                ]}}
+                ]
+            },
+        }
         elasticsearch_second_response = {
             "_scroll_id": base_id,
-            "hits": {"hits": []}}
+            "hits": {"hits": []},
+        }
         self.elasticsearch.client = mock.MagicMock()
-        self.elasticsearch.client.search = \
-            mock.MagicMock(return_value=elasticsearch_first_response)
-        self.elasticsearch.client.scroll = \
-            mock.MagicMock(return_value=elasticsearch_second_response)
+        self.elasticsearch.client.search = mock.MagicMock(
+            return_value=elasticsearch_first_response
+        )
+        self.elasticsearch.client.scroll = mock.MagicMock(
+            return_value=elasticsearch_second_response
+        )
 
         self.elasticsearch.client.reset_mock()
 
         self.elasticsearch.get_report(base_id)
 
-        self.elasticsearch.client\
-            .search.assert_called_once_with(index="osprofiler-notifications",
-                                            doc_type="notification",
-                                            size=10000,
-                                            scroll="2m",
-                                            body={"query": {
-                                                "match": {"base_id": base_id}}
-                                            })
+        self.elasticsearch.client.search.assert_called_once_with(
+            index="osprofiler-notifications",
+            doc_type="notification",
+            size=10000,
+            scroll="2m",
+            body={"query": {"match": {"base_id": base_id}}},
+        )
 
-        self.elasticsearch.client\
-            .scroll.assert_called_once_with(scroll_id=base_id, scroll="2m")
+        self.elasticsearch.client.scroll.assert_called_once_with(
+            scroll_id=base_id, scroll="2m"
+        )

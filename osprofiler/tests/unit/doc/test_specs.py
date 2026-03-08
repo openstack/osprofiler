@@ -20,11 +20,15 @@ from osprofiler.tests import test
 
 
 class TitlesTestCase(test.TestCase):
-
     specs_path = os.path.join(
         os.path.dirname(__file__),
-        os.pardir, os.pardir, os.pardir, os.pardir,
-        "doc", "specs")
+        os.pardir,
+        os.pardir,
+        os.pardir,
+        os.pardir,
+        "doc",
+        "specs",
+    )
 
     def _get_title(self, section_tree):
         section = {"subtitles": []}
@@ -51,21 +55,27 @@ class TitlesTestCase(test.TestCase):
 
         msgs = []
         if len(missing_sections) > 0:
-            msgs.append("Missing sections: %s" % missing_sections)
+            msgs.append(f"Missing sections: {missing_sections}")
         if len(extra_sections) > 0:
-            msgs.append("Extra sections: %s" % extra_sections)
+            msgs.append(f"Extra sections: {extra_sections}")
 
         for section in expect.keys():
-            missing_subsections = [x for x in expect[section]
-                                   if x not in actual.get(section, {})]
+            missing_subsections = [
+                x for x in expect[section] if x not in actual.get(section, {})
+            ]
             # extra subsections are allowed
             if len(missing_subsections) > 0:
-                msgs.append("Section '%s' is missing subsections: %s"
-                            % (section, missing_subsections))
+                msgs.append(
+                    f"Section '{section}' is missing subsections: "
+                    f"{missing_subsections}"
+                )
 
         if len(msgs) > 0:
-            self.fail("While checking '%s':\n  %s"
-                      % (filename, "\n  ".join(msgs)))
+            self.fail(
+                "While checking '{}':\n  {}".format(
+                    filename, "\n  ".join(msgs)
+                )
+            )
 
     def _check_lines_wrapping(self, tpl, raw):
         for i, line in enumerate(raw.split("\n")):
@@ -73,22 +83,28 @@ class TitlesTestCase(test.TestCase):
                 continue
             self.assertTrue(
                 len(line) < 80,
-                msg="%s:%d: Line limited to a maximum of 79 characters." %
-                (tpl, i + 1))
+                msg=(
+                    f"{tpl}:{i + 1}: Line limited to a maximum of 79 "
+                    f"characters."
+                ),
+            )
 
     def _check_no_cr(self, tpl, raw):
         matches = re.findall("\r", raw)
         self.assertEqual(
-            len(matches), 0,
-            "Found %s literal carriage returns in file %s" %
-            (len(matches), tpl))
+            len(matches),
+            0,
+            f"Found {len(matches)} literal carriage returns in file {tpl}",
+        )
 
     def _check_trailing_spaces(self, tpl, raw):
         for i, line in enumerate(raw.split("\n")):
             trailing_spaces = re.findall(" +$", line)
             self.assertEqual(
-                len(trailing_spaces), 0,
-                "Found trailing spaces on line {} of {}".format(i + 1, tpl))
+                len(trailing_spaces),
+                0,
+                f"Found trailing spaces on line {i + 1} of {tpl}",
+            )
 
     def test_template(self):
         with open(os.path.join(self.specs_path, "template.rst")) as f:
@@ -98,17 +114,19 @@ class TitlesTestCase(test.TestCase):
         template_titles = self._get_titles(spec)
 
         for d in ["implemented", "in-progress"]:
-            spec_dir = "{}/{}".format(self.specs_path, d)
+            spec_dir = f"{self.specs_path}/{d}"
 
-            self.assertTrue(os.path.isdir(spec_dir),
-                            "%s is not a directory" % spec_dir)
+            self.assertTrue(
+                os.path.isdir(spec_dir), f"{spec_dir} is not a directory"
+            )
             for filename in glob.glob(spec_dir + "/*"):
                 if filename.endswith("README.rst"):
                     continue
 
                 self.assertTrue(
                     filename.endswith(".rst"),
-                    "spec's file must have .rst ext. Found: %s" % filename)
+                    f"spec's file must have .rst ext. Found: {filename}",
+                )
                 with open(filename) as f:
                     data = f.read()
 

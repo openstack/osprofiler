@@ -18,12 +18,12 @@ from osprofiler import initializer
 
 
 class InitializerTestCase(testtools.TestCase):
-
     @mock.patch("osprofiler.notifier.set")
     @mock.patch("osprofiler.notifier.create")
     @mock.patch("osprofiler.web.enable")
-    def test_initializer(self, web_enable_mock, notifier_create_mock,
-                         notifier_set_mock):
+    def test_initializer(
+        self, web_enable_mock, notifier_create_mock, notifier_set_mock
+    ):
         conf = mock.Mock()
         conf.profiler.connection_string = "driver://"
         conf.profiler.hmac_keys = "hmac_keys"
@@ -38,7 +38,12 @@ class InitializerTestCase(testtools.TestCase):
         initializer.init_from_conf(conf, context, project, service, host)
 
         notifier_create_mock.assert_called_once_with(
-            "driver://", context=context, project=project, service=service,
-            host=host, conf=conf)
+            "driver://",
+            context=context,
+            project=project,
+            service=service,
+            host=host,
+            conf=conf,
+        )
         notifier_set_mock.assert_called_once_with(notifier_mock)
         web_enable_mock.assert_called_once_with("hmac_keys")

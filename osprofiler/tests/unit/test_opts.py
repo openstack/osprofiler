@@ -30,19 +30,22 @@ class ConfigTestCase(test.TestCase):
         opts.set_defaults(self.conf_fixture.conf)
         self.assertFalse(self.conf_fixture.conf.profiler.enabled)
         self.assertFalse(self.conf_fixture.conf.profiler.trace_sqlalchemy)
-        self.assertEqual("SECRET_KEY",
-                         self.conf_fixture.conf.profiler.hmac_keys)
+        self.assertEqual(
+            "SECRET_KEY", self.conf_fixture.conf.profiler.hmac_keys
+        )
         self.assertFalse(opts.is_trace_enabled(self.conf_fixture.conf))
         self.assertFalse(opts.is_db_trace_enabled(self.conf_fixture.conf))
 
     def test_options_defaults_override(self):
-        opts.set_defaults(self.conf_fixture.conf, enabled=True,
-                          trace_sqlalchemy=True,
-                          hmac_keys="MY_KEY")
+        opts.set_defaults(
+            self.conf_fixture.conf,
+            enabled=True,
+            trace_sqlalchemy=True,
+            hmac_keys="MY_KEY",
+        )
         self.assertTrue(self.conf_fixture.conf.profiler.enabled)
         self.assertTrue(self.conf_fixture.conf.profiler.trace_sqlalchemy)
-        self.assertEqual("MY_KEY",
-                         self.conf_fixture.conf.profiler.hmac_keys)
+        self.assertEqual("MY_KEY", self.conf_fixture.conf.profiler.hmac_keys)
         self.assertTrue(opts.is_trace_enabled(self.conf_fixture.conf))
         self.assertTrue(opts.is_db_trace_enabled(self.conf_fixture.conf))
 
@@ -58,8 +61,9 @@ class ConfigTestCase(test.TestCase):
     @mock.patch("osprofiler.web.enable")
     @mock.patch("osprofiler.web.disable")
     def test_web_trace_enabled(self, mock_disable, mock_enable):
-        opts.set_defaults(self.conf_fixture.conf, enabled=True,
-                          hmac_keys="MY_KEY")
+        opts.set_defaults(
+            self.conf_fixture.conf, enabled=True, hmac_keys="MY_KEY"
+        )
         opts.enable_web_trace(self.conf_fixture.conf)
         opts.disable_web_trace(self.conf_fixture.conf)
         mock_enable.assert_called_once_with("MY_KEY")

@@ -39,17 +39,15 @@ class Foo:
 
 
 class DriverTestCase(test.FunctionalTestCase):
-
     SERVICE = "service"
     PROJECT = "project"
 
     def setUp(self):
         super().setUp()
         CONF(["--config-file", os.path.dirname(__file__) + "/config.cfg"])
-        opts.set_defaults(CONF,
-                          enabled=True,
-                          trace_sqlalchemy=False,
-                          hmac_keys="SECRET_KEY")
+        opts.set_defaults(
+            CONF, enabled=True, trace_sqlalchemy=False, hmac_keys="SECRET_KEY"
+        )
 
     def _assert_dict(self, info, **kwargs):
         for key in kwargs:
@@ -58,28 +56,33 @@ class DriverTestCase(test.FunctionalTestCase):
     def _assert_child_dict(self, child, base_id, parent_id, name, fn_name):
         self.assertEqual(parent_id, child["parent_id"])
 
-        exp_info = {"name": "rpc",
-                    "service": self.SERVICE,
-                    "project": self.PROJECT}
+        exp_info = {
+            "name": "rpc",
+            "service": self.SERVICE,
+            "project": self.PROJECT,
+        }
         self._assert_dict(child["info"], **exp_info)
 
-        raw_start = child["info"]["meta.raw_payload.%s-start" % name]
+        raw_start = child["info"][f"meta.raw_payload.{name}-start"]
         self.assertEqual(fn_name, raw_start["info"]["function"]["name"])
-        exp_raw = {"name": "%s-start" % name,
-                   "service": self.SERVICE,
-                   "trace_id": child["trace_id"],
-                   "project": self.PROJECT,
-                   "base_id": base_id}
+        exp_raw = {
+            "name": f"{name}-start",
+            "service": self.SERVICE,
+            "trace_id": child["trace_id"],
+            "project": self.PROJECT,
+            "base_id": base_id,
+        }
         self._assert_dict(raw_start, **exp_raw)
 
-        raw_stop = child["info"]["meta.raw_payload.%s-stop" % name]
-        exp_raw["name"] = "%s-stop" % name
+        raw_stop = child["info"][f"meta.raw_payload.{name}-stop"]
+        exp_raw["name"] = f"{name}-stop"
         self._assert_dict(raw_stop, **exp_raw)
 
     def test_get_report(self):
         # initialize profiler notifier (the same way as in services)
         initializer.init_from_conf(
-            CONF, {}, self.PROJECT, self.SERVICE, "host")
+            CONF, {}, self.PROJECT, self.SERVICE, "host"
+        )
         profiler.init("SECRET_KEY")
 
         # grab base_id
@@ -90,11 +93,13 @@ class DriverTestCase(test.FunctionalTestCase):
         foo.bar(1)
 
         # instantiate report engine (the same way as in osprofiler CLI)
-        engine = base.get_driver(CONF.profiler.connection_string,
-                                 project=self.PROJECT,
-                                 service=self.SERVICE,
-                                 host="host",
-                                 conf=CONF)
+        engine = base.get_driver(
+            CONF.profiler.connection_string,
+            project=self.PROJECT,
+            service=self.SERVICE,
+            host="host",
+            conf=CONF,
+        )
 
         # generate the report
         report = engine.get_report(base_id)
@@ -107,30 +112,41 @@ class DriverTestCase(test.FunctionalTestCase):
 
         cbar = report["children"][0]
         self._assert_child_dict(
-            cbar, base_id, base_id, "rpc",
-            "osprofiler.tests.functional.test_driver.Foo.bar")
+            cbar,
+            base_id,
+            base_id,
+            "rpc",
+            "osprofiler.tests.functional.test_driver.Foo.bar",
+        )
 
         self.assertEqual(1, len(cbar["children"]))
         cbaz = cbar["children"][0]
         self._assert_child_dict(
-            cbaz, base_id, cbar["trace_id"], "rpc",
-            "osprofiler.tests.functional.test_driver.Foo.baz")
+            cbaz,
+            base_id,
+            cbar["trace_id"],
+            "rpc",
+            "osprofiler.tests.functional.test_driver.Foo.baz",
+        )
 
 
 class RedisDriverTestCase(DriverTestCase):
     def setUp(self):
         super(DriverTestCase, self).setUp()
         CONF([])
-        opts.set_defaults(CONF,
-                          connection_string="redis://localhost:6379",
-                          enabled=True,
-                          trace_sqlalchemy=False,
-                          hmac_keys="SECRET_KEY")
+        opts.set_defaults(
+            CONF,
+            connection_string="redis://localhost:6379",
+            enabled=True,
+            trace_sqlalchemy=False,
+            hmac_keys="SECRET_KEY",
+        )
 
     def test_list_traces(self):
         # initialize profiler notifier (the same way as in services)
         initializer.init_from_conf(
-            CONF, {}, self.PROJECT, self.SERVICE, "host")
+            CONF, {}, self.PROJECT, self.SERVICE, "host"
+        )
         profiler.init("SECRET_KEY")
 
         # grab base_id
@@ -141,11 +157,13 @@ class RedisDriverTestCase(DriverTestCase):
         foo.bar(1)
 
         # instantiate report engine (the same way as in osprofiler CLI)
-        engine = base.get_driver(CONF.profiler.connection_string,
-                                 project=self.PROJECT,
-                                 service=self.SERVICE,
-                                 host="host",
-                                 conf=CONF)
+        engine = base.get_driver(
+            CONF.profiler.connection_string,
+            project=self.PROJECT,
+            service=self.SERVICE,
+            host="host",
+            conf=CONF,
+        )
 
         # generate the report
         traces = engine.list_traces()

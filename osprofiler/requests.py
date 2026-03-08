@@ -31,6 +31,7 @@ try:
 except ImportError:
     pass
 else:
+
     def send(self, request, *args, **kwargs):
         parsed_url = parser.urlparse(request.url)
 
@@ -41,23 +42,27 @@ else:
         elif not port and parsed_url.scheme == "https":
             port = 443
 
-        profiler.start(parsed_url.scheme, info={"requests": {
-            "method": request.method,
-            "query": parsed_url.query,
-            "path": parsed_url.path,
-            "hostname": parsed_url.hostname,
-            "port": port,
-            "scheme": parsed_url.scheme}})
+        profiler.start(
+            parsed_url.scheme,
+            info={
+                "requests": {
+                    "method": request.method,
+                    "query": parsed_url.query,
+                    "path": parsed_url.path,
+                    "hostname": parsed_url.hostname,
+                    "port": port,
+                    "scheme": parsed_url.scheme,
+                }
+            },
+        )
 
         # Profiling headers are overrident to take in account this new
         # context/span.
-        request.headers.update(
-            web.get_trace_id_headers())
+        request.headers.update(web.get_trace_id_headers())
 
         response = _FUNC(self, request, *args, **kwargs)
 
-        profiler.stop(info={"requests": {
-            "status_code": response.status_code}})
+        profiler.stop(info={"requests": {"status_code": response.status_code}})
 
         return response
 
@@ -69,5 +74,7 @@ def enable():
         HTTPAdapter.send = send
         LOG.debug("profiling requests enabled")
     else:
-        LOG.warning("unable to activate profiling for requests, "
-                    "please ensure that python requests is installed.")
+        LOG.warning(
+            "unable to activate profiling for requests, "
+            "please ensure that python requests is installed."
+        )

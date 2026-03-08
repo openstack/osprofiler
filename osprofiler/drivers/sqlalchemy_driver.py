@@ -24,10 +24,12 @@ LOG = logging.getLogger(__name__)
 
 
 class SQLAlchemyDriver(base.Driver):
-    def __init__(self, connection_str, project=None, service=None, host=None,
-                 **kwargs):
-        super().__init__(connection_str, project=project,
-                         service=service, host=host)
+    def __init__(
+        self, connection_str, project=None, service=None, host=None, **kwargs
+    ):
+        super().__init__(
+            connection_str, project=project, service=service, host=host
+        )
 
         try:
             from sqlalchemy import create_engine
@@ -38,7 +40,8 @@ class SQLAlchemyDriver(base.Driver):
         else:
             self._metadata = MetaData()
             self._data_table = Table(
-                "data", self._metadata,
+                "data",
+                self._metadata,
                 Column("id", Integer, primary_key=True),
                 # timestamp - date/time of the trace point
                 Column("timestamp", String(26), index=True),
@@ -54,7 +57,7 @@ class SQLAlchemyDriver(base.Driver):
                 Column("service", String(255), index=True),
                 # name - trace point name
                 Column("name", String(255), index=True),
-                Column("data", JSON)
+                Column("data", JSON),
             )
 
         # we don't want to kill any service that does use osprofiler
@@ -66,8 +69,10 @@ class SQLAlchemyDriver(base.Driver):
             # startup when using the sqlalchemy driver...
             self._metadata.create_all(self._engine, checkfirst=True)
         except Exception:
-            LOG.exception("Failed to create engine/connection and setup "
-                          "intial database tables")
+            LOG.exception(
+                "Failed to create engine/connection and setup "
+                "intial database tables"
+            )
 
     @classmethod
     def get_name(cls):
@@ -95,19 +100,23 @@ class SQLAlchemyDriver(base.Driver):
                 service=service,
                 host=host,
                 name=name,
-                data=jsonutils.dumps(data)
+                data=jsonutils.dumps(data),
             )
             self._conn.execute(ins)
         except Exception:
-            LOG.exception("Can not store osprofiler tracepoint {} "
-                          "(base_id {})".format(trace_id, base_id))
+            LOG.exception(
+                "Can not store osprofiler tracepoint %s (base id %s)",
+                trace_id,
+                base_id,
+            )
 
     def list_traces(self, fields=None):
         try:
             from sqlalchemy.sql import select
         except ImportError:
             raise exc.CommandError(
-                "To use this command, you should install 'SQLAlchemy'")
+                "To use this command, you should install 'SQLAlchemy'"
+            )
         stmt = select([self._data_table])
         seen_ids = set()
         result = []
@@ -115,8 +124,13 @@ class SQLAlchemyDriver(base.Driver):
         for trace in traces:
             if trace["base_id"] not in seen_ids:
                 seen_ids.add(trace["base_id"])
-                result.append({key: value for key, value in trace.items()
-                               if key in fields})
+                result.append(
+                    {
+                        key: value
+                        for key, value in trace.items()
+                        if key in fields
+                    }
+                )
         return result
 
     def get_report(self, base_id):
@@ -124,9 +138,11 @@ class SQLAlchemyDriver(base.Driver):
             from sqlalchemy.sql import select
         except ImportError:
             raise exc.CommandError(
-                "To use this command, you should install 'SQLAlchemy'")
+                "To use this command, you should install 'SQLAlchemy'"
+            )
         stmt = select([self._data_table]).where(
-            self._data_table.c.base_id == base_id)
+            self._data_table.c.base_id == base_id
+        )
         results = self._conn.execute(stmt).fetchall()
         for n in results:
             timestamp = n["timestamp"]
@@ -137,6 +153,14 @@ class SQLAlchemyDriver(base.Driver):
             service = n["service"]
             host = n["host"]
             data = jsonutils.loads(n["data"])
-            self._append_results(trace_id, parent_id, name, project, service,
-                                 host, timestamp, data)
+            self._append_results(
+                trace_id,
+                parent_id,
+                name,
+                project,
+                service,
+                host,
+                timestamp,
+                data,
+            )
         return self._parse_results()

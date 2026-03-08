@@ -195,10 +195,8 @@ htmlhelp_basename = 'osprofilerReleaseNotesDoc'
 latex_elements = {
     # The paper size ('letterpaper' or 'a4paper').
     # 'papersize': 'letterpaper',
-
     # The font size ('10pt', '11pt' or '12pt').
     # 'pointsize': '10pt',
-
     # Additional stuff for the LaTeX preamble.
     # 'preamble': '',
 }
@@ -207,9 +205,13 @@ latex_elements = {
 # (source start file, target name, title,
 #  author, documentclass [howto, manual, or own class]).
 latex_documents = [
-    ('index', 'osprofilerReleaseNotes.tex',
-     'osprofiler Release Notes Documentation',
-     'osprofiler Developers', 'manual'),
+    (
+        'index',
+        'osprofilerReleaseNotes.tex',
+        'osprofiler Release Notes Documentation',
+        'osprofiler Developers',
+        'manual',
+    ),
 ]
 
 # The name of an image file (relative to this directory) to place at the top of
@@ -238,9 +240,13 @@ latex_documents = [
 # One entry per manual page. List of tuples
 # (source start file, name, description, authors, manual section).
 man_pages = [
-    ('index', 'osprofilerReleaseNotes',
-     'osprofiler Release Notes Documentation',
-     ['osprofiler Developers'], 1)
+    (
+        'index',
+        'osprofilerReleaseNotes',
+        'osprofiler Release Notes Documentation',
+        ['osprofiler Developers'],
+        1,
+    )
 ]
 
 # If true, show URL addresses after external links.
@@ -253,11 +259,15 @@ man_pages = [
 # (source start file, target name, title, author,
 #  dir menu entry, description, category)
 texinfo_documents = [
-    ('index', 'osprofilerReleaseNotes',
-     'osprofiler Release Notes Documentation',
-     'osprofiler Developers', 'osprofilerReleaseNotes',
-     'One line description of project.',
-     'Miscellaneous'),
+    (
+        'index',
+        'osprofilerReleaseNotes',
+        'osprofiler Release Notes Documentation',
+        'osprofiler Developers',
+        'osprofilerReleaseNotes',
+        'One line description of project.',
+        'Miscellaneous',
+    ),
 ]
 
 # Documents to append as an appendix to all manuals.

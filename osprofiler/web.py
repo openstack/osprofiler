@@ -37,10 +37,7 @@ def get_trace_id_headers():
     if p and p.hmac_key:
         data = {"base_id": p.get_base_id(), "parent_id": p.get_id()}
         pack = utils.signed_pack(data, p.hmac_key)
-        return {
-            X_TRACE_INFO: pack[0],
-            X_TRACE_HMAC: pack[1]
-        }
+        return {X_TRACE_INFO: pack[0], X_TRACE_HMAC: pack[1]}
     return {}
 
 
@@ -92,6 +89,7 @@ class WsgiMiddleware:
     def factory(cls, global_conf, **local_conf):
         def filter_(app):
             return cls(app, **local_conf)
+
         return filter_
 
     def _trace_is_valid(self, trace_info):
@@ -106,13 +104,19 @@ class WsgiMiddleware:
 
     @webob.dec.wsgify
     def __call__(self, request):
-        if (_ENABLED is not None and not _ENABLED
-                or _ENABLED is None and not self.enabled):
+        if (
+            _ENABLED is not None
+            and not _ENABLED
+            or _ENABLED is None
+            and not self.enabled
+        ):
             return request.get_response(self.application)
 
-        trace_info = utils.signed_unpack(request.headers.get(X_TRACE_INFO),
-                                         request.headers.get(X_TRACE_HMAC),
-                                         _HMAC_KEYS or self.hmac_keys)
+        trace_info = utils.signed_unpack(
+            request.headers.get(X_TRACE_INFO),
+            request.headers.get(X_TRACE_HMAC),
+            _HMAC_KEYS or self.hmac_keys,
+        )
 
         if not self._trace_is_valid(trace_info):
             return request.get_response(self.application)
@@ -123,7 +127,7 @@ class WsgiMiddleware:
                 "path": request.path,
                 "query": request.query_string,
                 "method": request.method,
-                "scheme": request.scheme
+                "scheme": request.scheme,
             }
         }
         try:

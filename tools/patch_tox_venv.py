@@ -29,18 +29,23 @@ def main(argv):
 
     venv = os.environ['VIRTUAL_ENV']
 
-    pip_requires = first_file([
-        os.path.join(root, 'requirements.txt'),
-        os.path.join(root, 'tools', 'pip-requires'),
-    ])
-    test_requires = first_file([
-        os.path.join(root, 'test-requirements.txt'),
-        os.path.join(root, 'tools', 'test-requires'),
-    ])
-    py_version = "python{}.{}".format(sys.version_info[0], sys.version_info[1])
+    pip_requires = first_file(
+        [
+            os.path.join(root, 'requirements.txt'),
+            os.path.join(root, 'tools', 'pip-requires'),
+        ]
+    )
+    test_requires = first_file(
+        [
+            os.path.join(root, 'test-requirements.txt'),
+            os.path.join(root, 'tools', 'test-requires'),
+        ]
+    )
+    py_version = f"python{sys.version_info[0]}.{sys.version_info[1]}"
     project = 'oslo'
-    install = install_venv.InstallVenv(root, venv, pip_requires, test_requires,
-                                       py_version, project)
+    install = install_venv.InstallVenv(
+        root, venv, pip_requires, test_requires, py_version, project
+    )
     # NOTE(dprince): For Tox we only run post_process, which patches files, etc
     install.post_process()
 

@@ -31,9 +31,7 @@ import sys
 # directory, add these directories to sys.path here. If the directory
 # is relative to the documentation root, use os.path.abspath to make
 # it absolute, like shown here.
-sys.path.extend([
-    os.path.abspath('../..'),
-])
+sys.path.extend([os.path.abspath('../..')])
 
 
 # -- General configuration ---------------------
@@ -98,7 +96,7 @@ html_theme = 'openstackdocs'
 html_static_path = []
 
 # Output file base name for HTML help builder.
-htmlhelp_basename = '%sdoc' % project
+htmlhelp_basename = f'{project}doc'
 
 # -- Options for LaTeX output --------------
 
@@ -108,10 +106,13 @@ latex_elements = {}
 # (source start file, target name, title, author,
 # documentclass [howto/manual]).
 latex_documents = [
-    ('index',
-     '%s.tex' % project,
-     '%s Documentation' % project,
-     'OpenStack Foundation', 'manual'),
+    (
+        'index',
+        f'{project}.tex',
+        f'{project} Documentation',
+        'OpenStack Foundation',
+        'manual',
+    ),
 ]
 
 # -- Options for Texinfo output -----------
@@ -127,7 +128,7 @@ texinfo_documents = [
         'OSprofiler Team',
         'OSprofiler',
         'One line description of project.',
-        'Miscellaneous'
+        'Miscellaneous',
     ),
 ]
 

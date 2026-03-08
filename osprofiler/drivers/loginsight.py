@@ -46,23 +46,25 @@ class LogInsightDriver(base.Driver):
     to Log Insight server at 10.1.2.3 using username "osprofiler" and password
     "p@ssword" is: loginsight://osprofiler:p%40ssword@10.1.2.3
     """
+
     def __init__(
-            self, connection_str, project=None, service=None, host=None,
-            **kwargs):
-        super().__init__(connection_str,
-                         project=project,
-                         service=service,
-                         host=host)
+        self, connection_str, project=None, service=None, host=None, **kwargs
+    ):
+        super().__init__(
+            connection_str, project=project, service=service, host=host
+        )
 
         parsed_connection = urlparse.urlparse(connection_str)
         try:
             creds, host = parsed_connection.netloc.split("@")
             username, password = creds.split(":")
         except ValueError:
-            raise ValueError("Connection string format is: loginsight://"
-                             "<username>:<password>@<loginsight-host>. If the "
-                             "username or password contains the character '@' "
-                             "or ':', it must be escaped using URL encoding.")
+            raise ValueError(
+                "Connection string format is: loginsight://"
+                "<username>:<password>@<loginsight-host>. If the "
+                "username or password contains the character '@' "
+                "or ':', it must be escaped using URL encoding."
+            )
 
         username = urlparse.unquote(username)
         password = urlparse.unquote(password)
@@ -86,12 +88,14 @@ class LogInsightDriver(base.Driver):
         def _create_field(name, content):
             return {"name": name, "content": content}
 
-        event["fields"] = [_create_field("base_id", trace["base_id"]),
-                           _create_field("trace_id", trace["trace_id"]),
-                           _create_field("project", trace["project"]),
-                           _create_field("service", trace["service"]),
-                           _create_field("name", trace["name"]),
-                           _create_field("trace", json.dumps(trace))]
+        event["fields"] = [
+            _create_field("base_id", trace["base_id"]),
+            _create_field("trace_id", trace["trace_id"]),
+            _create_field("project", trace["project"]),
+            _create_field("service", trace["service"]),
+            _create_field("name", trace["name"]),
+            _create_field("trace", json.dumps(trace)),
+        ]
 
         self._client.send_event(event)
 
@@ -119,8 +123,15 @@ class LogInsightDriver(base.Driver):
                         timestamp = trace["timestamp"]
 
                         self._append_results(
-                            trace_id, parent_id, name, project, service, host,
-                            timestamp, trace)
+                            trace_id,
+                            parent_id,
+                            name,
+                            project,
+                            service,
+                            host,
+                            timestamp,
+                            trace,
+                        )
                         break
 
         return self._parse_results()
@@ -134,11 +145,18 @@ class LogInsightClient:
     # API paths
     SESSIONS_PATH = "api/v1/sessions"
     CURRENT_SESSIONS_PATH = "api/v1/sessions/current"
-    EVENTS_INGEST_PATH = "api/v1/events/ingest/%s" % LI_OSPROFILER_AGENT_ID
+    EVENTS_INGEST_PATH = f"api/v1/events/ingest/{LI_OSPROFILER_AGENT_ID}"
     QUERY_EVENTS_BASE_PATH = "api/v1/events"
 
-    def __init__(self, host, username, password, api_port=9000,
-                 api_ssl_port=9543, query_timeout=60000):
+    def __init__(
+        self,
+        host,
+        username,
+        password,
+        api_port=9000,
+        api_ssl_port=9543,
+        query_timeout=60000,
+    ):
         self._host = host
         self._username = username
         self._password = password
@@ -149,11 +167,13 @@ class LogInsightClient:
         self._session_id = None
 
     def _build_base_url(self, scheme):
-        proto_str = "%s://" % scheme
-        host_str = ("[%s]" % self._host if netaddr.valid_ipv6(self._host)
-                    else self._host)
-        port_str = ":%d" % (self._api_ssl_port if scheme == "https"
-                            else self._api_port)
+        proto_str = f"{scheme}://"
+        host_str = (
+            f"[{self._host}]" if netaddr.valid_ipv6(self._host) else self._host
+        )
+        port_str = ":%s" % (
+            self._api_ssl_port if scheme == "https" else self._api_port
+        )
         return proto_str + host_str + port_str
 
     def _check_response(self, resp):
@@ -173,8 +193,9 @@ class LogInsightClient:
             raise exc.LogInsightAPIError(msg)
 
     def _send_request(
-            self, method, scheme, path, headers=None, body=None, params=None):
-        url = "{}/{}".format(self._build_base_url(scheme), path)
+        self, method, scheme, path, headers=None, body=None, params=None
+    ):
+        url = f"{self._build_base_url(scheme)}/{path}"
 
         headers = headers or {}
         headers["content-type"] = "application/json"
@@ -182,7 +203,8 @@ class LogInsightClient:
         params = params or {}
 
         req = requests.Request(
-            method, url, headers=headers, data=json.dumps(body), params=params)
+            method, url, headers=headers, data=json.dumps(body), params=params
+        )
         req = req.prepare()
         resp = self._session.send(req, verify=False)
 
@@ -198,16 +220,20 @@ class LogInsightClient:
 
     def _is_current_session_active(self):
         try:
-            self._send_request("get",
-                               "https",
-                               self.CURRENT_SESSIONS_PATH,
-                               headers=self._get_auth_header())
-            LOG.debug("Current session %s is active.",
-                      self._trunc_session_id())
+            self._send_request(
+                "get",
+                "https",
+                self.CURRENT_SESSIONS_PATH,
+                headers=self._get_auth_header(),
+            )
+            LOG.debug(
+                "Current session %s is active.", self._trunc_session_id()
+            )
             return True
         except (exc.LogInsightLoginTimeout, exc.LogInsightAPIError):
-            LOG.debug("Current session %s is not active.",
-                      self._trunc_session_id())
+            LOG.debug(
+                "Current session %s is not active.", self._trunc_session_id()
+            )
             return False
 
     @synchronized("li_login_lock")
@@ -218,40 +244,43 @@ class LogInsightClient:
             return
 
         LOG.info("Logging into Log Insight server: %s.", self._host)
-        resp = self._send_request("post",
-                                  "https",
-                                  self.SESSIONS_PATH,
-                                  body={"username": self._username,
-                                        "password": self._password})
+        resp = self._send_request(
+            "post",
+            "https",
+            self.SESSIONS_PATH,
+            body={"username": self._username, "password": self._password},
+        )
 
         self._session_id = resp["sessionId"]
         LOG.debug("Established session %s.", self._trunc_session_id())
 
     def send_event(self, event):
         events = {"events": [event]}
-        self._send_request("post",
-                           "http",
-                           self.EVENTS_INGEST_PATH,
-                           body=events)
+        self._send_request(
+            "post", "http", self.EVENTS_INGEST_PATH, body=events
+        )
 
     def query_events(self, params):
         # Assumes that the keys and values in the params are strings and
         # the operator is "CONTAINS".
         constraints = []
         for field, value in params.items():
-            constraints.append("{}/CONTAINS+{}".format(field, value))
+            constraints.append(f"{field}/CONTAINS+{value}")
         constraints.append("timestamp/GT+0")
 
-        path = "{}/{}".format(self.QUERY_EVENTS_BASE_PATH,
-                              "/".join(constraints))
+        path = "{}/{}".format(
+            self.QUERY_EVENTS_BASE_PATH, "/".join(constraints)
+        )
 
         def _query_events():
-            return self._send_request("get",
-                                      "https",
-                                      path,
-                                      headers=self._get_auth_header(),
-                                      params={"limit": 20000,
-                                              "timeout": self._query_timeout})
+            return self._send_request(
+                "get",
+                "https",
+                path,
+                headers=self._get_auth_header(),
+                params={"limit": 20000, "timeout": self._query_timeout},
+            )
+
         try:
             resp = _query_events()
         except exc.LogInsightLoginTimeout:

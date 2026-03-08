@@ -31,8 +31,7 @@ def split(text, strip=True):
     if isinstance(text, (tuple, list)):
         return text
     if not isinstance(text, str):
-        raise TypeError(
-            "Unknown how to split '{}': {}".format(text, type(text)))
+        raise TypeError(f"Unknown how to split '{text}': {type(text)}")
     if strip:
         return [t.strip() for t in text.split(",") if t.strip()]
     else:
@@ -104,13 +103,14 @@ def signed_unpack(data, hmac_data, hmac_keys):
     for hmac_key in hmac_keys:
         try:
             user_hmac_data = generate_hmac(data, hmac_key)
-        except Exception:  # nosec
+        except Exception:  # noqa: S110
             pass
         else:
             if hmac.compare_digest(hmac_data, user_hmac_data):
                 try:
                     contents = json.loads(
-                        binary_decode(base64.urlsafe_b64decode(data)))
+                        binary_decode(base64.urlsafe_b64decode(data))
+                    )
                     contents["hmac_key"] = hmac_key
                     return contents
                 except Exception:
@@ -124,7 +124,7 @@ def itersubclasses(cls, _seen=None):
     _seen = _seen or set()
     try:
         subs = cls.__subclasses__()
-    except TypeError:   # fails only when cls is type
+    except TypeError:  # fails only when cls is type
         subs = cls.__subclasses__(cls)
     for sub in subs:
         if sub not in _seen:
@@ -146,7 +146,7 @@ def import_modules_from_package(package):
             if filename.startswith("__") or not filename.endswith(".py"):
                 continue
             new_package = ".".join(root.split(os.sep)).split("....")[1]
-            module_name = "{}.{}".format(new_package, filename[:-3])
+            module_name = f"{new_package}.{filename[:-3]}"
             __import__(module_name)
 
 

@@ -29,7 +29,8 @@ _profiler_opt_group = cfg.OptGroup(
 OSprofiler library allows to trace requests going through various OpenStack
 services and create the accumulated report of what time was spent on each
 request processing step.
-""")
+""",
+)
 
 _enabled_opt = cfg.BoolOpt(
     "enabled",
@@ -46,7 +47,8 @@ Possible values:
 * False: Disables the feature. The profiling cannot be started via this project
   operations. If the profiling is triggered by another project, this project
   part will be empty.
-""")
+""",
+)
 
 _trace_sqlalchemy_opt = cfg.BoolOpt(
     "trace_sqlalchemy",
@@ -62,7 +64,8 @@ Possible values:
   trace and can the be analyzed by how much time was spent for that.
 * False: Disables SQL requests profiling. The spent time is only shown on a
   higher level of operations. Single SQL queries cannot be analyzed this way.
-""")
+""",
+)
 
 _trace_requests_opt = cfg.BoolOpt(
     "trace_requests",
@@ -78,7 +81,8 @@ Possible values:
 
 * True: Enables requests profiling.
 * False: Disables requests profiling.
-""")
+""",
+)
 
 _hmac_keys_opt = cfg.StrOpt(
     "hmac_keys",
@@ -97,7 +101,8 @@ profiling. Also, to generate correct profiling information across all services
 at least one key needs to be consistent between OpenStack projects. This
 ensures it can be used from client side to generate the trace, containing
 information from all possible resources.
-""")
+""",
+)
 
 _connection_string_opt = cfg.StrOpt(
     "connection_string",
@@ -116,14 +121,16 @@ Examples of possible values:
   spans.
 * ``otlp://127.0.0.1:4318`` - use OpenTelementry as driver for sending spans
   to jaeger.
-""")
+""",
+)
 
 _es_doc_type_opt = cfg.StrOpt(
     "es_doc_type",
     default="notification",
     help="""
 Document type for notification indexing in elasticsearch.
-""")
+""",
+)
 
 _es_scroll_time_opt = cfg.StrOpt(
     "es_scroll_time",
@@ -132,7 +139,8 @@ _es_scroll_time_opt = cfg.StrOpt(
 This parameter is a time value parameter (for example: es_scroll_time=2m),
 indicating for how long the nodes that participate in the search will maintain
 relevant resources in order to continue and support it.
-""")
+""",
+)
 
 _es_scroll_size_opt = cfg.IntOpt(
     "es_scroll_size",
@@ -140,7 +148,8 @@ _es_scroll_size_opt = cfg.IntOpt(
     help="""
 Elasticsearch splits large requests in batches. This parameter defines
 maximum size of each batch (for example: es_scroll_size=10000).
-""")
+""",
+)
 
 _socket_timeout_opt = cfg.FloatOpt(
     "socket_timeout",
@@ -148,7 +157,8 @@ _socket_timeout_opt = cfg.FloatOpt(
     help="""
 Redissentinel provides a timeout option on the connections.
 This parameter defines that timeout (for example: socket_timeout=0.1).
-""")
+""",
+)
 
 _sentinel_service_name_opt = cfg.StrOpt(
     "sentinel_service_name",
@@ -157,7 +167,8 @@ _sentinel_service_name_opt = cfg.StrOpt(
 Redissentinel uses a service name to identify a master redis service.
 This parameter defines the name (for example:
 ``sentinal_service_name=mymaster``).
-""")
+""",
+)
 
 _filter_error_trace = cfg.BoolOpt(
     "filter_error_trace",
@@ -171,7 +182,8 @@ Possible values:
 
 * True: Enable filter traces that contain error/exception.
 * False: Disable the filter.
-""")
+""",
+)
 
 _PROFILER_OPTS = [
     _enabled_opt,
@@ -184,14 +196,14 @@ _PROFILER_OPTS = [
     _es_scroll_size_opt,
     _socket_timeout_opt,
     _sentinel_service_name_opt,
-    _filter_error_trace
+    _filter_error_trace,
 ]
 
 cfg.CONF.register_opts(_PROFILER_OPTS, group=_profiler_opt_group)
 
 _jaegerprofiler_opt_group = cfg.OptGroup(
-    "profiler_jaeger",
-    title="Jaeger's profiler driver related options")
+    "profiler_jaeger", title="Jaeger's profiler driver related options"
+)
 
 _service_name_prefix = cfg.StrOpt(
     "service_name_prefix",
@@ -199,7 +211,8 @@ _service_name_prefix = cfg.StrOpt(
     deprecated_reason="Jager driver is no longer supported",
     help="""
 Set service name prefix to Jaeger service name.
-""")
+""",
+)
 
 _process_tags = cfg.DictOpt(
     "process_tags",
@@ -208,24 +221,23 @@ _process_tags = cfg.DictOpt(
     deprecated_reason="Jager driver is no longer supported",
     help="""
 Set process tracer tags.
-""")
+""",
+)
 
-_JAEGER_OPTS = [
-    _service_name_prefix,
-    _process_tags
-]
+_JAEGER_OPTS = [_service_name_prefix, _process_tags]
 
 cfg.CONF.register_opts(_JAEGER_OPTS, group=_jaegerprofiler_opt_group)
 
 _otlp_profiler_opt_group = cfg.OptGroup(
-    "profiler_otlp",
-    title="OTLP's profiler driver related options")
+    "profiler_otlp", title="OTLP's profiler driver related options"
+)
 
 _otlp_service_name_prefix = cfg.StrOpt(
     "service_name_prefix",
     help="""
 Set service name prefix to OTLP exporters.
-""")
+""",
+)
 
 _OTLP_OPTS = [
     _otlp_service_name_prefix,
@@ -234,45 +246,66 @@ _OTLP_OPTS = [
 cfg.CONF.register_opts(_OTLP_OPTS, group=_otlp_profiler_opt_group)
 
 
-def set_defaults(conf, enabled=None, trace_sqlalchemy=None, hmac_keys=None,
-                 connection_string=None, es_doc_type=None,
-                 es_scroll_time=None, es_scroll_size=None,
-                 socket_timeout=None, sentinel_service_name=None):
+def set_defaults(
+    conf,
+    enabled=None,
+    trace_sqlalchemy=None,
+    hmac_keys=None,
+    connection_string=None,
+    es_doc_type=None,
+    es_scroll_time=None,
+    es_scroll_size=None,
+    socket_timeout=None,
+    sentinel_service_name=None,
+):
     conf.register_opts(_PROFILER_OPTS, group=_profiler_opt_group)
 
     if enabled is not None:
-        conf.set_default("enabled", enabled,
-                         group=_profiler_opt_group.name)
+        conf.set_default("enabled", enabled, group=_profiler_opt_group.name)
     if trace_sqlalchemy is not None:
-        conf.set_default("trace_sqlalchemy", trace_sqlalchemy,
-                         group=_profiler_opt_group.name)
+        conf.set_default(
+            "trace_sqlalchemy",
+            trace_sqlalchemy,
+            group=_profiler_opt_group.name,
+        )
     if hmac_keys is not None:
-        conf.set_default("hmac_keys", hmac_keys,
-                         group=_profiler_opt_group.name)
+        conf.set_default(
+            "hmac_keys", hmac_keys, group=_profiler_opt_group.name
+        )
 
     if connection_string is not None:
-        conf.set_default("connection_string", connection_string,
-                         group=_profiler_opt_group.name)
+        conf.set_default(
+            "connection_string",
+            connection_string,
+            group=_profiler_opt_group.name,
+        )
 
     if es_doc_type is not None:
-        conf.set_default("es_doc_type", es_doc_type,
-                         group=_profiler_opt_group.name)
+        conf.set_default(
+            "es_doc_type", es_doc_type, group=_profiler_opt_group.name
+        )
 
     if es_scroll_time is not None:
-        conf.set_default("es_scroll_time", es_scroll_time,
-                         group=_profiler_opt_group.name)
+        conf.set_default(
+            "es_scroll_time", es_scroll_time, group=_profiler_opt_group.name
+        )
 
     if es_scroll_size is not None:
-        conf.set_default("es_scroll_size", es_scroll_size,
-                         group=_profiler_opt_group.name)
+        conf.set_default(
+            "es_scroll_size", es_scroll_size, group=_profiler_opt_group.name
+        )
 
     if socket_timeout is not None:
-        conf.set_default("socket_timeout", socket_timeout,
-                         group=_profiler_opt_group.name)
+        conf.set_default(
+            "socket_timeout", socket_timeout, group=_profiler_opt_group.name
+        )
 
     if sentinel_service_name is not None:
-        conf.set_default("sentinel_service_name", sentinel_service_name,
-                         group=_profiler_opt_group.name)
+        conf.set_default(
+            "sentinel_service_name",
+            sentinel_service_name,
+            group=_profiler_opt_group.name,
+        )
 
 
 def is_trace_enabled(conf=None):
@@ -302,6 +335,8 @@ def disable_web_trace(conf=None):
 
 
 def list_opts():
-    return [(_profiler_opt_group.name, _PROFILER_OPTS),
-            (_jaegerprofiler_opt_group, _JAEGER_OPTS),
-            (_otlp_profiler_opt_group, _OTLP_OPTS)]
+    return [
+        (_profiler_opt_group.name, _PROFILER_OPTS),
+        (_jaegerprofiler_opt_group, _JAEGER_OPTS),
+        (_otlp_profiler_opt_group, _OTLP_OPTS),
+    ]

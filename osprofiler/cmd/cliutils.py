@@ -37,9 +37,11 @@ def arg(*args, **kwargs):
         ... def entity_create(args):
         ... pass
     """
+
     def _decorator(func):
         add_arg(func, *args, **kwargs)
         return func
+
     return _decorator
 
 

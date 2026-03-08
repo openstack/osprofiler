@@ -37,7 +37,8 @@ def init_from_conf(conf, context, project, service, host, **kwargs):
         service=service,
         host=host,
         conf=conf,
-        **kwargs)
+        **kwargs,
+    )
     notifier.set(_notifier)
     web.enable(conf.profiler.hmac_keys)
     if conf.profiler.trace_requests:

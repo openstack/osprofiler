@@ -22,7 +22,6 @@ from osprofiler.tests import test
 
 
 class OTLPTestCase(test.TestCase):
-
     def setUp(self):
         super().setUp()
 
@@ -34,9 +33,7 @@ class OTLPTestCase(test.TestCase):
             "trace_id": "1c089ea8-28fe-4f3d-8c00-f6daa2bc32f1",
             "parent_id": "e2715537-3d1c-4f0c-b3af-87355dc5fc5b",
             "timestamp": "2018-05-03T04:31:51.781381",
-            "info": {
-                "host": "test"
-            }
+            "info": {"host": "test"},
         }
 
         self.payload_stop = {
@@ -45,18 +42,15 @@ class OTLPTestCase(test.TestCase):
             "trace_id": "1c089ea8-28fe-4f3d-8c00-f6daa2bc32f1",
             "parent_id": "e2715537-3d1c-4f0c-b3af-87355dc5fc5b",
             "timestamp": "2018-05-03T04:31:51.781381",
-            "info": {
-                "host": "test",
-                "function": {
-                    "result": 1
-                }
-            }
+            "info": {"host": "test", "function": {"result": 1}},
         }
 
         self.driver = otlp.OTLP(
             "otlp://127.0.0.1:6831",
-            project="nova", service="api",
-            conf=cfg.CONF)
+            project="nova",
+            service="api",
+            conf=cfg.CONF,
+        )
 
     def test_notify_start(self):
         self.driver.notify(self.payload_start)
@@ -70,12 +64,7 @@ class OTLPTestCase(test.TestCase):
         mock_end.assert_called_once()
 
     def test_notify_stop_with_db_result(self):
-        self.payload_stop["info"] = {
-            "host": "test",
-            "db": {
-                "result": "()"
-            }
-        }
+        self.payload_stop["info"] = {"host": "test", "db": {"result": "()"}}
         mock_end = mock.MagicMock()
         self.driver.notify(self.payload_start)
         self.driver.spans[0].end = mock_end
@@ -90,7 +79,7 @@ class OTLPTestCase(test.TestCase):
             "db": {
                 "original_exception": "test_exception",
                 "chained_exception": "test_chained_exception",
-            }
+            },
         }
         mock_end = mock.MagicMock()
         self.driver.notify(self.payload_start)
@@ -99,10 +88,7 @@ class OTLPTestCase(test.TestCase):
         mock_end.assert_called_once()
 
     def test_notify_stop_without_function_result(self):
-        self.payload_stop["info"] = {
-            "host": "test",
-            "function": {}
-        }
+        self.payload_stop["info"] = {"host": "test", "function": {}}
         mock_end = mock.MagicMock()
         self.driver.notify(self.payload_start)
         self.driver.spans[0].end = mock_end
@@ -114,7 +100,7 @@ class OTLPTestCase(test.TestCase):
             "host": "test",
             "requests": {
                 "status_code": 200,
-            }
+            },
         }
         mock_end = mock.MagicMock()
         self.driver.notify(self.payload_start)
@@ -123,14 +109,16 @@ class OTLPTestCase(test.TestCase):
         mock_end.assert_called_once()
 
     def test_service_name_default(self):
-        self.assertEqual("pr1-svc1", self.driver._get_service_name(
-            cfg.CONF, "pr1", "svc1"))
+        self.assertEqual(
+            "pr1-svc1", self.driver._get_service_name(cfg.CONF, "pr1", "svc1")
+        )
 
     def test_service_name_prefix(self):
-        cfg.CONF.set_default(
-            "service_name_prefix", "prx1", "profiler_otlp")
-        self.assertEqual("prx1-pr1-svc1", self.driver._get_service_name(
-            cfg.CONF, "pr1", "svc1"))
+        cfg.CONF.set_default("service_name_prefix", "prx1", "profiler_otlp")
+        self.assertEqual(
+            "prx1-pr1-svc1",
+            self.driver._get_service_name(cfg.CONF, "pr1", "svc1"),
+        )
 
     def test_process_tags(self):
         # Need to be implemented.

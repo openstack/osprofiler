@@ -24,17 +24,31 @@ from osprofiler import exc
 
 
 class OTLP(base.Driver):
-    def __init__(self, connection_str, project=None, service=None, host=None,
-                 conf=cfg.CONF, **kwargs):
+    def __init__(
+        self,
+        connection_str,
+        project=None,
+        service=None,
+        host=None,
+        conf=cfg.CONF,
+        **kwargs,
+    ):
         """OTLP driver using OTLP exporters."""
 
-        super().__init__(connection_str, project=project,
-                         service=service, host=host,
-                         conf=conf, **kwargs)
+        super().__init__(
+            connection_str,
+            project=project,
+            service=service,
+            host=host,
+            conf=conf,
+            **kwargs,
+        )
         try:
             from opentelemetry import trace as trace_api
 
-            from opentelemetry.exporter.otlp.proto.http.trace_exporter import OTLPSpanExporter  # noqa
+            from opentelemetry.exporter.otlp.proto.http.trace_exporter import (
+                OTLPSpanExporter,
+            )  # noqa
             from opentelemetry.sdk.resources import Resource
             from opentelemetry.sdk.trace.export import BatchSpanProcessor
             from opentelemetry.sdk.trace import TracerProvider
@@ -46,33 +60,31 @@ class OTLP(base.Driver):
                 "please install `opentelemetry-sdk` and "
                 "opentelemetry-exporter-otlp libraries. "
                 "To install with pip:\n `pip install opentelemetry-sdk "
-                "opentelemetry-exporter-otlp`.")
+                "opentelemetry-exporter-otlp`."
+            )
 
         service_name = self._get_service_name(conf, project, service)
-        resource = Resource(attributes={
-            "service.name": service_name
-        })
+        resource = Resource(attributes={"service.name": service_name})
 
         parsed_url = parser.urlparse(connection_str)
         # TODO("sahid"): We also want to handle https scheme?
         parsed_url = parsed_url._replace(scheme="http")
 
-        self.trace_api.set_tracer_provider(
-            TracerProvider(resource=resource))
+        self.trace_api.set_tracer_provider(TracerProvider(resource=resource))
         self.tracer = self.trace_api.get_tracer(__name__)
 
-        exporter = OTLPSpanExporter("{}/v1/traces".format(
-            parsed_url.geturl()))
+        exporter = OTLPSpanExporter(f"{parsed_url.geturl()}/v1/traces")
         self.trace_api.get_tracer_provider().add_span_processor(
-            BatchSpanProcessor(exporter))
+            BatchSpanProcessor(exporter)
+        )
 
         self.spans = collections.deque()
 
     def _get_service_name(self, conf, project, service):
         prefix = conf.profiler_otlp.service_name_prefix
         if prefix:
-            return "{}-{}-{}".format(prefix, project, service)
-        return "{}-{}".format(project, service)
+            return f"{prefix}-{project}-{service}"
+        return f"{project}-{service}"
 
     @classmethod
     def get_name(cls):
@@ -81,7 +93,7 @@ class OTLP(base.Driver):
     def _kind(self, name):
         if "wsgi" in name:
             return self.trace_api.SpanKind.SERVER
-        elif ("db" in name or "http" in name or "api" in name):
+        elif "db" in name or "http" in name or "api" in name:
             return self.trace_api.SpanKind.CLIENT
         return self.trace_api.SpanKind.INTERNAL
 
@@ -89,13 +101,16 @@ class OTLP(base.Driver):
         info = payload["info"]
         if info.get("request"):
             return "WSGI_{}_{}".format(
-                info["request"]["method"], info["request"]["path"])
+                info["request"]["method"], info["request"]["path"]
+            )
         elif info.get("db"):
             return "SQL_{}".format(
-                info["db"]["statement"].split(' ', 1)[0].upper())
+                info["db"]["statement"].split(' ', 1)[0].upper()
+            )
         elif info.get("requests"):
             return "REQUESTS_{}_{}".format(
-                info["requests"]["method"], info["requests"]["hostname"])
+                info["requests"]["method"], info["requests"]["hostname"]
+            )
         return payload["name"].rstrip("-start")
 
     def notify(self, payload):
@@ -105,24 +120,29 @@ class OTLP(base.Driver):
                 span_id=utils.shorten_id(payload["parent_id"]),
                 is_remote=False,
                 trace_flags=self.trace_api.TraceFlags(
-                    self.trace_api.TraceFlags.SAMPLED))
+                    self.trace_api.TraceFlags.SAMPLED
+                ),
+            )
 
             ctx = self.trace_api.set_span_in_context(
-                self.trace_api.NonRecordingSpan(parent))
+                self.trace_api.NonRecordingSpan(parent)
+            )
 
             # OTLP Tracing span
             span = self.tracer.start_span(
                 name=self._name(payload),
                 kind=self._kind(payload['name']),
                 attributes=self.create_span_tags(payload),
-                context=ctx)
+                context=ctx,
+            )
 
             span._context = self.trace_api.SpanContext(
                 trace_id=span.context.trace_id,
                 span_id=utils.shorten_id(payload["trace_id"]),
                 is_remote=span.context.is_remote,
                 trace_flags=span.context.trace_flags,
-                trace_state=span.context.trace_state)
+                trace_state=span.context.trace_state,
+            )
 
             self.spans.append(span)
         else:
@@ -132,17 +152,23 @@ class OTLP(base.Driver):
             for call in ("db", "function"):
                 if payload.get("info", {}).get(call, {}).get("result"):
                     span.set_attribute(
-                        "result", payload["info"][call]["result"])
+                        "result", payload["info"][call]["result"]
+                    )
             # Store result of requests
             if payload.get("info", {}).get("requests"):
                 span.set_attribute(
-                    "status_code", payload["info"]["requests"]["status_code"])
+                    "status_code", payload["info"]["requests"]["status_code"]
+                )
             # Span error tag and log
             if payload["info"].get("etype"):
                 span.set_attribute("error", True)
-                span.add_event("log", {
-                    "error.kind": payload["info"]["etype"],
-                    "message": payload["info"]["message"]})
+                span.add_event(
+                    "log",
+                    {
+                        "error.kind": payload["info"]["etype"],
+                        "message": payload["info"]["message"],
+                    },
+                )
             span.end()
 
     def get_report(self, base_id):

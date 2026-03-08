@@ -23,9 +23,18 @@ from osprofiler.drivers import base
 
 
 class Messaging(base.Driver):
-    def __init__(self, connection_str, project=None, service=None, host=None,
-                 context=None, conf=None, transport_url=None,
-                 idle_timeout=1, **kwargs):
+    def __init__(
+        self,
+        connection_str,
+        project=None,
+        service=None,
+        host=None,
+        context=None,
+        conf=None,
+        transport_url=None,
+        idle_timeout=1,
+        **kwargs,
+    ):
         """Driver that uses messaging as transport for notifications
 
         :param connection_str: OSProfiler driver connection string,
@@ -46,19 +55,22 @@ class Messaging(base.Driver):
 
         self.oslo_messaging = importutils.try_import("oslo_messaging")
         if not self.oslo_messaging:
-            raise ValueError("Oslo.messaging library is required for "
-                             "messaging driver")
+            raise ValueError(
+                "Oslo.messaging library is required for messaging driver"
+            )
 
-        super().__init__(connection_str, project=project,
-                         service=service, host=host)
+        super().__init__(
+            connection_str, project=project, service=service, host=host
+        )
 
         self.context = context
 
         if not conf:
             oslo_config = importutils.try_import("oslo_config")
             if not oslo_config:
-                raise ValueError("Oslo.config library is required for "
-                                 "messaging driver")
+                raise ValueError(
+                    "Oslo.config library is required for messaging driver"
+                )
             conf = oslo_config.cfg.CONF
 
         transport_kwargs = {}
@@ -66,10 +78,15 @@ class Messaging(base.Driver):
             transport_kwargs["url"] = transport_url
 
         self.transport = self.oslo_messaging.get_notification_transport(
-            conf, **transport_kwargs)
+            conf, **transport_kwargs
+        )
         self.client = self.oslo_messaging.Notifier(
-            self.transport, publisher_id=self.host, driver="messaging",
-            topics=["profiler"], retry=0)
+            self.transport,
+            publisher_id=self.host,
+            driver="messaging",
+            topics=["profiler"],
+            retry=0,
+        )
 
         self.idle_timeout = idle_timeout
 
@@ -95,16 +112,19 @@ class Messaging(base.Driver):
 
         info["project"] = self.project
         info["service"] = self.service
-        self.client.info(context or self.context,
-                         "profiler.%s" % info["service"],
-                         info)
+        self.client.info(
+            context or self.context,
+            "profiler.{}".format(info["service"]),
+            info,
+        )
 
     def get_report(self, base_id):
         notification_endpoint = NotifyEndpoint(self.oslo_messaging, base_id)
         endpoints = [notification_endpoint]
         targets = [self.oslo_messaging.Target(topic="profiler")]
         server = self.oslo_messaging.notify.get_notification_listener(
-            self.transport, targets, endpoints, executor="threading")
+            self.transport, targets, endpoints, executor="threading"
+        )
 
         state = dict(running=False)
         sfn = functools.partial(signal_handler, state=state)
@@ -119,8 +139,10 @@ class Messaging(base.Driver):
             # failed to start the server
             raise
         except SignalExit:
-            print("Execution interrupted while trying to connect to "
-                  "messaging server. No data was collected.")
+            print(
+                "Execution interrupted while trying to connect to "
+                "messaging server. No data was collected."
+            )
             return {}
 
         # connected to server, now read the data
@@ -148,9 +170,12 @@ class Messaging(base.Driver):
         events = notification_endpoint.get_messages()
 
         if not events:
-            print("No events are collected for Trace UUID %s. Please note "
-                  "that osprofiler has read ALL events from profiler topic, "
-                  "but has not found any for specified Trace UUID." % base_id)
+            print(
+                f"No events are collected for Trace UUID {base_id}. "
+                f"Please note that osprofiler has read ALL events from "
+                f"profiler topic, but has not found any for specified Trace "
+                f"UUID."
+            )
 
         for n in events:
             trace_id = n["trace_id"]
@@ -161,19 +186,20 @@ class Messaging(base.Driver):
             host = n["info"]["host"]
             timestamp = n["timestamp"]
 
-            self._append_results(trace_id, parent_id, name, project, service,
-                                 host, timestamp, n)
+            self._append_results(
+                trace_id, parent_id, name, project, service, host, timestamp, n
+            )
 
         return self._parse_results()
 
 
 class NotifyEndpoint:
-
     def __init__(self, oslo_messaging, base_id):
         self.received_messages = []
         self.last_read_time = time.time()
         self.filter_rule = oslo_messaging.NotificationFilter(
-            payload={"base_id": base_id})
+            payload={"base_id": base_id}
+        )
 
     def info(self, ctxt, publisher_id, event_type, payload, metadata):
         self.received_messages.append(payload)

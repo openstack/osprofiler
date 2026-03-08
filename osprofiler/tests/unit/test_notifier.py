@@ -20,7 +20,6 @@ from osprofiler.tests import test
 
 
 class NotifierTestCase(test.TestCase):
-
     def tearDown(self):
         notifier.set(notifier._noop_notifier)  # restore defaults
         notifier.clear_notifier_cache()

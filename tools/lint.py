@@ -22,7 +22,7 @@ ENABLED_PYLINT_MSGS = ['W0611']
 
 
 def main(dirpath):
-    enable_opt = '--enable=%s' % ','.join(ENABLED_PYLINT_MSGS)
+    enable_opt = '--enable={}'.format(','.join(ENABLED_PYLINT_MSGS))
     lint.Run(['--reports=n', '--disable=all', enable_opt, dirpath])
 
 

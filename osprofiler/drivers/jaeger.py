@@ -19,8 +19,15 @@ from osprofiler import exc
 
 # TODO(tkajinam): Remove this and the deprecated options after G-release
 class Jaeger(base.Driver):
-    def __init__(self, connection_str, project=None, service=None, host=None,
-                 conf=None, **kwargs):
+    def __init__(
+        self,
+        connection_str,
+        project=None,
+        service=None,
+        host=None,
+        conf=None,
+        **kwargs,
+    ):
         """Jaeger driver for OSProfiler."""
 
         raise exc.CommandError('Jaeger driver is no longer supported')
