@@ -17,6 +17,7 @@ import io
 import json
 import os
 import sys
+from typing import cast
 from unittest import mock
 
 import ddt
@@ -36,7 +37,8 @@ class ShellTestCase(test.TestCase):
 
     def tearDown(self):
         super().tearDown()
-        os.environ = self.old_environment
+        os.environ.clear()
+        os.environ.update(self.old_environment)
 
     def _trace_show_cmd(self, format_=None):
         cmd = f"trace show --connection-string redis:// {self.TRACE_ID}"
@@ -47,7 +49,9 @@ class ShellTestCase(test.TestCase):
     def test_shell_main(self, mock_shell):
         mock_shell.side_effect = exc.CommandError("some_message")
         shell.main()
-        self.assertEqual("some_message\n", sys.stdout.getvalue())
+        self.assertEqual(
+            "some_message\n", cast(io.StringIO, sys.stdout).getvalue()
+        )
 
     def run_command(self, cmd):
         shell.OSProfilerShell(cmd.split())
@@ -117,7 +121,7 @@ class ShellTestCase(test.TestCase):
                     separators=(",", ": "),
                 )
             ),
-            sys.stdout.getvalue(),
+            cast(io.StringIO, sys.stdout).getvalue(),
         )
 
     @mock.patch("sys.stdout", io.StringIO())
@@ -153,7 +157,7 @@ class ShellTestCase(test.TestCase):
                 "\n".format(
                     json.dumps(notifications, indent=4, separators=(",", ": "))
                 ),
-                sys.stdout.getvalue(),
+                cast(io.StringIO, sys.stdout).getvalue(),
             )
 
     @mock.patch("sys.stdout", io.StringIO())

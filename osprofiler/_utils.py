@@ -19,11 +19,28 @@ import hmac
 import json
 import os
 import uuid
+from collections.abc import Generator, Sequence
+from typing import Any, TypeVar, overload
 
 from oslo_utils import uuidutils
 
+_C = TypeVar("_C")
+_T = TypeVar("_T")
 
-def split(text, strip=True):
+_AlreadySplit = TypeVar('_AlreadySplit', bound=list[Any] | tuple[Any, ...])
+
+
+@overload
+def split(text: str, strip: bool = True) -> list[str]: ...
+
+
+@overload
+def split(text: _AlreadySplit, strip: bool = True) -> _AlreadySplit: ...
+
+
+def split(
+    text: str | _AlreadySplit, strip: bool = True
+) -> list[str] | _AlreadySplit:
     """Splits a comma separated text blob into its components.
 
     Does nothing if already a list or tuple.
@@ -38,7 +55,7 @@ def split(text, strip=True):
         return text.split(",")
 
 
-def binary_encode(text, encoding="utf-8"):
+def binary_encode(text: bytes | str, encoding: str = "utf-8") -> bytes:
     """Converts a string of into a binary type using given encoding.
 
     Does nothing if text not unicode string.
@@ -51,7 +68,7 @@ def binary_encode(text, encoding="utf-8"):
         raise TypeError("Expected binary or string type")
 
 
-def binary_decode(data, encoding="utf-8"):
+def binary_decode(data: bytes | str, encoding: str = "utf-8") -> str:
     """Converts a binary type into a text type using given encoding.
 
     Does nothing if data is already unicode string.
@@ -64,14 +81,16 @@ def binary_decode(data, encoding="utf-8"):
         raise TypeError("Expected binary or string type")
 
 
-def generate_hmac(data, hmac_key):
+def generate_hmac(data: bytes | str, hmac_key: bytes | str) -> str:
     """Generate a hmac using a known key given the provided content."""
     h = hmac.new(binary_encode(hmac_key), digestmod=hashlib.sha1)
     h.update(binary_encode(data))
     return h.hexdigest()
 
 
-def signed_pack(data, hmac_key):
+def signed_pack(
+    data: dict[str, str], hmac_key: str | None
+) -> tuple[bytes, str | None]:
     """Pack and sign data with hmac_key."""
     raw_data = base64.urlsafe_b64encode(binary_encode(json.dumps(data)))
 
@@ -82,7 +101,11 @@ def signed_pack(data, hmac_key):
     return raw_data, generate_hmac(raw_data, hmac_key) if hmac_key else None
 
 
-def signed_unpack(data, hmac_data, hmac_keys):
+def signed_unpack(
+    data: str | bytes | None,
+    hmac_data: str | None,
+    hmac_keys: Sequence[str] | None,
+) -> dict[str, Any] | None:
     """Unpack data and check that it was signed with hmac_key.
 
     :param data: json string that was singed_packed.
@@ -95,7 +118,7 @@ def signed_unpack(data, hmac_data, hmac_keys):
     """
     # NOTE(boris-42): For security reason, if there is no hmac_data or
     #                 hmac_keys we don't trust data => return None.
-    if not (hmac_keys and hmac_data):
+    if not hmac_keys or not hmac_data or not data:
         return None
     hmac_data = hmac_data.strip()
     if not hmac_data:
@@ -108,7 +131,7 @@ def signed_unpack(data, hmac_data, hmac_keys):
         else:
             if hmac.compare_digest(hmac_data, user_hmac_data):
                 try:
-                    contents = json.loads(
+                    contents: dict[str, Any] = json.loads(
                         binary_decode(base64.urlsafe_b64decode(data))
                     )
                     contents["hmac_key"] = hmac_key
@@ -118,14 +141,16 @@ def signed_unpack(data, hmac_data, hmac_keys):
     return None
 
 
-def itersubclasses(cls, _seen=None):
+def itersubclasses(
+    cls: type[_C], _seen: set[type] | None = None
+) -> Generator[type[_C], None, None]:
     """Generator over all subclasses of a given class in depth first order."""
 
     _seen = _seen or set()
     try:
         subs = cls.__subclasses__()
     except TypeError:  # fails only when cls is type
-        subs = cls.__subclasses__(cls)
+        subs = cls.__subclasses__(cls)  # type: ignore[call-arg]
     for sub in subs:
         if sub not in _seen:
             _seen.add(sub)
@@ -134,13 +159,13 @@ def itersubclasses(cls, _seen=None):
                 yield sub
 
 
-def import_modules_from_package(package):
+def import_modules_from_package(package: str) -> None:
     """Import modules from package and append into sys.modules
 
     :param: package - Full package name. For example: rally.deploy.engines
     """
-    path = [os.path.dirname(__file__), ".."] + package.split(".")
-    path = os.path.join(*path)
+    path_parts = [os.path.dirname(__file__), ".."] + package.split(".")
+    path = os.path.join(*path_parts)
     for root, dirs, files in os.walk(path):
         for filename in files:
             if filename.startswith("__") or not filename.endswith(".py"):
@@ -150,7 +175,7 @@ def import_modules_from_package(package):
             __import__(module_name)
 
 
-def shorten_id(span_id):
+def shorten_id(span_id: str | int) -> int:
     """Convert from uuid4 to 64 bit id for OpenTracing"""
     int64_max = (1 << 64) - 1
     if isinstance(span_id, int):
@@ -163,7 +188,7 @@ def shorten_id(span_id):
     return short_id
 
 
-def uuid_to_int128(span_uuid):
+def uuid_to_int128(span_uuid: str | int) -> int:
     """Convert from uuid4 to 128 bit id for OpenTracing"""
     if isinstance(span_uuid, int):
         return span_uuid

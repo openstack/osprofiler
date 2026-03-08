@@ -247,17 +247,17 @@ cfg.CONF.register_opts(_OTLP_OPTS, group=_otlp_profiler_opt_group)
 
 
 def set_defaults(
-    conf,
-    enabled=None,
-    trace_sqlalchemy=None,
-    hmac_keys=None,
-    connection_string=None,
-    es_doc_type=None,
-    es_scroll_time=None,
-    es_scroll_size=None,
-    socket_timeout=None,
-    sentinel_service_name=None,
-):
+    conf: cfg.ConfigOpts,
+    enabled: bool | None = None,
+    trace_sqlalchemy: bool | None = None,
+    hmac_keys: str | None = None,
+    connection_string: str | None = None,
+    es_doc_type: str | None = None,
+    es_scroll_time: str | None = None,
+    es_scroll_size: int | None = None,
+    socket_timeout: float | None = None,
+    sentinel_service_name: str | None = None,
+) -> None:
     conf.register_opts(_PROFILER_OPTS, group=_profiler_opt_group)
 
     if enabled is not None:
@@ -308,35 +308,35 @@ def set_defaults(
         )
 
 
-def is_trace_enabled(conf=None):
+def is_trace_enabled(conf: cfg.ConfigOpts | None = None) -> bool:
     if conf is None:
         conf = cfg.CONF
-    return conf.profiler.enabled
+    return bool(conf.profiler.enabled)
 
 
-def is_db_trace_enabled(conf=None):
+def is_db_trace_enabled(conf: cfg.ConfigOpts | None = None) -> bool:
     if conf is None:
         conf = cfg.CONF
-    return conf.profiler.enabled and conf.profiler.trace_sqlalchemy
+    return bool(conf.profiler.enabled and conf.profiler.trace_sqlalchemy)
 
 
-def enable_web_trace(conf=None):
+def enable_web_trace(conf: cfg.ConfigOpts | None = None) -> None:
     if conf is None:
         conf = cfg.CONF
     if conf.profiler.enabled:
         web.enable(conf.profiler.hmac_keys)
 
 
-def disable_web_trace(conf=None):
+def disable_web_trace(conf: cfg.ConfigOpts | None = None) -> None:
     if conf is None:
         conf = cfg.CONF
     if conf.profiler.enabled:
         web.disable()
 
 
-def list_opts():
+def list_opts() -> list[tuple[str, list[cfg.Opt]]]:
     return [
         (_profiler_opt_group.name, _PROFILER_OPTS),
-        (_jaegerprofiler_opt_group, _JAEGER_OPTS),
-        (_otlp_profiler_opt_group, _OTLP_OPTS),
+        (_jaegerprofiler_opt_group.name, _JAEGER_OPTS),
+        (_otlp_profiler_opt_group.name, _OTLP_OPTS),
     ]

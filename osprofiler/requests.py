@@ -12,7 +12,9 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
+from collections.abc import Callable
 import logging as log
+from typing import Any
 from urllib import parse as parser
 
 from osprofiler import profiler
@@ -24,7 +26,7 @@ from osprofiler import web
 
 LOG = log.getLogger(__name__)
 
-_FUNC = None
+_FUNC: Callable[..., Any] | None = None
 
 try:
     from requests.adapters import HTTPAdapter
@@ -32,11 +34,11 @@ except ImportError:
     pass
 else:
 
-    def send(self, request, *args, **kwargs):
+    def send(self: Any, request: Any, *args: Any, **kwargs: Any) -> Any:
         parsed_url = parser.urlparse(request.url)
 
         # Best effort guessing port if needed
-        port = parsed_url.port or ""
+        port: int | str = parsed_url.port or ""
         if not port and parsed_url.scheme == "http":
             port = 80
         elif not port and parsed_url.scheme == "https":
@@ -60,6 +62,8 @@ else:
         # context/span.
         request.headers.update(web.get_trace_id_headers())
 
+        if _FUNC is None:
+            raise RuntimeError("osprofiler requests adapter not initialized")
         response = _FUNC(self, request, *args, **kwargs)
 
         profiler.stop(info={"requests": {"status_code": response.status_code}})
@@ -69,9 +73,9 @@ else:
     _FUNC = HTTPAdapter.send
 
 
-def enable():
+def enable() -> None:
     if _FUNC:
-        HTTPAdapter.send = send
+        HTTPAdapter.send = send  # type: ignore[method-assign]
         LOG.debug("profiling requests enabled")
     else:
         LOG.warning(

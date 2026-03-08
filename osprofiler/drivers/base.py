@@ -15,6 +15,7 @@
 
 import datetime
 import logging
+from typing import Any
 from urllib import parse as urlparse
 
 from osprofiler import _utils
@@ -22,7 +23,7 @@ from osprofiler import _utils
 LOG = logging.getLogger(__name__)
 
 
-def get_driver(connection_string, *args, **kwargs):
+def get_driver(connection_string: str, *args: Any, **kwargs: Any) -> "Driver":
     """Create driver's instance according to specified connection string"""
     # NOTE(ayelistratov) Backward compatibility with old Messaging notation
     # Remove after patching all OS services
@@ -66,20 +67,25 @@ class Driver:
     and implemented by any class derived from this class.
     """
 
-    default_trace_fields = {"base_id", "timestamp"}
+    default_trace_fields: set[str] = {"base_id", "timestamp"}
 
     def __init__(
-        self, connection_str, project=None, service=None, host=None, **kwargs
-    ):
+        self,
+        connection_str: str,
+        project: str | None = None,
+        service: str | None = None,
+        host: str | None = None,
+        **kwargs: Any,
+    ) -> None:
         self.connection_str = connection_str
         self.project = project
         self.service = service
         self.host = host
-        self.result = {}
-        self.started_at = None
-        self.finished_at = None
+        self.result: dict[str, Any] = {}
+        self.started_at: datetime.datetime | None = None
+        self.finished_at: datetime.datetime | None = None
         # Last trace started time
-        self.last_started_at = None
+        self.last_started_at: datetime.datetime | None = None
 
         profiler_config = kwargs.get("conf", {}).get("profiler", {})
         if hasattr(profiler_config, "filter_error_trace"):
@@ -87,7 +93,7 @@ class Driver:
         else:
             self.filter_error_trace = False
 
-    def notify(self, info, **kwargs):
+    def notify(self, info: dict[str, Any], **kwargs: Any) -> None:
         """This method will be called on each notifier.notify() call.
 
         To add new drivers you should, create new subclass of this class and
@@ -108,7 +114,7 @@ class Driver:
             "or has to be overridden"
         )
 
-    def get_report(self, base_id):
+    def get_report(self, base_id: str) -> dict[str, Any]:
         """Forms and returns report composed from the stored notifications.
 
         :param base_id: Base id of trace elements.
@@ -119,11 +125,13 @@ class Driver:
         )
 
     @classmethod
-    def get_name(cls):
+    def get_name(cls) -> str:
         """Returns backend specific name for the driver."""
         return cls.__name__
 
-    def list_traces(self, fields=None):
+    def list_traces(
+        self, fields: set[str] | None = None
+    ) -> list[dict[str, Any]]:
         """Query all traces from the storage.
 
         :param fields: Set of trace fields to return. Defaults to 'base_id'
@@ -136,7 +144,7 @@ class Driver:
             "or has to be overridden"
         )
 
-    def list_error_traces(self):
+    def list_error_traces(self) -> list[dict[str, Any]]:
         """Query all error traces from the storage.
 
         :return List of traces, where each trace is a dictionary containing
@@ -148,7 +156,7 @@ class Driver:
         )
 
     @staticmethod
-    def _build_tree(nodes):
+    def _build_tree(nodes: dict[str, Any]) -> list[dict[str, Any]]:
         """Builds the tree (forest) data structure based on the list of nodes.
 
         Tree building works in O(n*log(n)).
@@ -161,7 +169,7 @@ class Driver:
                   empty for leafs)
         """
 
-        tree = []
+        tree: list[dict[str, Any]] = []
 
         for trace_id in nodes:
             node = nodes[trace_id]
@@ -182,15 +190,15 @@ class Driver:
 
     def _append_results(
         self,
-        trace_id,
-        parent_id,
-        name,
-        project,
-        service,
-        host,
-        timestamp,
-        raw_payload=None,
-    ):
+        trace_id: str,
+        parent_id: str,
+        name: str,
+        project: str | None,
+        service: str | None,
+        host: str | None,
+        timestamp: str,
+        raw_payload: dict[str, Any] | None = None,
+    ) -> None:
         """Appends the notification to the dictionary of notifications.
 
         :param trace_id: UUID of current trace point
@@ -204,9 +212,7 @@ class Driver:
         :param raw_payload: raw notification without any filtering, with all
                             fields included
         """
-        timestamp = datetime.datetime.strptime(
-            timestamp, "%Y-%m-%dT%H:%M:%S.%f"
-        )
+        ts = datetime.datetime.strptime(timestamp, "%Y-%m-%dT%H:%M:%S.%f")
         if trace_id not in self.result:
             self.result[trace_id] = {
                 "info": {
@@ -222,29 +228,29 @@ class Driver:
         self.result[trace_id]["info"][f"meta.raw_payload.{name}"] = raw_payload
 
         if name.endswith("stop"):
-            self.result[trace_id]["info"]["finished"] = timestamp
+            self.result[trace_id]["info"]["finished"] = ts
             self.result[trace_id]["info"]["exception"] = "None"
             if raw_payload and "info" in raw_payload:
                 exc = raw_payload["info"].get("etype", "None")
                 self.result[trace_id]["info"]["exception"] = exc
         else:
-            self.result[trace_id]["info"]["started"] = timestamp
-            if not self.last_started_at or self.last_started_at < timestamp:
-                self.last_started_at = timestamp
+            self.result[trace_id]["info"]["started"] = ts
+            if not self.last_started_at or self.last_started_at < ts:
+                self.last_started_at = ts
 
-        if not self.started_at or self.started_at > timestamp:
-            self.started_at = timestamp
+        if not self.started_at or self.started_at > ts:
+            self.started_at = ts
 
-        if not self.finished_at or self.finished_at < timestamp:
-            self.finished_at = timestamp
+        if not self.finished_at or self.finished_at < ts:
+            self.finished_at = ts
 
-    def _parse_results(self):
+    def _parse_results(self) -> dict[str, Any]:
         """Parses Driver's notifications placed by _append_results() .
 
         :returns: full profiling report
         """
 
-        def msec(dt):
+        def msec(dt: datetime.timedelta) -> int:
             # NOTE(boris-42): Unfortunately this is the simplest way that works
             # in py26 and py27
             microsec = (
@@ -252,7 +258,7 @@ class Driver:
             )
             return int(microsec / 1000.0)
 
-        stats = {}
+        stats: dict[str, Any] = {}
 
         for r in self.result.values():
             # NOTE(boris-42): We are not able to guarantee that the backend
@@ -282,12 +288,12 @@ class Driver:
                 "name": "total",
                 "started": 0,
                 "finished": msec(self.finished_at - self.started_at)
-                if self.started_at
+                if self.started_at and self.finished_at
                 else None,
                 "last_trace_started": msec(
                     self.last_started_at - self.started_at
                 )
-                if self.started_at
+                if self.started_at and self.last_started_at
                 else None,
             },
             "children": self._build_tree(self.result),

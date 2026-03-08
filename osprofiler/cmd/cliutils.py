@@ -13,10 +13,12 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
+from collections.abc import Callable
 import os
+from typing import Any
 
 
-def env(*args, **kwargs):
+def env(*args: str, **kwargs: str) -> str:
     """Returns the first environment variable set.
 
     If all are empty, defaults to '' or keyword arg `default`.
@@ -28,7 +30,9 @@ def env(*args, **kwargs):
     return kwargs.get("default", "")
 
 
-def arg(*args, **kwargs):
+def arg(
+    *args: Any, **kwargs: Any
+) -> Callable[[Callable[..., Any]], Callable[..., Any]]:
     """Decorator for CLI args.
 
     Example:
@@ -38,22 +42,22 @@ def arg(*args, **kwargs):
         ... pass
     """
 
-    def _decorator(func):
+    def _decorator(func: Callable[..., Any]) -> Callable[..., Any]:
         add_arg(func, *args, **kwargs)
         return func
 
     return _decorator
 
 
-def add_arg(func, *args, **kwargs):
+def add_arg(func: Callable[..., Any], *args: Any, **kwargs: Any) -> None:
     """Bind CLI arguments to a shell.py `do_foo` function."""
 
     if not hasattr(func, "arguments"):
-        func.arguments = []
+        setattr(func, "arguments", [])
 
     # NOTE(sirp): avoid dups that can occur when the module is shared across
     # tests.
-    if (args, kwargs) not in func.arguments:
+    if (args, kwargs) not in getattr(func, "arguments"):
         # Because of the semantics of decorator composition if we just append
         # to the options list positional options will appear to be backwards.
-        func.arguments.insert(0, (args, kwargs))
+        getattr(func, "arguments").insert(0, (args, kwargs))

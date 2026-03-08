@@ -35,7 +35,7 @@ class WebTestCase(test.TestCase):
         self.addCleanup(profiler.clean)
 
     def test_get_trace_id_headers_no_hmac(self):
-        profiler.init(None, base_id="y", parent_id="z")
+        profiler.init(None, base_id="y", parent_id="z")  # type: ignore[arg-type]
         headers = web.get_trace_id_headers()
         self.assertEqual(headers, {})
 
@@ -50,6 +50,7 @@ class WebTestCase(test.TestCase):
             headers["X-Trace-Info"], headers["X-Trace-HMAC"], ["key"]
         )
         self.assertIn("hmac_key", trace_info)
+        assert trace_info is not None  # noqa: S101
         self.assertEqual("key", trace_info.pop("hmac_key"))
         self.assertEqual({"parent_id": "z", "base_id": "y"}, trace_info)
 
@@ -91,9 +92,9 @@ class WebMiddlewareTestCase(test.TestCase):
         request.get_response.return_value = "yeah!"
         request.headers = headers
 
-        middleware = web.WsgiMiddleware("app", hmac_key, enabled=enabled)
+        middleware = web.WsgiMiddleware(mock.ANY, hmac_key, enabled=enabled)
         self.assertEqual("yeah!", middleware(request))
-        request.get_response.assert_called_once_with("app")
+        request.get_response.assert_called_once_with(mock.ANY)
         self.assertEqual(0, mock_profiler_init.call_count)
 
     @mock.patch("osprofiler.web.profiler.init")
@@ -157,7 +158,8 @@ class WebMiddlewareTestCase(test.TestCase):
     def test_wsgi_middleware_invalid_trace_info(self, mock_profiler_init):
         hmac_key = "secret"
         pack = utils.signed_pack(
-            [{"base_id": "1"}, {"parent_id": "2"}], hmac_key
+            [{"base_id": "1"}, {"parent_id": "2"}],  # type: ignore[arg-type]
+            hmac_key,
         )
         headers = {
             "a": "1",
@@ -191,7 +193,7 @@ class WebMiddlewareTestCase(test.TestCase):
         }
 
         middleware = web.WsgiMiddleware(
-            "app", f"secret1,{hmac_key}", enabled=True
+            mock.ANY, f"secret1,{hmac_key}", enabled=True
         )
         self.assertEqual("yeah!", middleware(request))
         mock_profiler_init.assert_called_once_with(
@@ -220,7 +222,7 @@ class WebMiddlewareTestCase(test.TestCase):
         }
 
         middleware = web.WsgiMiddleware(
-            "app", f"{hmac_key},secret2", enabled=True
+            mock.ANY, f"{hmac_key},secret2", enabled=True
         )
         self.assertEqual("yeah!", middleware(request))
         mock_profiler_init.assert_called_once_with(
@@ -249,7 +251,7 @@ class WebMiddlewareTestCase(test.TestCase):
             "X-Trace-HMAC": pack[1],
         }
 
-        middleware = web.WsgiMiddleware("app", hmac_key, enabled=True)
+        middleware = web.WsgiMiddleware(mock.ANY, hmac_key, enabled=True)
         self.assertEqual("yeah!", middleware(request))
         mock_profiler_init.assert_called_once_with(
             hmac_key=hmac_key, base_id="1", parent_id="2"
@@ -269,7 +271,7 @@ class WebMiddlewareTestCase(test.TestCase):
         request = mock.MagicMock()
         request.get_response.return_value = "yeah!"
         web.disable()
-        middleware = web.WsgiMiddleware("app", "hmac_key", enabled=True)
+        middleware = web.WsgiMiddleware(mock.ANY, "hmac_key", enabled=True)
         self.assertEqual("yeah!", middleware(request))
         self.assertEqual(mock_profiler_init.call_count, 0)
 
@@ -294,7 +296,7 @@ class WebMiddlewareTestCase(test.TestCase):
         }
 
         web.enable("super_secret_key1,super_secret_key2")
-        middleware = web.WsgiMiddleware("app", enabled=True)
+        middleware = web.WsgiMiddleware(mock.ANY, enabled=True)
         self.assertEqual("yeah!", middleware(request))
         mock_profiler_init.assert_called_once_with(
             hmac_key=hmac_key, base_id="1", parent_id="2"

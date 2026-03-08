@@ -14,6 +14,8 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
+from collections.abc import Generator
+from typing import Any, cast
 from urllib import parse as parser
 
 from debtcollector import removals
@@ -25,7 +27,7 @@ from osprofiler import exc
 
 
 class Redis(base.Driver):
-    @removals.removed_kwarg(
+    @removals.removed_kwarg(  # type: ignore[untyped-decorator]
         "db",
         message="'db' parameter is deprecated "
         "and will be removed in future. "
@@ -34,14 +36,14 @@ class Redis(base.Driver):
     )
     def __init__(
         self,
-        connection_str,
-        db=0,
-        project=None,
-        service=None,
-        host=None,
-        conf=cfg.CONF,
-        **kwargs,
-    ):
+        connection_str: str,
+        db: int = 0,
+        project: str | None = None,
+        service: str | None = None,
+        host: str | None = None,
+        conf: cfg.ConfigOpts = cfg.CONF,
+        **kwargs: Any,
+    ) -> None:
         """Redis driver for OSProfiler."""
 
         super().__init__(
@@ -69,10 +71,10 @@ class Redis(base.Driver):
         self.namespace_error = "osprofiler_error:"
 
     @classmethod
-    def get_name(cls):
+    def get_name(cls) -> str:
         return "redis"
 
-    def notify(self, info):
+    def notify(self, info: dict[str, Any], **kwargs: Any) -> None:
         """Send notifications to Redis.
 
         :param info:  Contains information about trace element.
@@ -97,7 +99,7 @@ class Redis(base.Driver):
         ):
             self.notify_error_trace(data)
 
-    def notify_error_trace(self, data):
+    def notify_error_trace(self, data: dict[str, Any]) -> None:
         """Store base_id and timestamp of error trace to a separate key."""
         key = self.namespace_error + data["base_id"]
         value = jsonutils.dumps(
@@ -105,7 +107,9 @@ class Redis(base.Driver):
         )
         self.db.set(key, value)
 
-    def list_traces(self, fields=None):
+    def list_traces(
+        self, fields: set[str] | None = None
+    ) -> list[dict[str, Any]]:
         """Query all traces from the storage.
 
         :param fields: Set of trace fields to return. Defaults to 'base_id'
@@ -122,7 +126,10 @@ class Redis(base.Driver):
         ids = self.db.scan_iter(match=self.namespace_opt + "*")
         for i in ids:
             # for each trace query the first event to have a timestamp
-            first_event = jsonutils.loads(self.db.lindex(i, 1))
+            raw = cast(bytes | None, self.db.lindex(i, 1))
+            if raw is None:
+                continue
+            first_event = jsonutils.loads(raw)
             result.append(
                 {
                     key: value
@@ -132,15 +139,19 @@ class Redis(base.Driver):
             )
         return result
 
-    def _list_traces_legacy(self, fields):
+    def _list_traces_legacy(self, fields: set[str]) -> list[dict[str, Any]]:
         # With current schema every event is stored under its own unique key
         # To query all traces we first need to get all keys, then
         # get all events, sort them and pick up only the first one
         ids = self.db.scan_iter(match=self.namespace + "*")
-        traces = [jsonutils.loads(self.db.get(i)) for i in ids]
+        traces = [
+            jsonutils.loads(raw)
+            for i in ids
+            if (raw := cast(bytes | None, self.db.get(i))) is not None
+        ]
         traces.sort(key=lambda x: x["timestamp"])
-        seen_ids = set()
-        result = []
+        seen_ids: set[str] = set()
+        result: list[dict[str, Any]] = []
         for trace in traces:
             if trace["base_id"] not in seen_ids:
                 seen_ids.add(trace["base_id"])
@@ -153,13 +164,17 @@ class Redis(base.Driver):
                 )
         return result
 
-    def list_error_traces(self):
+    def list_error_traces(self) -> list[dict[str, Any]]:
         """Returns all traces that have error/exception."""
         ids = self.db.scan_iter(match=self.namespace_error + "*")
-        traces = [jsonutils.loads(self.db.get(i)) for i in ids]
+        traces = [
+            jsonutils.loads(raw)
+            for i in ids
+            if (raw := cast(bytes | None, self.db.get(i))) is not None
+        ]
         traces.sort(key=lambda x: x["timestamp"])
-        seen_ids = set()
-        result = []
+        seen_ids: set[str] = set()
+        result: list[dict[str, Any]] = []
         for trace in traces:
             if trace["base_id"] not in seen_ids:
                 seen_ids.add(trace["base_id"])
@@ -167,19 +182,24 @@ class Redis(base.Driver):
 
         return result
 
-    def get_report(self, base_id):
+    def get_report(self, base_id: str) -> dict[str, Any]:
         """Retrieves and parses notification from Redis.
 
         :param base_id: Base id of trace elements.
         """
 
-        def iterate_events():
+        def iterate_events() -> Generator[bytes, None, None]:
             for key in self.db.scan_iter(
                 match=self.namespace + base_id + "*"
             ):  # legacy
-                yield self.db.get(key)
+                data = cast(bytes | None, self.db.get(key))
+                if data is not None:
+                    yield data
 
-            yield from self.db.lrange(self.namespace_opt + base_id, 0, -1)
+            yield from cast(
+                list[bytes],
+                self.db.lrange(self.namespace_opt + base_id, 0, -1),
+            )
 
         for data in iterate_events():
             n = jsonutils.loads(data)
@@ -199,7 +219,7 @@ class Redis(base.Driver):
 
 
 class RedisSentinel(Redis, base.Driver):
-    @removals.removed_kwarg(
+    @removals.removed_kwarg(  # type: ignore[untyped-decorator]
         "db",
         message="'db' parameter is deprecated "
         "and will be removed in future. "
@@ -208,14 +228,14 @@ class RedisSentinel(Redis, base.Driver):
     )
     def __init__(
         self,
-        connection_str,
-        db=0,
-        project=None,
-        service=None,
-        host=None,
-        conf=cfg.CONF,
-        **kwargs,
-    ):
+        connection_str: str,
+        db: int = 0,
+        project: str | None = None,
+        service: str | None = None,
+        host: str | None = None,
+        conf: cfg.ConfigOpts = cfg.CONF,
+        **kwargs: Any,
+    ) -> None:
         """Redis driver for OSProfiler."""
 
         super().__init__(
@@ -238,16 +258,16 @@ class RedisSentinel(Redis, base.Driver):
         self.conf = conf
         socket_timeout = self.conf.profiler.socket_timeout
         parsed_url = parser.urlparse(self.connection_str)
-        sentinel = Sentinel(
-            [(parsed_url.hostname, int(parsed_url.port))],
+        sentinel = Sentinel(  # type: ignore[no-untyped-call]
+            [(parsed_url.hostname, int(parsed_url.port))],  # type: ignore[arg-type]
             password=parsed_url.password,
             socket_timeout=socket_timeout,
         )
-        self.db = sentinel.master_for(
+        self.db = sentinel.master_for(  # type: ignore[no-untyped-call]
             self.conf.profiler.sentinel_service_name,
             socket_timeout=socket_timeout,
         )
 
     @classmethod
-    def get_name(cls):
+    def get_name(cls) -> str:
         return "redissentinel"

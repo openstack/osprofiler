@@ -16,7 +16,9 @@
 import functools
 import signal
 import time
+from typing import Any
 
+from oslo_config import cfg
 from oslo_utils import importutils
 
 from osprofiler.drivers import base
@@ -25,16 +27,16 @@ from osprofiler.drivers import base
 class Messaging(base.Driver):
     def __init__(
         self,
-        connection_str,
-        project=None,
-        service=None,
-        host=None,
-        context=None,
-        conf=None,
-        transport_url=None,
-        idle_timeout=1,
-        **kwargs,
-    ):
+        connection_str: str,
+        project: str | None = None,
+        service: str | None = None,
+        host: str | None = None,
+        context: Any = None,
+        conf: cfg.ConfigOpts | None = None,
+        transport_url: str | None = None,
+        idle_timeout: int = 1,
+        **kwargs: Any,
+    ) -> None:
         """Driver that uses messaging as transport for notifications
 
         :param connection_str: OSProfiler driver connection string,
@@ -73,7 +75,7 @@ class Messaging(base.Driver):
                 )
             conf = oslo_config.cfg.CONF
 
-        transport_kwargs = {}
+        transport_kwargs: dict[str, Any] = {}
         if transport_url:
             transport_kwargs["url"] = transport_url
 
@@ -91,10 +93,12 @@ class Messaging(base.Driver):
         self.idle_timeout = idle_timeout
 
     @classmethod
-    def get_name(cls):
+    def get_name(cls) -> str:
         return "messaging"
 
-    def notify(self, info, context=None):
+    def notify(
+        self, info: dict[str, Any], context: Any = None, **kwargs: Any
+    ) -> None:
         """Send notifications to backend via oslo.messaging notifier API.
 
         :param info:  Contains information about trace element.
@@ -118,7 +122,7 @@ class Messaging(base.Driver):
             info,
         )
 
-    def get_report(self, base_id):
+    def get_report(self, base_id: str) -> dict[str, Any]:
         notification_endpoint = NotifyEndpoint(self.oslo_messaging, base_id)
         endpoints = [notification_endpoint]
         targets = [self.oslo_messaging.Target(topic="profiler")]
@@ -126,7 +130,7 @@ class Messaging(base.Driver):
             self.transport, targets, endpoints, executor="threading"
         )
 
-        state = dict(running=False)
+        state: dict[str, bool] = dict(running=False)
         sfn = functools.partial(signal_handler, state=state)
 
         # modify signal handlers to handle interruption gracefully
@@ -194,21 +198,28 @@ class Messaging(base.Driver):
 
 
 class NotifyEndpoint:
-    def __init__(self, oslo_messaging, base_id):
-        self.received_messages = []
+    def __init__(self, oslo_messaging: Any, base_id: str) -> None:
+        self.received_messages: list[Any] = []
         self.last_read_time = time.time()
         self.filter_rule = oslo_messaging.NotificationFilter(
             payload={"base_id": base_id}
         )
 
-    def info(self, ctxt, publisher_id, event_type, payload, metadata):
+    def info(
+        self,
+        ctxt: Any,
+        publisher_id: Any,
+        event_type: Any,
+        payload: Any,
+        metadata: Any,
+    ) -> None:
         self.received_messages.append(payload)
         self.last_read_time = time.time()
 
-    def get_messages(self):
+    def get_messages(self) -> list[Any]:
         return self.received_messages
 
-    def get_last_read_time(self):
+    def get_last_read_time(self) -> float:
         return self.last_read_time  # time when the latest event was received
 
 
@@ -216,6 +227,6 @@ class SignalExit(BaseException):
     pass
 
 
-def signal_handler(signum, frame, state):
+def signal_handler(signum: Any, frame: Any, state: dict[str, bool]) -> None:
     state["running"] = False
     raise SignalExit()

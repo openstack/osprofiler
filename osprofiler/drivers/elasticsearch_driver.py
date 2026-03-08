@@ -13,6 +13,7 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
+from typing import Any
 from urllib import parse as parser
 
 from oslo_config import cfg
@@ -24,14 +25,14 @@ from osprofiler import exc
 class ElasticsearchDriver(base.Driver):
     def __init__(
         self,
-        connection_str,
-        index_name="osprofiler-notifications",
-        project=None,
-        service=None,
-        host=None,
-        conf=cfg.CONF,
-        **kwargs,
-    ):
+        connection_str: str,
+        index_name: str = "osprofiler-notifications",
+        project: str | None = None,
+        service: str | None = None,
+        host: str | None = None,
+        conf: cfg.ConfigOpts = cfg.CONF,
+        **kwargs: Any,
+    ) -> None:
         """Elasticsearch driver for OSProfiler."""
 
         super().__init__(
@@ -60,10 +61,10 @@ class ElasticsearchDriver(base.Driver):
         self.index_name_error = "osprofiler-notifications-error"
 
     @classmethod
-    def get_name(cls):
+    def get_name(cls) -> str:
         return "elasticsearch"
 
-    def notify(self, info):
+    def notify(self, info: dict[str, Any], **kwargs: Any) -> None:
         """Send notifications to Elasticsearch.
 
         :param info:  Contains information about trace element.
@@ -80,7 +81,7 @@ class ElasticsearchDriver(base.Driver):
         info = info.copy()
         info["project"] = self.project
         info["service"] = self.service
-        self.client.index(
+        self.client.index(  # type: ignore[call-arg]
             index=self.index_name,
             doc_type=self.conf.profiler.es_doc_type,
             body=info,
@@ -92,22 +93,22 @@ class ElasticsearchDriver(base.Driver):
         ):
             self.notify_error_trace(info)
 
-    def notify_error_trace(self, info):
+    def notify_error_trace(self, info: dict[str, Any]) -> None:
         """Store base_id and timestamp of error trace to a separate index."""
-        self.client.index(
+        self.client.index(  # type: ignore[call-arg]
             index=self.index_name_error,
             doc_type=self.conf.profiler.es_doc_type,
             body={"base_id": info["base_id"], "timestamp": info["timestamp"]},
         )
 
-    def _hits(self, response):
+    def _hits(self, response: Any) -> list[Any]:
         """Returns all hits of search query using scrolling
 
         :param response: ElasticSearch query response
         """
         scroll_id = response["_scroll_id"]
         scroll_size = len(response["hits"]["hits"])
-        result = []
+        result: list[Any] = []
 
         while scroll_size > 0:
             for hit in response["hits"]["hits"]:
@@ -120,7 +121,9 @@ class ElasticsearchDriver(base.Driver):
 
         return result
 
-    def list_traces(self, fields=None):
+    def list_traces(
+        self, fields: set[str] | None = None
+    ) -> list[dict[str, Any]]:
         """Query all traces from the storage.
 
         :param fields: Set of trace fields to return. Defaults to 'base_id'
@@ -128,10 +131,10 @@ class ElasticsearchDriver(base.Driver):
         :returns: List of traces, where each trace is a dictionary containing
                   at least `base_id` and `timestamp`.
         """
-        query = {"match_all": {}}
+        query: dict[str, Any] = {"match_all": {}}
         fields = set(fields or self.default_trace_fields)
 
-        response = self.client.search(
+        response = self.client.search(  # type: ignore[call-arg]
             index=self.index_name,
             doc_type=self.conf.profiler.es_doc_type,
             size=self.conf.profiler.es_scroll_size,
@@ -145,9 +148,9 @@ class ElasticsearchDriver(base.Driver):
 
         return self._hits(response)
 
-    def list_error_traces(self):
+    def list_error_traces(self) -> list[dict[str, Any]]:
         """Returns all traces that have error/exception."""
-        response = self.client.search(
+        response = self.client.search(  # type: ignore[call-arg]
             index=self.index_name_error,
             doc_type=self.conf.profiler.es_doc_type,
             size=self.conf.profiler.es_scroll_size,
@@ -161,12 +164,12 @@ class ElasticsearchDriver(base.Driver):
 
         return self._hits(response)
 
-    def get_report(self, base_id):
+    def get_report(self, base_id: str) -> dict[str, Any]:
         """Retrieves and parses notification from Elasticsearch.
 
         :param base_id: Base id of trace elements.
         """
-        response = self.client.search(
+        response = self.client.search(  # type: ignore[call-arg]
             index=self.index_name,
             doc_type=self.conf.profiler.es_doc_type,
             size=self.conf.profiler.es_scroll_size,

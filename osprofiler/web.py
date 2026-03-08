@@ -13,10 +13,17 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
+from __future__ import annotations
+
+from typing import Any, TypeGuard, TYPE_CHECKING
+
 import webob.dec
 
 from osprofiler import _utils as utils
 from osprofiler import profiler
+
+if TYPE_CHECKING:
+    from _typeshed.wsgi import WSGIApplication
 
 
 # Trace keys that are required or optional, any other
@@ -31,21 +38,21 @@ X_TRACE_INFO = "X-Trace-Info"
 X_TRACE_HMAC = "X-Trace-HMAC"
 
 
-def get_trace_id_headers():
+def get_trace_id_headers() -> dict[str, str]:
     """Adds the trace id headers (and any hmac) into provided dictionary."""
     p = profiler.get()
     if p and p.hmac_key:
         data = {"base_id": p.get_base_id(), "parent_id": p.get_id()}
         pack = utils.signed_pack(data, p.hmac_key)
-        return {X_TRACE_INFO: pack[0], X_TRACE_HMAC: pack[1]}
+        return {X_TRACE_INFO: pack[0].decode(), X_TRACE_HMAC: pack[1] or ""}
     return {}
 
 
-_ENABLED = None
-_HMAC_KEYS = None
+_ENABLED: bool | None = None
+_HMAC_KEYS: list[str] | tuple[str, ...] | None = None
 
 
-def disable():
+def disable() -> None:
     """Disable middleware.
 
     This is the alternative way to disable middleware. It will be used to be
@@ -55,7 +62,7 @@ def disable():
     _ENABLED = False
 
 
-def enable(hmac_keys=None):
+def enable(hmac_keys: str | None = None) -> None:
     """Enable middleware."""
     global _ENABLED, _HMAC_KEYS
     _ENABLED = True
@@ -65,7 +72,13 @@ def enable(hmac_keys=None):
 class WsgiMiddleware:
     """WSGI Middleware that enables tracing for an application."""
 
-    def __init__(self, application, hmac_keys=None, enabled=False, **kwargs):
+    def __init__(
+        self,
+        application: WSGIApplication,
+        hmac_keys: str | None = None,
+        enabled: bool = False,
+        **kwargs: Any,
+    ) -> None:
         """Initialize middleware with api-paste.ini arguments.
 
         :application: wsgi app
@@ -86,13 +99,17 @@ class WsgiMiddleware:
         self.hmac_keys = utils.split(hmac_keys or "")
 
     @classmethod
-    def factory(cls, global_conf, **local_conf):
-        def filter_(app):
+    def factory(
+        cls, global_conf: dict[str, Any] | None, **local_conf: Any
+    ) -> Any:
+        def filter_(app: Any) -> WsgiMiddleware:
             return cls(app, **local_conf)
 
         return filter_
 
-    def _trace_is_valid(self, trace_info):
+    def _trace_is_valid(
+        self, trace_info: dict[str, Any] | None
+    ) -> TypeGuard[dict[str, Any]]:
         if not isinstance(trace_info, dict):
             return False
         trace_keys = set(trace_info.keys())
@@ -103,7 +120,9 @@ class WsgiMiddleware:
         return True
 
     @webob.dec.wsgify
-    def __call__(self, request):
+    def __call__(
+        self, request: webob.request.Request
+    ) -> webob.response.Response:
         if (
             _ENABLED is not None
             and not _ENABLED
@@ -121,7 +140,11 @@ class WsgiMiddleware:
         if not self._trace_is_valid(trace_info):
             return request.get_response(self.application)
 
-        profiler.init(**trace_info)
+        profiler.init(
+            hmac_key=trace_info["hmac_key"],
+            base_id=trace_info.get("base_id"),
+            parent_id=trace_info.get("parent_id"),
+        )
         info = {
             "request": {
                 "path": request.path,

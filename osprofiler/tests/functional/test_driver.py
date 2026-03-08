@@ -86,7 +86,9 @@ class DriverTestCase(test.FunctionalTestCase):
         profiler.init("SECRET_KEY")
 
         # grab base_id
-        base_id = profiler.get().get_base_id()
+        p = profiler.get()
+        assert p is not None  # noqa: S101
+        base_id = p.get_base_id()
 
         # execute profiled code
         foo = Foo()
@@ -150,7 +152,9 @@ class RedisDriverTestCase(DriverTestCase):
         profiler.init("SECRET_KEY")
 
         # grab base_id
-        base_id = profiler.get().get_base_id()
+        p = profiler.get()
+        assert p is not None  # noqa: S101
+        base_id = p.get_base_id()
 
         # execute profiled code
         foo = Foo()

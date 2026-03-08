@@ -17,11 +17,11 @@
 class CommandError(Exception):
     """Invalid usage of CLI."""
 
-    def __init__(self, message=None):
+    def __init__(self, message: str | None = None) -> None:
         self.message = message
 
-    def __str__(self):
-        return self.message or self.__class__.__doc__
+    def __str__(self) -> str:
+        return self.message or self.__class__.__doc__ or ""
 
 
 class LogInsightAPIError(Exception):

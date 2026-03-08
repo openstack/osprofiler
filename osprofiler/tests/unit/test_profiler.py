@@ -17,6 +17,8 @@ import collections
 import copy
 import datetime
 import re
+import unittest
+from typing import Any, ClassVar
 from unittest import mock
 
 
@@ -43,8 +45,8 @@ class ProfilerGlobMethodsTestCase(test.TestCase):
 
     def test_start(self):
         p = profiler.init("secret", base_id="1", parent_id="2")
-        p.start = mock.MagicMock()
-        profiler.start("name", info="info")
+        p.start = mock.MagicMock()  # type: ignore[method-assign]
+        profiler.start("name", info="info")  # type: ignore[arg-type]
         p.start.assert_called_once_with("name", info="info")
 
     def test_stop_not_inited(self):
@@ -53,8 +55,8 @@ class ProfilerGlobMethodsTestCase(test.TestCase):
 
     def test_stop(self):
         p = profiler.init("secret", base_id="1", parent_id="2")
-        p.stop = mock.MagicMock()
-        profiler.stop(info="info")
+        p.stop = mock.MagicMock()  # type: ignore[method-assign]
+        profiler.stop(info="info")  # type: ignore[arg-type]
         p.stop.assert_called_once_with(info="info")
 
 
@@ -159,10 +161,10 @@ class WithTraceTestCase(test.TestCase):
     @mock.patch("osprofiler.profiler.start")
     def test_with_trace(self, mock_start, mock_stop):
 
-        with profiler.Trace("a", info="a1"):
+        with profiler.Trace("a", info="a1"):  # type: ignore[arg-type]
             mock_start.assert_called_once_with("a", info="a1")
             mock_start.reset_mock()
-            with profiler.Trace("b", info="b1"):
+            with profiler.Trace("b", info="b1"):  # type: ignore[arg-type]
                 mock_start.assert_called_once_with("b", info="b1")
             mock_stop.assert_called_once_with(info=None)
             mock_stop.reset_mock()
@@ -452,7 +454,7 @@ class TraceClsDecoratorTestCase(test.TestCase):
 
     @mock.patch("osprofiler.profiler.stop")
     @mock.patch("osprofiler.profiler.start")
-    @test.testcase.skip(
+    @unittest.skip(
         "Static method tracing was disabled due the bug. This test should be "
         "skipped until we find the way to address it."
     )
@@ -499,7 +501,10 @@ class TraceClsDecoratorTestCase(test.TestCase):
 
 
 class FakeTraceWithMetaclassBase(metaclass=profiler.TracedMeta):
-    __trace_args__ = {"name": "rpc", "info": {"a": 10}}
+    __trace_args__: ClassVar[dict[str, Any]] = {
+        "name": "rpc",
+        "info": {"a": 10},
+    }
 
     def method1(self, a, b, c=10):
         return a + b + c
@@ -520,14 +525,21 @@ class FakeTraceDummy(FakeTraceWithMetaclassBase):
 
 
 class FakeTraceWithMetaclassHideArgs(FakeTraceWithMetaclassBase):
-    __trace_args__ = {"name": "a", "info": {"b": 20}, "hide_args": True}
+    __trace_args__: ClassVar[dict[str, Any]] = {
+        "name": "a",
+        "info": {"b": 20},
+        "hide_args": True,
+    }
 
     def method5(self, k, l):
         return k + l
 
 
 class FakeTraceWithMetaclassPrivate(FakeTraceWithMetaclassBase):
-    __trace_args__ = {"name": "rpc", "trace_private": True}
+    __trace_args__: ClassVar[dict[str, Any]] = {
+        "name": "rpc",
+        "trace_private": True,
+    }
 
     def _new_private_method(self, m):
         return 2 * m

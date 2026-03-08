@@ -13,8 +13,10 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
+from collections.abc import Generator
 import contextlib
 import logging as log
+from typing import Any
 
 from oslo_utils import reflection
 
@@ -25,20 +27,22 @@ LOG = log.getLogger(__name__)
 _DISABLED = False
 
 
-def disable():
+def disable() -> None:
     """Disable tracing of all DB queries. Reduce a lot size of profiles."""
     global _DISABLED
     _DISABLED = True
 
 
-def enable():
+def enable() -> None:
     """add_tracing adds event listeners for sqlalchemy."""
 
     global _DISABLED
     _DISABLED = False
 
 
-def add_tracing(sqlalchemy, engine, name, hide_result=True):
+def add_tracing(
+    sqlalchemy: Any, engine: Any, name: str, hide_result: bool = True
+) -> None:
     """Add tracing to all sqlalchemy calls."""
 
     if not _DISABLED:
@@ -54,7 +58,7 @@ def add_tracing(sqlalchemy, engine, name, hide_result=True):
 
 
 @contextlib.contextmanager
-def wrap_session(sqlalchemy, sess):
+def wrap_session(sqlalchemy: Any, sess: Any) -> Generator[Any, None, None]:
     with sess as s:
         if not getattr(s.bind, "traced", False):
             add_tracing(sqlalchemy, s.bind, "db")
@@ -62,17 +66,24 @@ def wrap_session(sqlalchemy, sess):
         yield s
 
 
-def _before_cursor_execute(name):
+def _before_cursor_execute(name: str) -> Any:
     """Add listener that will send trace info before query is executed."""
 
-    def handler(conn, cursor, statement, params, context, executemany):
+    def handler(
+        conn: Any,
+        cursor: Any,
+        statement: Any,
+        params: Any,
+        context: Any,
+        executemany: Any,
+    ) -> None:
         info = {"db": {"statement": statement, "params": params}}
         profiler.start(name, info=info)
 
     return handler
 
 
-def _after_cursor_execute(hide_result=True):
+def _after_cursor_execute(hide_result: bool = True) -> Any:
     """Add listener that will send trace info after query is executed.
 
     :param hide_result: Boolean value to hide or show SQL result in trace.
@@ -80,7 +91,14 @@ def _after_cursor_execute(hide_result=True):
                         False - show SQL result in trace.
     """
 
-    def handler(conn, cursor, statement, params, context, executemany):
+    def handler(
+        conn: Any,
+        cursor: Any,
+        statement: Any,
+        params: Any,
+        context: Any,
+        executemany: Any,
+    ) -> None:
         if not hide_result:
             # Add SQL result to trace info in *-stop phase
             info = {"db": {"result": str(cursor._rows)}}
@@ -91,7 +109,7 @@ def _after_cursor_execute(hide_result=True):
     return handler
 
 
-def handle_error(exception_context):
+def handle_error(exception_context: Any) -> None:
     """Handle SQLAlchemy errors"""
     exception_class_name = reflection.get_class_name(
         exception_context.original_exception

@@ -21,6 +21,7 @@ Command-line interface to the OpenStack Profiler.
 import argparse
 import inspect
 import sys
+from typing import Any
 
 from oslo_config import cfg
 
@@ -31,13 +32,13 @@ from osprofiler import opts
 
 
 class OSProfilerShell:
-    def __init__(self, argv):
+    def __init__(self, argv: list[str]) -> None:
         args = self._get_base_parser().parse_args(argv)
         opts.set_defaults(cfg.CONF)
 
         args.func(args)
 
-    def _get_base_parser(self):
+    def _get_base_parser(self) -> argparse.ArgumentParser:
         parser = argparse.ArgumentParser(
             prog="osprofiler", description=__doc__.strip(), add_help=True
         )
@@ -50,9 +51,13 @@ class OSProfilerShell:
 
         return parser
 
-    def _append_subcommands(self, parent_parser):
+    def _append_subcommands(
+        self, parent_parser: argparse.ArgumentParser
+    ) -> None:
         subcommands = parent_parser.add_subparsers(help="<subcommands>")
         for group_cls in commands.BaseCommand.__subclasses__():
+            if group_cls.group_name is None:
+                continue
             group_parser = subcommands.add_parser(group_cls.group_name)
             subcommand_parser = group_parser.add_subparsers()
 
@@ -71,7 +76,7 @@ class OSProfilerShell:
                     command_parser.add_argument(*args, **kwargs)
                 command_parser.set_defaults(func=callback)
 
-    def _no_project_and_domain_set(self, args):
+    def _no_project_and_domain_set(self, args: Any) -> bool:
         if not (
             args.os_project_id
             or (
@@ -85,7 +90,7 @@ class OSProfilerShell:
             return False
 
 
-def main(args=None):
+def main(args: list[str] | None = None) -> int | None:
     if args is None:
         args = sys.argv[1:]
 
@@ -94,6 +99,7 @@ def main(args=None):
     except exc.CommandError as e:
         print(e.message)
         return 1
+    return None
 
 
 if __name__ == "__main__":

@@ -13,8 +13,10 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
+import argparse
 import json
 import os
+from typing import Any
 
 from oslo_utils import encodeutils
 from oslo_utils import uuidutils
@@ -26,7 +28,7 @@ from osprofiler import exc
 
 
 class BaseCommand:
-    group_name = None
+    group_name: str | None = None
 
 
 class TraceCommands(BaseCommand):
@@ -84,7 +86,7 @@ class TraceCommands(BaseCommand):
         help="filename for rendering the dot graph in pdf format",
     )
     @cliutils.arg("--out", dest="file_name", help="save output in file")
-    def show(self, args):
+    def show(self, args: argparse.Namespace) -> None:
         """Display trace results in HTML, JSON or DOT format."""
 
         if not args.conn_str:
@@ -102,7 +104,7 @@ class TraceCommands(BaseCommand):
             try:
                 engine = base.get_driver(args.conn_str, **args.__dict__)
             except Exception as e:
-                raise exc.CommandError(e.message)
+                raise exc.CommandError(str(e))
 
             trace = engine.get_report(args.trace)
 
@@ -115,7 +117,7 @@ class TraceCommands(BaseCommand):
 
         # Since datetime.datetime is not JSON serializable by default,
         # this method will handle that.
-        def datetime_json_serialize(obj):
+        def datetime_json_serialize(obj: Any) -> Any:
             if hasattr(obj, "isoformat"):
                 return obj.isoformat()
             else:
@@ -162,9 +164,9 @@ class TraceCommands(BaseCommand):
         else:
             print(output)
 
-    def _create_dot_graph(self, trace):
+    def _create_dot_graph(self, trace: dict[str, Any]) -> Any:
         try:
-            import graphviz
+            import graphviz  # type: ignore[import-not-found]
         except ImportError:
             raise exc.CommandError(
                 "graphviz library is required to use this option."
@@ -173,7 +175,7 @@ class TraceCommands(BaseCommand):
         dot = graphviz.Digraph(format="pdf")
         next_id = [0]
 
-        def _create_node(info):
+        def _create_node(info: dict[str, Any]) -> str:
             time_taken = info["finished"] - info["started"]
             service = info["service"] + ":" if "service" in info else ""
             name = info["name"]
@@ -194,7 +196,7 @@ class TraceCommands(BaseCommand):
             dot.node(node_id, label)
             return node_id
 
-        def _create_sub_graph(root):
+        def _create_sub_graph(root: dict[str, Any]) -> str:
             rid = _create_node(root["info"])
             for child in root["children"]:
                 cid = _create_sub_graph(child)
@@ -218,7 +220,7 @@ class TraceCommands(BaseCommand):
         default=False,
         help="List all traces that contain error.",
     )
-    def list(self, args):
+    def list(self, args: argparse.Namespace) -> None:
         """List all traces"""
         if not args.conn_str:
             raise exc.CommandError(
@@ -229,13 +231,13 @@ class TraceCommands(BaseCommand):
         try:
             engine = base.get_driver(args.conn_str, **args.__dict__)
         except Exception as e:
-            raise exc.CommandError(e.message)
+            raise exc.CommandError(str(e))
 
         fields = ("base_id", "timestamp")
         pretty_table = prettytable.PrettyTable(fields)
         pretty_table.align = "l"
         if not args.error_trace:
-            traces = engine.list_traces(fields)
+            traces = engine.list_traces(set(fields))
         else:
             traces = engine.list_error_traces()
         for trace in traces:

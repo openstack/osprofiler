@@ -27,8 +27,10 @@ Guidelines for writing new hacking checks
 import functools
 import re
 import tokenize
+from collections.abc import Callable, Generator
+from typing import Any
 
-from hacking import core
+from hacking import core  # type: ignore[import-not-found]
 
 re_no_construct_dict = re.compile(r"\sdict\(\)")
 re_no_construct_list = re.compile(r"\slist\(\)")
@@ -47,11 +49,15 @@ re_str_format = re.compile(
 re_raises = re.compile(r"\s:raise[^s] *.*$|\s:raises *:.*$|\s:raises *[^:]+$")
 
 
-@core.flake8ext
-def skip_ignored_lines(func):
+@core.flake8ext  # type: ignore[untyped-decorator]
+def skip_ignored_lines(
+    func: Callable[..., Any],
+) -> Callable[..., Any]:
 
     @functools.wraps(func)
-    def wrapper(logical_line, filename):
+    def wrapper(
+        logical_line: str, filename: str
+    ) -> Generator[tuple[int, str], None, None]:
         line = logical_line.strip()
         if not line or line.startswith("#") or line.endswith("# noqa"):
             return
@@ -63,7 +69,9 @@ def skip_ignored_lines(func):
     return wrapper
 
 
-def _parse_assert_mock_str(line):
+def _parse_assert_mock_str(
+    line: str,
+) -> tuple[int, str, str] | tuple[None, None, None]:
     point = line.find(".assert_")
 
     if point != -1:
@@ -73,9 +81,11 @@ def _parse_assert_mock_str(line):
         return None, None, None
 
 
-@skip_ignored_lines
-@core.flake8ext
-def check_assert_methods_from_mock(logical_line, filename):
+@skip_ignored_lines  # type: ignore[untyped-decorator]
+@core.flake8ext  # type: ignore[untyped-decorator]
+def check_assert_methods_from_mock(
+    logical_line: str, filename: str
+) -> Generator[tuple[int, str], None, None]:
     """Ensure that ``assert_*`` methods from ``mock`` library is used correctly
 
     N301 - base error number
@@ -135,9 +145,17 @@ def check_assert_methods_from_mock(logical_line, filename):
                 )
 
 
-@skip_ignored_lines
-@core.flake8ext
-def check_quotes(logical_line, filename):
+def _check_triple(line: str, i: int, char: str) -> bool:
+    return i + 2 < len(line) and (
+        char == line[i] == line[i + 1] == line[i + 2]
+    )
+
+
+@skip_ignored_lines  # type: ignore[untyped-decorator]
+@core.flake8ext  # type: ignore[untyped-decorator]
+def check_quotes(
+    logical_line: str, filename: str
+) -> Generator[tuple[int, str], None, None]:
     """Check that single quotation marks are not used
 
     N350
@@ -146,11 +164,6 @@ def check_quotes(logical_line, filename):
     in_string = False
     in_multiline_string = False
     single_quotas_are_used = False
-
-    def check_tripple(line, i, char):
-        return i + 2 < len(line) and (
-            char == line[i] == line[i + 1] == line[i + 2]
-        )
 
     i = 0
     while i < len(logical_line):
@@ -163,7 +176,7 @@ def check_quotes(logical_line, filename):
                 i += 1  # ignore next char
 
         elif in_multiline_string:
-            if check_tripple(logical_line, i, "\""):
+            if _check_triple(logical_line, i, "\""):
                 i += 2  # skip next 2 chars
                 in_multiline_string = False
 
@@ -175,7 +188,7 @@ def check_quotes(logical_line, filename):
             break
 
         elif char == "\"":
-            if check_tripple(logical_line, i, "\""):
+            if _check_triple(logical_line, i, "\""):
                 in_multiline_string = True
                 i += 3
                 continue
@@ -187,9 +200,11 @@ def check_quotes(logical_line, filename):
         yield (i, "N350 Remove Single quotes")
 
 
-@skip_ignored_lines
-@core.flake8ext
-def check_no_constructor_data_struct(logical_line, filename):
+@skip_ignored_lines  # type: ignore[untyped-decorator]
+@core.flake8ext  # type: ignore[untyped-decorator]
+def check_no_constructor_data_struct(
+    logical_line: str, filename: str
+) -> Generator[tuple[int, str], None, None]:
     """Check that data structs (lists, dicts) are declared using literals
 
     N351
@@ -203,8 +218,10 @@ def check_no_constructor_data_struct(logical_line, filename):
         yield (0, "N351 Remove list() construct and use literal []")
 
 
-@core.flake8ext
-def check_dict_formatting_in_string(logical_line, tokens):
+@core.flake8ext  # type: ignore[untyped-decorator]
+def check_dict_formatting_in_string(
+    logical_line: str, tokens: Any
+) -> Generator[tuple[int, str], None, None]:
     """Check that strings do not use dict-formatting with a single replacement
 
     N352
@@ -275,9 +292,11 @@ def check_dict_formatting_in_string(logical_line, tokens):
                 current_string = ""
 
 
-@skip_ignored_lines
-@core.flake8ext
-def check_using_unicode(logical_line, filename):
+@skip_ignored_lines  # type: ignore[untyped-decorator]
+@core.flake8ext  # type: ignore[untyped-decorator]
+def check_using_unicode(
+    logical_line: str, filename: str
+) -> Generator[tuple[int, str], None, None]:
     """Check crosspython unicode usage
 
     N353
@@ -291,8 +310,8 @@ def check_using_unicode(logical_line, filename):
         )
 
 
-@core.flake8ext
-def check_raises(physical_line, filename):
+@core.flake8ext  # type: ignore[untyped-decorator]
+def check_raises(physical_line: str, filename: str) -> tuple[int, str] | None:
     """Check raises usage
 
     N354
@@ -309,3 +328,4 @@ def check_raises(physical_line, filename):
                 "N354 ':Please use ':raises Exception: conditions' "
                 "in docstrings.",
             )
+    return None

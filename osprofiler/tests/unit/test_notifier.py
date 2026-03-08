@@ -39,7 +39,7 @@ class NotifierTestCase(test.TestCase):
     def test_notify(self):
         m = mock.MagicMock()
         notifier.set(m)
-        notifier.notify(10)
+        notifier.notify(10)  # type: ignore[arg-type]
 
         m.assert_called_once_with(10)
 

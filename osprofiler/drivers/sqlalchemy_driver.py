@@ -14,6 +14,7 @@
 #    under the License.
 
 import logging
+from typing import Any
 
 from oslo_serialization import jsonutils
 
@@ -25,14 +26,19 @@ LOG = logging.getLogger(__name__)
 
 class SQLAlchemyDriver(base.Driver):
     def __init__(
-        self, connection_str, project=None, service=None, host=None, **kwargs
-    ):
+        self,
+        connection_str: str,
+        project: str | None = None,
+        service: str | None = None,
+        host: str | None = None,
+        **kwargs: Any,
+    ) -> None:
         super().__init__(
             connection_str, project=project, service=service, host=host
         )
 
         try:
-            from sqlalchemy import create_engine
+            from sqlalchemy import create_engine  # type: ignore[import-not-found]
             from sqlalchemy import Table, MetaData, Column
             from sqlalchemy import String, JSON, Integer
         except ImportError:
@@ -75,10 +81,12 @@ class SQLAlchemyDriver(base.Driver):
             )
 
     @classmethod
-    def get_name(cls):
+    def get_name(cls) -> str:
         return "sqlalchemy"
 
-    def notify(self, info, context=None):
+    def notify(
+        self, info: dict[str, Any], context: Any = None, **kwargs: Any
+    ) -> None:
         """Write a notification the the database"""
         data = info.copy()
         base_id = data.pop("base_id", None)
@@ -110,16 +118,19 @@ class SQLAlchemyDriver(base.Driver):
                 base_id,
             )
 
-    def list_traces(self, fields=None):
+    def list_traces(
+        self, fields: set[str] | None = None
+    ) -> list[dict[str, Any]]:
         try:
-            from sqlalchemy.sql import select
+            from sqlalchemy.sql import select  # type: ignore[import-not-found]
         except ImportError:
             raise exc.CommandError(
                 "To use this command, you should install 'SQLAlchemy'"
             )
+        fields = set(fields or self.default_trace_fields)
         stmt = select([self._data_table])
-        seen_ids = set()
-        result = []
+        seen_ids: set[str] = set()
+        result: list[dict[str, Any]] = []
         traces = self._conn.execute(stmt).fetchall()
         for trace in traces:
             if trace["base_id"] not in seen_ids:
@@ -133,7 +144,7 @@ class SQLAlchemyDriver(base.Driver):
                 )
         return result
 
-    def get_report(self, base_id):
+    def get_report(self, base_id: str) -> dict[str, Any]:
         try:
             from sqlalchemy.sql import select
         except ImportError:

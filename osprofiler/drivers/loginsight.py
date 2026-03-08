@@ -19,6 +19,7 @@ Classes to use VMware vRealize Log Insight as the trace data store.
 
 import json
 import logging as log
+from typing import Any
 from urllib import parse as urlparse
 
 import netaddr
@@ -48,8 +49,13 @@ class LogInsightDriver(base.Driver):
     """
 
     def __init__(
-        self, connection_str, project=None, service=None, host=None, **kwargs
-    ):
+        self,
+        connection_str: str,
+        project: str | None = None,
+        service: str | None = None,
+        host: str | None = None,
+        **kwargs: Any,
+    ) -> None:
         super().__init__(
             connection_str, project=project, service=service, host=host
         )
@@ -73,19 +79,19 @@ class LogInsightDriver(base.Driver):
         self._client.login()
 
     @classmethod
-    def get_name(cls):
+    def get_name(cls) -> str:
         return "loginsight"
 
-    def notify(self, info):
+    def notify(self, info: dict[str, Any], **kwargs: Any) -> None:
         """Send trace to Log Insight server."""
 
         trace = info.copy()
         trace["project"] = self.project
         trace["service"] = self.service
 
-        event = {"text": "OSProfiler trace"}
+        event: dict[str, Any] = {"text": "OSProfiler trace"}
 
-        def _create_field(name, content):
+        def _create_field(name: str, content: Any) -> dict[str, Any]:
             return {"name": name, "content": content}
 
         event["fields"] = [
@@ -99,7 +105,7 @@ class LogInsightDriver(base.Driver):
 
         self._client.send_event(event)
 
-    def get_report(self, base_id):
+    def get_report(self, base_id: str) -> dict[str, Any]:
         """Retrieves and parses trace data from Log Insight.
 
         :param base_id: Trace base ID
@@ -150,13 +156,13 @@ class LogInsightClient:
 
     def __init__(
         self,
-        host,
-        username,
-        password,
-        api_port=9000,
-        api_ssl_port=9543,
-        query_timeout=60000,
-    ):
+        host: str,
+        username: str,
+        password: str,
+        api_port: int = 9000,
+        api_ssl_port: int = 9543,
+        query_timeout: int = 60000,
+    ) -> None:
         self._host = host
         self._username = username
         self._password = password
@@ -164,9 +170,9 @@ class LogInsightClient:
         self._api_ssl_port = api_ssl_port
         self._query_timeout = query_timeout
         self._session = requests.Session()
-        self._session_id = None
+        self._session_id: str | None = None
 
-    def _build_base_url(self, scheme):
+    def _build_base_url(self, scheme: str) -> str:
         proto_str = f"{scheme}://"
         host_str = (
             f"[{self._host}]" if netaddr.valid_ipv6(self._host) else self._host
@@ -176,7 +182,7 @@ class LogInsightClient:
         )
         return proto_str + host_str + port_str
 
-    def _check_response(self, resp):
+    def _check_response(self, resp: requests.Response) -> None:
         if resp.status_code == 440:
             raise exc.LogInsightLoginTimeout()
 
@@ -189,12 +195,18 @@ class LogInsightClient:
                 except ValueError:
                     pass
             else:
-                msg = resp.reason
+                msg = resp.reason or msg
             raise exc.LogInsightAPIError(msg)
 
     def _send_request(
-        self, method, scheme, path, headers=None, body=None, params=None
-    ):
+        self,
+        method: str,
+        scheme: str,
+        path: str,
+        headers: dict[str, str] | None = None,
+        body: dict[str, Any] | None = None,
+        params: dict[str, Any] | None = None,
+    ) -> Any:
         url = f"{self._build_base_url(scheme)}/{path}"
 
         headers = headers or {}
@@ -205,20 +217,21 @@ class LogInsightClient:
         req = requests.Request(
             method, url, headers=headers, data=json.dumps(body), params=params
         )
-        req = req.prepare()
-        resp = self._session.send(req, verify=False)
+        prepped = req.prepare()
+        resp = self._session.send(prepped, verify=False)
 
         self._check_response(resp)
         return resp.json()
 
-    def _get_auth_header(self):
-        return {"X-LI-Session-Id": self._session_id}
+    def _get_auth_header(self) -> dict[str, str]:
+        return {"X-LI-Session-Id": self._session_id or ""}
 
-    def _trunc_session_id(self):
+    def _trunc_session_id(self) -> str | None:
         if self._session_id:
             return self._session_id[-5:]
+        return None
 
-    def _is_current_session_active(self):
+    def _is_current_session_active(self) -> bool:
         try:
             self._send_request(
                 "get",
@@ -237,7 +250,7 @@ class LogInsightClient:
             return False
 
     @synchronized("li_login_lock")
-    def login(self):
+    def login(self) -> None:
         # Another thread might have created the session while the current
         # thread was waiting for the lock.
         if self._session_id and self._is_current_session_active():
@@ -254,13 +267,13 @@ class LogInsightClient:
         self._session_id = resp["sessionId"]
         LOG.debug("Established session %s.", self._trunc_session_id())
 
-    def send_event(self, event):
+    def send_event(self, event: dict[str, Any]) -> None:
         events = {"events": [event]}
         self._send_request(
             "post", "http", self.EVENTS_INGEST_PATH, body=events
         )
 
-    def query_events(self, params):
+    def query_events(self, params: dict[str, str]) -> Any:
         # Assumes that the keys and values in the params are strings and
         # the operator is "CONTAINS".
         constraints = []
@@ -272,7 +285,7 @@ class LogInsightClient:
             self.QUERY_EVENTS_BASE_PATH, "/".join(constraints)
         )
 
-        def _query_events():
+        def _query_events() -> Any:
             return self._send_request(
                 "get",
                 "https",

@@ -13,6 +13,10 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
+from typing import Any
+
+from oslo_config import cfg
+
 from osprofiler.drivers import base
 from osprofiler import exc
 
@@ -21,17 +25,17 @@ from osprofiler import exc
 class Jaeger(base.Driver):
     def __init__(
         self,
-        connection_str,
-        project=None,
-        service=None,
-        host=None,
-        conf=None,
-        **kwargs,
-    ):
+        connection_str: str,
+        project: str | None = None,
+        service: str | None = None,
+        host: str | None = None,
+        conf: cfg.ConfigOpts | None = None,
+        **kwargs: Any,
+    ) -> None:
         """Jaeger driver for OSProfiler."""
 
         raise exc.CommandError('Jaeger driver is no longer supported')
 
     @classmethod
-    def get_name(cls):
+    def get_name(cls) -> str:
         return "jaeger"

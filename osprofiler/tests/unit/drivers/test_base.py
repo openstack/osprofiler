@@ -25,10 +25,10 @@ class NotifierBaseTestCase(test.TestCase):
             def get_name(cls):
                 return "a"
 
-            def notify(self, a):
+            def notify(self, a):  # type: ignore[override]
                 return a
 
-        self.assertEqual(10, base.get_driver("a://").notify(10))
+        self.assertEqual(10, base.get_driver("a://").notify(10))  # type: ignore[arg-type, func-returns-value]
 
     def test_factory_with_args(self):
 
@@ -41,10 +41,10 @@ class NotifierBaseTestCase(test.TestCase):
             def get_name(cls):
                 return "b"
 
-            def notify(self, c):
+            def notify(self, c):  # type: ignore[override]
                 return self.a + self.b + c
 
-        self.assertEqual(22, base.get_driver("b://", 5, b=7).notify(10))
+        self.assertEqual(22, base.get_driver("b://", 5, b=7).notify(10))  # type: ignore[arg-type, func-returns-value]
 
     def test_driver_not_found(self):
         self.assertRaises(

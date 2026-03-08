@@ -27,7 +27,7 @@ class InitializerTestCase(testtools.TestCase):
         conf = mock.Mock()
         conf.profiler.connection_string = "driver://"
         conf.profiler.hmac_keys = "hmac_keys"
-        context = {}
+        context: dict[object, object] = {}
         project = "my-project"
         service = "my-service"
         host = "my-host"

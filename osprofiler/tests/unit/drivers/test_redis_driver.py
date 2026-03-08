@@ -14,6 +14,7 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
+from typing import Any
 from unittest import mock
 
 from oslo_serialization import jsonutils
@@ -131,7 +132,7 @@ class RedisParserTestCase(test.TestCase):
 
     def test_get_report(self):
         self.redisdb.db = mock.MagicMock()
-        result_elements = [
+        result_elements: list[dict[str, Any]] = [
             {
                 "info": {
                     "project": None,

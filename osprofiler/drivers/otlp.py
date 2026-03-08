@@ -13,6 +13,7 @@
 #    under the License.
 
 import collections
+from typing import Any
 from urllib import parse as parser
 
 from oslo_config import cfg
@@ -26,13 +27,13 @@ from osprofiler import exc
 class OTLP(base.Driver):
     def __init__(
         self,
-        connection_str,
-        project=None,
-        service=None,
-        host=None,
-        conf=cfg.CONF,
-        **kwargs,
-    ):
+        connection_str: str,
+        project: str | None = None,
+        service: str | None = None,
+        host: str | None = None,
+        conf: cfg.ConfigOpts = cfg.CONF,
+        **kwargs: Any,
+    ) -> None:
         """OTLP driver using OTLP exporters."""
 
         super().__init__(
@@ -74,30 +75,32 @@ class OTLP(base.Driver):
         self.tracer = self.trace_api.get_tracer(__name__)
 
         exporter = OTLPSpanExporter(f"{parsed_url.geturl()}/v1/traces")
-        self.trace_api.get_tracer_provider().add_span_processor(
+        self.trace_api.get_tracer_provider().add_span_processor(  # type: ignore[attr-defined]
             BatchSpanProcessor(exporter)
         )
 
-        self.spans = collections.deque()
+        self.spans: collections.deque[Any] = collections.deque()
 
-    def _get_service_name(self, conf, project, service):
+    def _get_service_name(
+        self, conf: cfg.ConfigOpts, project: str | None, service: str | None
+    ) -> str:
         prefix = conf.profiler_otlp.service_name_prefix
         if prefix:
             return f"{prefix}-{project}-{service}"
         return f"{project}-{service}"
 
     @classmethod
-    def get_name(cls):
+    def get_name(cls) -> str:
         return "otlp"
 
-    def _kind(self, name):
+    def _kind(self, name: str) -> Any:
         if "wsgi" in name:
             return self.trace_api.SpanKind.SERVER
         elif "db" in name or "http" in name or "api" in name:
             return self.trace_api.SpanKind.CLIENT
         return self.trace_api.SpanKind.INTERNAL
 
-    def _name(self, payload):
+    def _name(self, payload: dict[str, Any]) -> str:
         info = payload["info"]
         if info.get("request"):
             return "WSGI_{}_{}".format(
@@ -111,9 +114,10 @@ class OTLP(base.Driver):
             return "REQUESTS_{}_{}".format(
                 info["requests"]["method"], info["requests"]["hostname"]
             )
-        return payload["name"].rstrip("-start")
+        return str(payload["name"]).rstrip("-start")
 
-    def notify(self, payload):
+    def notify(self, info: dict[str, Any], **kwargs: Any) -> None:
+        payload = info
         if payload["name"].endswith("start"):
             parent = self.trace_api.SpanContext(
                 trace_id=utils.uuid_to_int128(payload["base_id"]),
@@ -136,12 +140,12 @@ class OTLP(base.Driver):
                 context=ctx,
             )
 
-            span._context = self.trace_api.SpanContext(
-                trace_id=span.context.trace_id,
+            span._context = self.trace_api.SpanContext(  # type: ignore[attr-defined]
+                trace_id=span.context.trace_id,  # type: ignore[attr-defined]
                 span_id=utils.shorten_id(payload["trace_id"]),
-                is_remote=span.context.is_remote,
-                trace_flags=span.context.trace_flags,
-                trace_state=span.context.trace_state,
+                is_remote=span.context.is_remote,  # type: ignore[attr-defined]
+                trace_flags=span.context.trace_flags,  # type: ignore[attr-defined]
+                trace_state=span.context.trace_state,  # type: ignore[attr-defined]
             )
 
             self.spans.append(span)
@@ -171,16 +175,18 @@ class OTLP(base.Driver):
                 )
             span.end()
 
-    def get_report(self, base_id):
+    def get_report(self, base_id: str) -> dict[str, Any]:
         return self._parse_results()
 
-    def list_traces(self, fields=None):
+    def list_traces(
+        self, fields: set[str] | None = None
+    ) -> list[dict[str, Any]]:
         return []
 
-    def list_error_traces(self):
+    def list_error_traces(self) -> list[dict[str, Any]]:
         return []
 
-    def create_span_tags(self, payload):
+    def create_span_tags(self, payload: dict[str, Any]) -> dict[str, Any]:
         """Create tags an OpenTracing compatible span.
 
         :param info: Information from OSProfiler trace.
@@ -188,7 +194,7 @@ class OTLP(base.Driver):
                        from OpenTracing sematic conventions,
                        and some other custom tags related to http, db calls.
         """
-        tags = {}
+        tags: dict[str, Any] = {}
         info = payload["info"]
 
         if info.get("db"):
