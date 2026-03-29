@@ -55,8 +55,8 @@ class ConfigTestCase(test.TestCase):
         opts.set_defaults(self.conf_fixture.conf, hmac_keys="MY_KEY")
         opts.enable_web_trace(self.conf_fixture.conf)
         opts.disable_web_trace(self.conf_fixture.conf)
-        self.assertEqual(0, mock_enable.call_count)
-        self.assertEqual(0, mock_disable.call_count)
+        mock_enable.assert_not_called()
+        mock_disable.assert_not_called()
 
     @mock.patch("osprofiler.web.enable")
     @mock.patch("osprofiler.web.disable")
