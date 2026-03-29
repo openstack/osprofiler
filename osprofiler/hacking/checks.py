@@ -24,10 +24,9 @@ Guidelines for writing new hacking checks
 
 """
 
-import functools
+from collections.abc import Generator
 import re
 import tokenize
-from collections.abc import Callable, Generator
 from typing import Any
 
 from hacking import core  # type: ignore[import-not-found]
@@ -49,26 +48,6 @@ re_str_format = re.compile(
 re_raises = re.compile(r"\s:raise[^s] *.*$|\s:raises *:.*$|\s:raises *[^:]+$")
 
 
-@core.flake8ext  # type: ignore[untyped-decorator]
-def skip_ignored_lines(
-    func: Callable[..., Any],
-) -> Callable[..., Any]:
-
-    @functools.wraps(func)
-    def wrapper(
-        logical_line: str, filename: str
-    ) -> Generator[tuple[int, str], None, None]:
-        line = logical_line.strip()
-        if not line or line.startswith("#") or line.endswith("# noqa"):
-            return
-        try:
-            yield next(func(logical_line, filename))
-        except StopIteration:
-            return
-
-    return wrapper
-
-
 def _parse_assert_mock_str(
     line: str,
 ) -> tuple[int, str, str] | tuple[None, None, None]:
@@ -81,7 +60,6 @@ def _parse_assert_mock_str(
         return None, None, None
 
 
-@skip_ignored_lines  # type: ignore[untyped-decorator]
 @core.flake8ext  # type: ignore[untyped-decorator]
 def check_assert_methods_from_mock(
     logical_line: str, filename: str
@@ -151,15 +129,17 @@ def _check_triple(line: str, i: int, char: str) -> bool:
     )
 
 
-@skip_ignored_lines  # type: ignore[untyped-decorator]
 @core.flake8ext  # type: ignore[untyped-decorator]
 def check_quotes(
-    logical_line: str, filename: str
+    logical_line: str, filename: str, noqa: bool = False
 ) -> Generator[tuple[int, str], None, None]:
     """Check that single quotation marks are not used
 
     N350
     """
+
+    if noqa:
+        return
 
     in_string = False
     in_multiline_string = False
@@ -200,15 +180,16 @@ def check_quotes(
         yield (i, "N350 Remove Single quotes")
 
 
-@skip_ignored_lines  # type: ignore[untyped-decorator]
 @core.flake8ext  # type: ignore[untyped-decorator]
 def check_no_constructor_data_struct(
-    logical_line: str, filename: str
+    logical_line: str, filename: str, noqa: bool = False
 ) -> Generator[tuple[int, str], None, None]:
     """Check that data structs (lists, dicts) are declared using literals
 
     N351
     """
+    if noqa:
+        return
 
     match = re_no_construct_dict.search(logical_line)
     if match:
@@ -220,20 +201,13 @@ def check_no_constructor_data_struct(
 
 @core.flake8ext  # type: ignore[untyped-decorator]
 def check_dict_formatting_in_string(
-    logical_line: str, tokens: Any
+    logical_line: str, tokens: Any, noqa: bool = False
 ) -> Generator[tuple[int, str], None, None]:
     """Check that strings do not use dict-formatting with a single replacement
 
     N352
     """
-    # NOTE(stpierre): Can't use @skip_ignored_lines here because it's
-    # a stupid decorator that only works on functions that take
-    # (logical_line, filename) as arguments.
-    if (
-        not logical_line
-        or logical_line.startswith("#")
-        or logical_line.endswith("# noqa")
-    ):
+    if noqa:
         return
 
     current_string = ""
