@@ -292,24 +292,6 @@ def check_dict_formatting_in_string(
                 current_string = ""
 
 
-@skip_ignored_lines  # type: ignore[untyped-decorator]
-@core.flake8ext  # type: ignore[untyped-decorator]
-def check_using_unicode(
-    logical_line: str, filename: str
-) -> Generator[tuple[int, str], None, None]:
-    """Check crosspython unicode usage
-
-    N353
-    """
-
-    if re.search(r"\bunicode\(", logical_line):
-        yield (
-            0,
-            "N353 'unicode' function is absent in python3. Please "
-            "use 'str' instead.",
-        )
-
-
 @core.flake8ext  # type: ignore[untyped-decorator]
 def check_raises(physical_line: str, filename: str) -> tuple[int, str] | None:
     """Check raises usage
