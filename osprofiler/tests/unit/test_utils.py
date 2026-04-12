@@ -67,8 +67,8 @@ class UtilsTestCase(test.TestCase):
         packed_data, hmac_data = utils.signed_pack(data, hmac)
 
         process_data = utils.signed_unpack(packed_data, hmac_data, [hmac])
-        self.assertIn("hmac_key", process_data)
         assert process_data is not None  # noqa: S101
+        self.assertIn("hmac_key", process_data)
         process_data.pop("hmac_key")
         self.assertEqual(data, process_data)
 

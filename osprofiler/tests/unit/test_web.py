@@ -49,8 +49,8 @@ class WebTestCase(test.TestCase):
         trace_info = utils.signed_unpack(
             headers["X-Trace-Info"], headers["X-Trace-HMAC"], ["key"]
         )
-        self.assertIn("hmac_key", trace_info)
         assert trace_info is not None  # noqa: S101
+        self.assertIn("hmac_key", trace_info)
         self.assertEqual("key", trace_info.pop("hmac_key"))
         self.assertEqual({"parent_id": "z", "base_id": "y"}, trace_info)
 

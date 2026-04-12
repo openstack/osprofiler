@@ -27,7 +27,7 @@ from osprofiler import exc
 
 
 class Redis(base.Driver):
-    @removals.removed_kwarg(  # type: ignore[untyped-decorator]
+    @removals.removed_kwarg(
         "db",
         message="'db' parameter is deprecated "
         "and will be removed in future. "
@@ -219,7 +219,7 @@ class Redis(base.Driver):
 
 
 class RedisSentinel(Redis, base.Driver):
-    @removals.removed_kwarg(  # type: ignore[untyped-decorator]
+    @removals.removed_kwarg(
         "db",
         message="'db' parameter is deprecated "
         "and will be removed in future. "
