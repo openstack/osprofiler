@@ -18,7 +18,6 @@ from collections.abc import Generator
 from typing import Any, cast
 from urllib import parse as parser
 
-from debtcollector import removals
 from oslo_config import cfg
 from oslo_serialization import jsonutils
 
@@ -27,17 +26,9 @@ from osprofiler import exc
 
 
 class Redis(base.Driver):
-    @removals.removed_kwarg(
-        "db",
-        message="'db' parameter is deprecated "
-        "and will be removed in future. "
-        "Please specify 'db' in "
-        "'connection_string' instead.",
-    )
     def __init__(
         self,
         connection_str: str,
-        db: int = 0,
         project: str | None = None,
         service: str | None = None,
         host: str | None = None,
@@ -219,17 +210,9 @@ class Redis(base.Driver):
 
 
 class RedisSentinel(Redis, base.Driver):
-    @removals.removed_kwarg(
-        "db",
-        message="'db' parameter is deprecated "
-        "and will be removed in future. "
-        "Please specify 'db' in "
-        "'connection_string' instead.",
-    )
     def __init__(
         self,
         connection_str: str,
-        db: int = 0,
         project: str | None = None,
         service: str | None = None,
         host: str | None = None,
