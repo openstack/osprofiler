@@ -95,7 +95,7 @@ class WebMiddlewareTestCase(test.TestCase):
         middleware = web.WsgiMiddleware(mock.ANY, hmac_key, enabled=enabled)
         self.assertEqual("yeah!", middleware(request))
         request.get_response.assert_called_once_with(mock.ANY)
-        self.assertEqual(0, mock_profiler_init.call_count)
+        mock_profiler_init.assert_not_called()
 
     @mock.patch("osprofiler.web.profiler.init")
     def test_wsgi_middleware_disabled(self, mock_profiler_init):
@@ -273,7 +273,7 @@ class WebMiddlewareTestCase(test.TestCase):
         web.disable()
         middleware = web.WsgiMiddleware(mock.ANY, "hmac_key", enabled=True)
         self.assertEqual("yeah!", middleware(request))
-        self.assertEqual(mock_profiler_init.call_count, 0)
+        mock_profiler_init.assert_not_called()
 
     @mock.patch("osprofiler.web.profiler.init")
     def test_wsgi_middleware_enable_via_python(self, mock_profiler_init):
