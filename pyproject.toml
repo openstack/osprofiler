@@ -54,7 +54,7 @@ redis = [
     "redis>=2.10.0", # MIT
 ]
 sqlalchemy = [
-    "SQLAlchemy>=1.4.0", # MIT
+    "SQLAlchemy>=2.0.0", # MIT
 ]
 
 [project.scripts]
