@@ -465,8 +465,13 @@ class _Profiler:
         """
         info = info or {}
         info["host"] = self._host
+        # Guard against stop() being called without matching start()
+        if not self._name:
+            # Silently return if there's no active profiling context
+            return
         self._notify(f"{self._name.pop()}-stop", info)
-        self._trace_stack.pop()
+        if self._trace_stack:
+            self._trace_stack.pop()
 
     def _notify(self, name: str, info: dict[str, Any]) -> None:
         payload: dict[str, Any] = {

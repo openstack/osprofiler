@@ -150,6 +150,22 @@ class ProfilerTestCase(test.TestCase):
         self.assertEqual(len(prof._name), 0)
         self.assertEqual(prof._trace_stack, collections.deque(["1", "2"]))
 
+    @mock.patch("osprofiler.profiler.notifier.notify")
+    def test_profiler_stop_empty_stack(self, mock_notify):
+        """Test stop() gracefully handles empty profiler stack"""
+        prof = profiler._Profiler("secret", base_id="1", parent_id="2")
+        # Don't append anything to _name or _trace_stack
+        # This simulates stop() being called without matching start()
+
+        # Should not raise IndexError, just return silently
+        prof.stop(info={"some": "info"})
+
+        # No notification should be sent
+        mock_notify.assert_not_called()
+        # Stacks should remain empty
+        self.assertEqual(len(prof._name), 0)
+        self.assertEqual(len(prof._trace_stack), 2)  # base_id and parent_id
+
     def test_profiler_hmac(self):
         hmac = "secret"
         prof = profiler._Profiler(hmac, base_id="1", parent_id="2")

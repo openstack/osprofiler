@@ -115,7 +115,16 @@ def handle_error(exception_context: Any) -> None:
         exception_context.original_exception
     )
     original_exception = str(exception_context.original_exception)
-    chained_exception = str(exception_context.chained_exception)
+
+    # SQLAlchemy 2.0 removed chained_exception attribute.
+    # Fall back to Python's standard exception chaining (__cause__)
+    if hasattr(exception_context, 'chained_exception'):
+        # SQLAlchemy 1.x
+        chained_exception = str(exception_context.chained_exception)
+    else:
+        # SQLAlchemy 2.0+ - use Python's standard exception chain
+        cause = exception_context.original_exception.__cause__
+        chained_exception = str(cause) if cause else ''
 
     info = {
         "etype": exception_class_name,
