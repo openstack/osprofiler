@@ -47,35 +47,12 @@ class SqlalchemyTracingTestCase(test.TestCase):
 
     @mock.patch("osprofiler.sqlalchemy.profiler")
     def test_handle_error(self, mock_profiler):
-        original_exception = Exception("error")
-        chained_exception = Exception("error and the reason")
-
-        sqlalchemy_exception_ctx = mock.MagicMock()
-        sqlalchemy_exception_ctx.original_exception = original_exception
-        sqlalchemy_exception_ctx.chained_exception = chained_exception
-
-        sqlalchemy.handle_error(sqlalchemy_exception_ctx)
-        expected_info = {
-            "etype": "Exception",
-            "message": "error",
-            "db": {
-                "original_exception": str(original_exception),
-                "chained_exception": str(chained_exception),
-            },
-        }
-        mock_profiler.stop.assert_called_once_with(info=expected_info)
-
-    @mock.patch("osprofiler.sqlalchemy.profiler")
-    def test_handle_error_sqlalchemy_20(self, mock_profiler):
-        """Test handle_error with SQLAlchemy 2.0 (no chained_exception attr)"""
         cause_exception = Exception("underlying cause")
         original_exception = Exception("error")
         original_exception.__cause__ = cause_exception
 
         sqlalchemy_exception_ctx = mock.MagicMock()
         sqlalchemy_exception_ctx.original_exception = original_exception
-        # SQLAlchemy 2.0 doesn't have chained_exception attribute
-        del sqlalchemy_exception_ctx.chained_exception
 
         sqlalchemy.handle_error(sqlalchemy_exception_ctx)
         expected_info = {
@@ -89,15 +66,12 @@ class SqlalchemyTracingTestCase(test.TestCase):
         mock_profiler.stop.assert_called_once_with(info=expected_info)
 
     @mock.patch("osprofiler.sqlalchemy.profiler")
-    def test_handle_error_sqlalchemy_20_no_cause(self, mock_profiler):
-        """Test handle_error with SQLAlchemy 2.0 and no exception cause"""
+    def test_handle_error_no_cause(self, mock_profiler):
         original_exception = Exception("error")
         original_exception.__cause__ = None
 
         sqlalchemy_exception_ctx = mock.MagicMock()
         sqlalchemy_exception_ctx.original_exception = original_exception
-        # SQLAlchemy 2.0 doesn't have chained_exception attribute
-        del sqlalchemy_exception_ctx.chained_exception
 
         sqlalchemy.handle_error(sqlalchemy_exception_ctx)
         expected_info = {
