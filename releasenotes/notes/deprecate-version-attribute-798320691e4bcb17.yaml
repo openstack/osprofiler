@@ -1,0 +1,6 @@
+---
+deprecations:
+  - |
+    The ``osprofiler.__version__`` attribute has been deprecated for removal.
+    Prefer use of ``importlib.metadata`` to inspect version information for
+    installed packages.

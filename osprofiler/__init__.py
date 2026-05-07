@@ -14,5 +14,17 @@
 #    under the License.
 
 import importlib.metadata
+import warnings
 
-__version__ = importlib.metadata.version("osprofiler")
+
+def __getattr__(name: str) -> str:
+    if name == '__version__':
+        warnings.warn(
+            "Accessing osprofiler.__version__ is deprecated and will be "
+            "removed in a future release. Use importlib.metadata instead: "
+            "importlib.metadata.version('osprofiler')",
+            DeprecationWarning,
+            stacklevel=2,
+        )
+        return importlib.metadata.version('osprofiler')
+    raise AttributeError(f"module 'osprofiler' has no attribute {name!r}")
