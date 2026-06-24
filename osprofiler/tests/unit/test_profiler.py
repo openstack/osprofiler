@@ -107,7 +107,7 @@ class ProfilerTestCase(test.TestCase):
         self, mock_notify, mock_generate_uuid, mock_timeutils
     ):
         mock_generate_uuid.return_value = "44"
-        now = datetime.datetime.now(datetime.timezone.utc).replace(tzinfo=None)
+        now = datetime.datetime.now(datetime.UTC).replace(tzinfo=None)
         mock_timeutils.utcnow.return_value = now
 
         info = {"some": "info"}
@@ -128,7 +128,7 @@ class ProfilerTestCase(test.TestCase):
     @mock.patch("osprofiler.profiler.timeutils")
     @mock.patch("osprofiler.profiler.notifier.notify")
     def test_profiler_stop(self, mock_notify, mock_timeutils):
-        now = datetime.datetime.now(datetime.timezone.utc).replace(tzinfo=None)
+        now = datetime.datetime.now(datetime.UTC).replace(tzinfo=None)
         mock_timeutils.utcnow.return_value = now
         prof = profiler._Profiler("secret", base_id="1", parent_id="2")
         prof._trace_stack.append("44")

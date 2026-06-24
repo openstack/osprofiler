@@ -185,7 +185,7 @@ Possible values:
 """,
 )
 
-_PROFILER_OPTS = [
+_PROFILER_OPTS: list[cfg.Opt] = [
     _enabled_opt,
     _trace_sqlalchemy_opt,
     _trace_requests_opt,
@@ -224,7 +224,10 @@ Set process tracer tags.
 """,
 )
 
-_JAEGER_OPTS = [_service_name_prefix, _process_tags]
+_JAEGER_OPTS: list[cfg.Opt] = [
+    _service_name_prefix,
+    _process_tags,
+]
 
 cfg.CONF.register_opts(_JAEGER_OPTS, group=_jaegerprofiler_opt_group)
 
@@ -239,7 +242,7 @@ Set service name prefix to OTLP exporters.
 """,
 )
 
-_OTLP_OPTS = [
+_OTLP_OPTS: list[cfg.Opt] = [
     _otlp_service_name_prefix,
 ]
 
