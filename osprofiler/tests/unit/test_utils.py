@@ -16,6 +16,7 @@
 import base64
 import hashlib
 import hmac
+import json
 from unittest import mock
 import uuid
 
@@ -51,14 +52,41 @@ class UtilsTestCase(test.TestCase):
     def test_binary_decode_text_type(self):
         self.assertEqual("text", utils.binary_decode("text"))
 
-    def test_generate_hmac(self):
+    def test_generate_hmac_defaults_to_sha256(self):
         hmac_key = "secrete"
         data = "my data"
 
-        h = hmac.new(utils.binary_encode(hmac_key), digestmod=hashlib.sha1)
+        h = hmac.new(
+            utils.binary_encode(hmac_key),
+            digestmod=hashlib.sha256,
+        )
         h.update(utils.binary_encode(data))
 
         self.assertEqual(h.hexdigest(), utils.generate_hmac(data, hmac_key))
+
+    def test_generate_hmac_explicit_sha1(self):
+        hmac_key = "secrete"
+        data = "my data"
+
+        h = hmac.new(
+            utils.binary_encode(hmac_key),
+            digestmod=hashlib.sha1,
+        )
+        h.update(utils.binary_encode(data))
+
+        self.assertEqual(
+            h.hexdigest(),
+            utils.generate_hmac(data, hmac_key, digestmod="sha1"),
+        )
+
+    def test_generate_hmac_sha256_differs_from_sha1(self):
+        hmac_key = "secrete"
+        data = "my data"
+
+        sha256_hmac = utils.generate_hmac(data, hmac_key)
+        sha1_hmac = utils.generate_hmac(data, hmac_key, digestmod="sha1")
+
+        self.assertNotEqual(sha256_hmac, sha1_hmac)
 
     def test_signed_pack_unpack(self):
         hmac = "secret"
@@ -113,6 +141,47 @@ class UtilsTestCase(test.TestCase):
         hmac_data = utils.generate_hmac(data, hmac)
 
         self.assertIsNone(utils.signed_unpack(data, hmac_data, hmac))
+
+    def test_signed_unpack_accepts_sha1_signed_data(self):
+        """Verify backward compatibility with SHA-1 signed traces."""
+        hmac_key = "secret"
+        data = {"some": "data"}
+        raw = base64.urlsafe_b64encode(
+            utils.binary_encode(json.dumps(data)),
+        )
+        sha1_hmac = utils.generate_hmac(raw, hmac_key, digestmod="sha1")
+
+        result = utils.signed_unpack(raw, sha1_hmac, [hmac_key])
+        self.assertIsNotNone(result)
+        assert result is not None  # noqa: S101
+        result.pop("hmac_key")
+        self.assertEqual(data, result)
+
+    def test_signed_unpack_prefers_sha256_over_sha1(self):
+        """Verify SHA-256 is tried before SHA-1."""
+        hmac_key = "secret"
+        data = {"some": "data"}
+
+        packed_data, sha256_hmac = utils.signed_pack(data, hmac_key)
+
+        result = utils.signed_unpack(packed_data, sha256_hmac, [hmac_key])
+        self.assertIsNotNone(result)
+        assert result is not None  # noqa: S101
+        result.pop("hmac_key")
+        self.assertEqual(data, result)
+
+    def test_signed_pack_uses_sha256(self):
+        """Verify signed_pack generates SHA-256 HMACs."""
+        hmac_key = "secret"
+        data = {"some": "data"}
+
+        packed_data, hmac_data = utils.signed_pack(data, hmac_key)
+        expected_hmac = utils.generate_hmac(
+            packed_data,
+            hmac_key,
+            digestmod="sha256",
+        )
+        self.assertEqual(expected_hmac, hmac_data)
 
     def test_shorten_id_with_valid_uuid(self):
         valid_id = "4e3e0ec6-2938-40b1-8504-09eb1d4b0dee"

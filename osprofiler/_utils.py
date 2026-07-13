@@ -81,9 +81,16 @@ def binary_decode(data: bytes | str, encoding: str = "utf-8") -> str:
         raise TypeError("Expected binary or string type")
 
 
-def generate_hmac(data: bytes | str, hmac_key: bytes | str) -> str:
+def generate_hmac(
+    data: bytes | str,
+    hmac_key: bytes | str,
+    digestmod: str = "sha256",
+) -> str:
     """Generate a hmac using a known key given the provided content."""
-    h = hmac.new(binary_encode(hmac_key), digestmod=hashlib.sha1)
+    h = hmac.new(
+        binary_encode(hmac_key),
+        digestmod=getattr(hashlib, digestmod),
+    )
     h.update(binary_encode(data))
     return h.hexdigest()
 
@@ -123,21 +130,29 @@ def signed_unpack(
     hmac_data = hmac_data.strip()
     if not hmac_data:
         return None
+    # Try SHA-256 first (current default), then fall back to SHA-1 for
+    # backward compatibility during rolling upgrades.
+    _DIGEST_ALGORITHMS = ("sha256", "sha1")
     for hmac_key in hmac_keys:
-        try:
-            user_hmac_data = generate_hmac(data, hmac_key)
-        except Exception:  # noqa: S110
-            pass
-        else:
-            if hmac.compare_digest(hmac_data, user_hmac_data):
-                try:
-                    contents: dict[str, Any] = json.loads(
-                        binary_decode(base64.urlsafe_b64decode(data))
-                    )
-                    contents["hmac_key"] = hmac_key
-                    return contents
-                except Exception:
-                    return None
+        for digestmod in _DIGEST_ALGORITHMS:
+            try:
+                user_hmac_data = generate_hmac(
+                    data,
+                    hmac_key,
+                    digestmod=digestmod,
+                )
+            except Exception:  # noqa: S110
+                pass
+            else:
+                if hmac.compare_digest(hmac_data, user_hmac_data):
+                    try:
+                        contents: dict[str, Any] = json.loads(
+                            binary_decode(base64.urlsafe_b64decode(data))
+                        )
+                        contents["hmac_key"] = hmac_key
+                        return contents
+                    except Exception:
+                        return None
     return None
 
 
