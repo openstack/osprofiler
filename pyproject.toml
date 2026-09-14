@@ -60,7 +60,7 @@ sqlalchemy = [
 osprofiler = "osprofiler.cmd.shell:main"
 
 [tool.setuptools.packages.find]
-include = ["osprofiler"]
+include = ["osprofiler*"]
 
 [tool.mypy]
 python_version = "3.11"
