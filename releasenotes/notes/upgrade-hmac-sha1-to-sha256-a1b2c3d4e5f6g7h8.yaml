@@ -1,0 +1,12 @@
+---
+upgrade:
+  - |
+    Trace signing now uses HMAC-SHA256 instead of HMAC-SHA1.  SHA-1 has
+    known classical collision weaknesses, and while HMAC-SHA1 remains
+    secure in practice, HMAC-SHA256 aligns with current NIST
+    recommendations (SP 800-131A Rev.2).
+
+    During rolling upgrades, services running the new code will still
+    accept traces signed with HMAC-SHA1 by older services.  No operator
+    action is required.  The SHA-1 verification fallback will be removed
+    in a future release.
