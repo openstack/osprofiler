@@ -15,10 +15,8 @@ reasons (for example in isolating cross-project performance issues).
    user/index
 
 .. toctree::
-   :hidden:
 
-   contributor/modules/modules
-
+   contributor/index
 
 .. rubric:: Indices and tables
 
