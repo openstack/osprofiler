@@ -13,7 +13,8 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
-import logging
+import os
+import tempfile
 
 from oslo_config import cfg
 from oslo_messaging import transport  # type: ignore[import-not-found]
@@ -26,7 +27,6 @@ from osprofiler.tests import test
 
 
 CONF = cfg.CONF
-LOG = logging.getLogger(__name__)
 
 
 @profiler.trace_cls("rpc", hide_args=True)
@@ -38,14 +38,18 @@ class Foo:
         return x * y
 
 
-class DriverTestCase(test.FunctionalTestCase):
+class DriverTestBase(test.FunctionalTestCase):
     SERVICE = "service"
     PROJECT = "project"
+
+    @property
+    def connection_string(self):
+        raise NotImplementedError()
 
     def setUp(self):
         super().setUp()
         self.config_fixture.config(
-            connection_string="messaging://",
+            connection_string=self.connection_string,
             group='profiler',
             enabled=True,
             trace_sqlalchemy=False,
@@ -57,8 +61,7 @@ class DriverTestCase(test.FunctionalTestCase):
         )
 
     def _assert_dict(self, info, **kwargs):
-        for key in kwargs:
-            self.assertEqual(kwargs[key], info[key])
+        self.assertLess(kwargs.items(), info.items())
 
     def _assert_child_dict(self, child, base_id, parent_id, name, fn_name):
         self.assertEqual(parent_id, child["parent_id"])
@@ -85,7 +88,7 @@ class DriverTestCase(test.FunctionalTestCase):
         exp_raw["name"] = f"{name}-stop"
         self._assert_dict(raw_stop, **exp_raw)
 
-    def test_get_report(self):
+    def _test_get_report(self):
         # initialize profiler notifier (the same way as in services)
         initializer.init_from_conf(
             CONF, {}, self.PROJECT, self.SERVICE, "host"
@@ -112,7 +115,6 @@ class DriverTestCase(test.FunctionalTestCase):
 
         # generate the report
         report = engine.get_report(base_id)
-        LOG.debug("OSProfiler report: %s", report)
 
         # verify the report
         self.assertEqual("total", report["info"]["name"])
@@ -138,19 +140,7 @@ class DriverTestCase(test.FunctionalTestCase):
             "osprofiler.tests.functional.test_driver.Foo.baz",
         )
 
-
-class RedisDriverTestCase(DriverTestCase):
-    def setUp(self):
-        super().setUp()
-        self.config_fixture.config(
-            connection_string="redis://localhost:6379",
-            group='profiler',
-            enabled=True,
-            trace_sqlalchemy=False,
-            hmac_keys="SECRET_KEY",
-        )
-
-    def test_list_traces(self):
+    def _test_list_traces(self):
         # initialize profiler notifier (the same way as in services)
         initializer.init_from_conf(
             CONF, {}, self.PROJECT, self.SERVICE, "host"
@@ -177,7 +167,45 @@ class RedisDriverTestCase(DriverTestCase):
 
         # generate the report
         traces = engine.list_traces()
-        LOG.debug("Collected traces: %s", traces)
 
         # ensure trace with base_id is in the list of traces
         self.assertIn(base_id, [t["base_id"] for t in traces])
+
+
+class MessagingDriverTestCase(DriverTestBase):
+    @property
+    def connection_string(self):
+        return "messaging://"
+
+    def test_get_report(self):
+        super()._test_get_report()
+
+
+class RedisDriverTestCase(DriverTestBase):
+    @property
+    def connection_string(self):
+        return "redis://localhost:6379"
+
+    def test_get_report(self):
+        super()._test_get_report()
+
+    def test_list_traces(self):
+        super()._test_list_traces()
+
+
+class SqliteDriverTestCase(DriverTestBase):
+    def setUp(self):
+        fd, self.db_file = tempfile.mkstemp(suffix=".db")
+        os.close(fd)
+        self.addCleanup(os.remove, self.db_file)
+        super().setUp()
+
+    @property
+    def connection_string(self):
+        return f"sqlite:///{self.db_file}"
+
+    def test_get_report(self):
+        super()._test_get_report()
+
+    def test_list_traces(self):
+        super()._test_list_traces()

@@ -69,8 +69,8 @@ class SQLAlchemyDriver(base.Driver):
         from sqlalchemy.orm import Session
 
         data = info.copy()
-        base_id = data.pop("base_id", None)
         timestamp = data.pop("timestamp", None)
+        base_id = data.pop("base_id", None)
         parent_id = data.pop("parent_id", None)
         trace_id = data.pop("trace_id", None)
         project = data.pop("project", self.project)
@@ -126,6 +126,20 @@ class SQLAlchemyDriver(base.Driver):
         with Session(self._engine) as session:
             traces = session.query(Data).filter(Data.base_id == base_id).all()
             for trace in traces:
+                raw_payload = jsonutils.loads(trace.data)
+                # NOTE(tkajinam): restore keys popped in notify
+                raw_payload.update(
+                    {
+                        "timestamp": trace.timestamp,
+                        "base_id": trace.base_id,
+                        "parent_id": trace.parent_id,
+                        "trace_id": trace.trace_id,
+                        "project": trace.project,
+                        "host": trace.host,
+                        "service": trace.service,
+                        "name": trace.name,
+                    }
+                )
                 self._append_results(
                     trace.trace_id,
                     trace.parent_id,
@@ -134,6 +148,6 @@ class SQLAlchemyDriver(base.Driver):
                     trace.service,
                     trace.host,
                     trace.timestamp,
-                    jsonutils.loads(trace.data),
+                    raw_payload,
                 )
         return self._parse_results()

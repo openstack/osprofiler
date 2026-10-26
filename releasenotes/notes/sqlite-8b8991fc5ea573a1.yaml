@@ -1,0 +1,5 @@
+---
+features:
+  - |
+    The ``[profiler] connection_string`` option now supports url with
+    ``sqlite`` scheme.
