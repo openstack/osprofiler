@@ -19,7 +19,7 @@
         msg: "OSProfiler connection string is: {{ osprofiler_connection_string.stdout }}"
 
     - name: Get list of traces
-      command: "osprofiler trace list --connection-string {{ osprofiler_connection_string.stdout }}"
+      command: "/opt/stack/data/venv/bin/osprofiler trace list --connection-string {{ osprofiler_connection_string.stdout }}"
       become: True
       become_user: stack
       register: osprofiler_trace_list
@@ -29,11 +29,11 @@
 
     - name: Save traces to files
       shell: |
-        osprofiler trace list --connection-string {{ osprofiler_connection_string.stdout }} > {{ osprofiler_traces_dir }}/trace_list.txt
+        /opt/stack/data/venv/bin/osprofiler trace list --connection-string {{ osprofiler_connection_string.stdout }} > {{ osprofiler_traces_dir }}/trace_list.txt
         cat {{ osprofiler_traces_dir }}/trace_list.txt | tail -n +4 | head -n -1 | awk '{print $2}' > {{ osprofiler_traces_dir }}/trace_ids.txt
 
         while read p; do
-          osprofiler trace show --connection-string {{ osprofiler_connection_string.stdout }} --html $p > {{ osprofiler_traces_dir }}/trace-$p.html
+          /opt/stack/data/venv/bin/osprofiler trace show --connection-string {{ osprofiler_connection_string.stdout }} --html $p > {{ osprofiler_traces_dir }}/trace-$p.html
         done < {{ osprofiler_traces_dir }}/trace_ids.txt
       become: True
       become_user: stack
