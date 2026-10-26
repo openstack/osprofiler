@@ -13,22 +13,24 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
-import logging
-import sys
+from oslo_config import cfg
+from oslo_config import fixture as config_fixture
 
-from testtools import testcase
+from oslotest import base
 
 
-class TestCase(testcase.TestCase):
+CONF = cfg.CONF
+
+
+class TestCase(base.BaseTestCase):
     """Test case base class for all osprofiler unit tests."""
 
-    pass
+    def setUp(self):
+        super().setUp()
+        self.config_fixture = self.useFixture(config_fixture.Config(CONF))
 
 
 class FunctionalTestCase(TestCase):
     """Base for functional tests"""
 
-    def setUp(self):
-        super().setUp()
-
-        logging.basicConfig(stream=sys.stderr, level=logging.DEBUG)
+    pass
