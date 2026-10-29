@@ -15,56 +15,54 @@
 
 from unittest import mock
 
-from oslo_config import fixture
+from oslo_config import cfg
 
 from osprofiler import opts
 from osprofiler.tests import test
 
 
+CONF = cfg.CONF
+
+
 class ConfigTestCase(test.TestCase):
     def setUp(self):
         super().setUp()
-        self.conf_fixture = self.useFixture(fixture.Config())
 
     def test_options_defaults(self):
-        opts.set_defaults(self.conf_fixture.conf)
-        self.assertFalse(self.conf_fixture.conf.profiler.enabled)
-        self.assertFalse(self.conf_fixture.conf.profiler.trace_sqlalchemy)
-        self.assertEqual(
-            "SECRET_KEY", self.conf_fixture.conf.profiler.hmac_keys
-        )
-        self.assertFalse(opts.is_trace_enabled(self.conf_fixture.conf))
-        self.assertFalse(opts.is_db_trace_enabled(self.conf_fixture.conf))
+        opts.set_defaults(CONF)
+        self.assertFalse(CONF.profiler.enabled)
+        self.assertFalse(CONF.profiler.trace_sqlalchemy)
+        self.assertEqual("SECRET_KEY", CONF.profiler.hmac_keys)
+        self.assertFalse(opts.is_trace_enabled(CONF))
+        self.assertFalse(opts.is_db_trace_enabled(CONF))
 
     def test_options_defaults_override(self):
         opts.set_defaults(
-            self.conf_fixture.conf,
+            CONF,
             enabled=True,
             trace_sqlalchemy=True,
             hmac_keys="MY_KEY",
         )
-        self.assertTrue(self.conf_fixture.conf.profiler.enabled)
-        self.assertTrue(self.conf_fixture.conf.profiler.trace_sqlalchemy)
-        self.assertEqual("MY_KEY", self.conf_fixture.conf.profiler.hmac_keys)
-        self.assertTrue(opts.is_trace_enabled(self.conf_fixture.conf))
-        self.assertTrue(opts.is_db_trace_enabled(self.conf_fixture.conf))
+        self.assertTrue(CONF.profiler.enabled)
+        self.assertTrue(CONF.profiler.trace_sqlalchemy)
+        self.assertEqual("MY_KEY", CONF.profiler.hmac_keys)
+        self.assertTrue(opts.is_trace_enabled(CONF))
+        self.assertTrue(opts.is_db_trace_enabled(CONF))
 
     @mock.patch("osprofiler.web.enable")
     @mock.patch("osprofiler.web.disable")
     def test_web_trace_disabled(self, mock_disable, mock_enable):
-        opts.set_defaults(self.conf_fixture.conf, hmac_keys="MY_KEY")
-        opts.enable_web_trace(self.conf_fixture.conf)
-        opts.disable_web_trace(self.conf_fixture.conf)
+        opts.set_defaults(CONF, hmac_keys="MY_KEY")
+        opts.enable_web_trace(CONF)
+        opts.disable_web_trace(CONF)
         mock_enable.assert_not_called()
         mock_disable.assert_not_called()
 
     @mock.patch("osprofiler.web.enable")
     @mock.patch("osprofiler.web.disable")
     def test_web_trace_enabled(self, mock_disable, mock_enable):
-        opts.set_defaults(
-            self.conf_fixture.conf, enabled=True, hmac_keys="MY_KEY"
-        )
-        opts.enable_web_trace(self.conf_fixture.conf)
-        opts.disable_web_trace(self.conf_fixture.conf)
+        opts.set_defaults(CONF, enabled=True, hmac_keys="MY_KEY")
+        opts.enable_web_trace(CONF)
+        opts.disable_web_trace(CONF)
         mock_enable.assert_called_once_with("MY_KEY")
         mock_disable.assert_called_once_with()

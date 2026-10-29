@@ -12,12 +12,11 @@
 
 from unittest import mock
 
-import testtools
-
 from osprofiler import initializer
+from osprofiler.tests import test
 
 
-class InitializerTestCase(testtools.TestCase):
+class InitializerTestCase(test.TestCase):
     @mock.patch("osprofiler.notifier.set")
     @mock.patch("osprofiler.notifier.create")
     @mock.patch("osprofiler.web.enable")

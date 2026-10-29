@@ -14,13 +14,13 @@
 #    under the License.
 
 import logging
-import os
 
 from oslo_config import cfg
+from oslo_messaging import transport  # type: ignore[import-not-found]
 
 from osprofiler.drivers import base
 from osprofiler import initializer
-from osprofiler import opts
+from osprofiler import opts  # noqa
 from osprofiler import profiler
 from osprofiler.tests import test
 
@@ -44,9 +44,16 @@ class DriverTestCase(test.FunctionalTestCase):
 
     def setUp(self):
         super().setUp()
-        CONF(["--config-file", os.path.dirname(__file__) + "/config.cfg"])
-        opts.set_defaults(
-            CONF, enabled=True, trace_sqlalchemy=False, hmac_keys="SECRET_KEY"
+        self.config_fixture.config(
+            connection_string="messaging://",
+            group='profiler',
+            enabled=True,
+            trace_sqlalchemy=False,
+            hmac_keys="SECRET_KEY",
+        )
+        CONF.register_opts(transport._transport_opts)
+        self.config_fixture.config(
+            transport_url='rabbit://localhost:5672/',
         )
 
     def _assert_dict(self, info, **kwargs):
@@ -134,11 +141,10 @@ class DriverTestCase(test.FunctionalTestCase):
 
 class RedisDriverTestCase(DriverTestCase):
     def setUp(self):
-        super(DriverTestCase, self).setUp()
-        CONF([])
-        opts.set_defaults(
-            CONF,
+        super().setUp()
+        self.config_fixture.config(
             connection_string="redis://localhost:6379",
+            group='profiler',
             enabled=True,
             trace_sqlalchemy=False,
             hmac_keys="SECRET_KEY",
