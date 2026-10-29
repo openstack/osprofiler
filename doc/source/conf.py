@@ -138,3 +138,5 @@ apidoc_excluded_paths = [
     'hacking',
     'tests',
 ]
+
+autodoc_mock_imports = ["sqlalchemy"]
