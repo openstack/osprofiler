@@ -47,6 +47,7 @@ def get_driver(connection_string: str, *args: Any, **kwargs: Any) -> "Driver":
         "mysql+mysqldb",
         "postgresql",
         "postgresql+psycopg2",
+        "sqlite",
     ]:
         backend = "sqlalchemy"
     for driver in _utils.itersubclasses(Driver):
